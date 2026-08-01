@@ -1,0 +1,30 @@
+## Visual Studio & .NET .gitignore
+
+# Visual Studio cache & temporary files
+.vs/
+**/[Nn]et[0-9]*/
+*.user
+*.userprefs
+*.suo
+*.cache
+*.docstates
+
+# Build results (bin & obj directories)
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+
+# Tooling & IDEs
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.userosscache
+
+# OS generated files
+Thumbs.db
+[Dd]esktop.ini
+.DS_Store
