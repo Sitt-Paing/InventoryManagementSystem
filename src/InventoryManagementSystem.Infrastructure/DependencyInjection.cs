@@ -1,10 +1,12 @@
 using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Infrastructure.Persistence;
+using InventoryManagementSystem.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace InventoryManagementSystem.Infrastructure;
+using Microsoft.AspNetCore.Http;
 
 public static class DependencyInjection
 {
@@ -12,6 +14,9 @@ public static class DependencyInjection
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString,
