@@ -2,6 +2,7 @@ using InventoryManagementSystem.Application.Categories.DTOs;
 using InventoryManagementSystem.Application.Common.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Data.Common;
 
 namespace InventoryManagementSystem.Application.Categories.Queries;
 
@@ -24,6 +25,14 @@ public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery,
 
         if (category == null) return null;
 
-        return new CategoryDto(category.Id, category.Name, category.Description, category.IsActive);
+        return new CategoryDto
+        {
+            Id = category.Id,
+            Name = category.Name,
+            Description = category.Description,
+            IsActive = category.IsActive,
+            CreatedOn = category.CreatedOn,
+            UpdatedOn = category.UpdatedOn
+        };
     }
 }
