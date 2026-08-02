@@ -20,7 +20,15 @@ public class GetCategoriesQueryHandler : IRequestHandler<GetCategoriesQuery, Lis
     {
         return await _context.Categories
             .AsNoTracking()
-            .Select(c => new CategoryDto(c.Id, c.Name, c.Description, c.IsActive))
+            .Select(c => new CategoryDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Description = c.Description,
+                IsActive = c.IsActive,
+                CreatedOn = c.CreatedOn,
+                UpdatedOn = c.UpdatedOn
+            })
             .ToListAsync(cancellationToken);
     }
 }
