@@ -1,11 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryManagementSystem.Infrastructure.Persistence;
 
-public partial class InventoryManagementDbContext : DbContext
+public partial class InventoryManagementDbContext : DbContext, IApplicationDbContext
 {
     public InventoryManagementDbContext(DbContextOptions<InventoryManagementDbContext> options)
         : base(options)
