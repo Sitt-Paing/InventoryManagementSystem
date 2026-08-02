@@ -1,6 +1,5 @@
-using System;
-using System.Collections.Generic;
 using InventoryManagementSystem.Application.Common.Interfaces;
+using InventoryManagementSystem.Domain.Common;
 using InventoryManagementSystem.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,9 +7,55 @@ namespace InventoryManagementSystem.Infrastructure.Persistence;
 
 public partial class InventoryManagementDbContext : DbContext, IApplicationDbContext
 {
-    public InventoryManagementDbContext(DbContextOptions<InventoryManagementDbContext> options)
+    private readonly ICurrentUserService? _currentUserService;
+
+    public InventoryManagementDbContext(
+        DbContextOptions<InventoryManagementDbContext> options,
+        ICurrentUserService? currentUserService = null)
         : base(options)
     {
+        _currentUserService = currentUserService;
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        var currentUserId = _currentUserService?.UserId ?? "System";
+
+        foreach (var entry in ChangeTracker.Entries())
+        {
+            if (entry.Entity is BaseAuditableEntity<long> auditableLong)
+            {
+                ApplyAuditValues(entry, auditableLong, currentUserId);
+            }
+            else if (entry.Entity is BaseAuditableEntity<string> auditableString)
+            {
+                ApplyAuditValues(entry, auditableString, currentUserId);
+            }
+        }
+
+        return await base.SaveChangesAsync(cancellationToken);
+    }
+
+    private static void ApplyAuditValues<TId>(Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry, BaseAuditableEntity<TId> entity, string currentUserId)
+    {
+        switch (entry.State)
+        {
+            case EntityState.Added:
+                entity.CreatedOn = DateTime.Now;
+                entity.CreatedBy = currentUserId;
+                break;
+
+            case EntityState.Modified:
+                entity.UpdatedOn = DateTime.Now;
+                entity.UpdatedBy = currentUserId;
+                break;
+
+            case EntityState.Deleted:
+                entry.State = EntityState.Modified;
+                entity.DeletedOn = DateTime.Now;
+                entity.DeletedBy = currentUserId;
+                break;
+        }
     }
 
     public virtual DbSet<AspNetRole> AspNetRoles { get; set; }
