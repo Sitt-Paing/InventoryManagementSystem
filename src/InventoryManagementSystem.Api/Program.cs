@@ -1,4 +1,6 @@
 using InventoryManagementSystem.Api.Middleware;
+using InventoryManagementSystem.Application;
+using InventoryManagementSystem.Infrastructure;
 using InventoryManagementSystem.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +8,9 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add Services
+builder.Services.AddApplicationServices();
+builder.Services.AddInfrastructureServices(builder.Configuration);
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -20,13 +25,16 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Use Global Exception Handler & Encryption Middleware
-app.UseExceptionHandler();
-app.UseEncryptionMiddleware();
-
-// Configure the HTTP request pipeline.
+// Initialise and seed database
 if (app.Environment.IsDevelopment())
 {
+    using (var scope = app.Services.CreateScope())
+    {
+        var initializer = scope.ServiceProvider.GetRequiredService<ApplicationDbContextInitializer>();
+        await initializer.InitialiseAsync();
+        await initializer.SeedAsync();
+    }
+
     app.MapOpenApi();
     app.MapScalarApiReference("/docs/scalar");
 }
