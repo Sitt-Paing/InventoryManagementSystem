@@ -26,7 +26,7 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
 
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
         var connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? "Server=(localdb)\\mssqllocaldb;Database=InventoryManagementDb;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True";
+            ?? "Server=.;Database=InventoryManagement;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True;User ID=sa;Password=Password@123";
 
         optionsBuilder.UseSqlServer(connectionString);
 
