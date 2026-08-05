@@ -1,11 +1,12 @@
 using FluentValidation;
+using InventoryManagementSystem.Application.Categories.DTOs;
 using InventoryManagementSystem.Application.Common.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryManagementSystem.Application.Categories.Commands;
 
-public record UpdateCategoryCommand(long Id, string Name, string? Description, bool IsActive) : IRequest<bool>;
+public record UpdateCategoryCommand(long Id, string Name, string? Description, bool IsActive) : IRequest<CategoryDto?>;
 
 public class UpdateCategoryCommandValidator : AbstractValidator<UpdateCategoryCommand>
 {
@@ -23,7 +24,7 @@ public class UpdateCategoryCommandValidator : AbstractValidator<UpdateCategoryCo
     }
 }
 
-public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryCommand, bool>
+public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryCommand, CategoryDto?>
 {
     private readonly IApplicationDbContext _context;
 
@@ -32,12 +33,13 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
         _context = context;
     }
 
-    public async Task<bool> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
+    public async Task<CategoryDto?> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Categories
+            .Where(c => !c.DeletedOn.HasValue)
             .FirstOrDefaultAsync(c => c.Id == request.Id, cancellationToken);
 
-        if (entity == null) return false;
+        if (entity == null) return null;
 
         entity.Name = request.Name;
         entity.Description = request.Description;
@@ -45,6 +47,18 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return true;
+        return new CategoryDto
+        {
+            Id = entity.Id,
+            Name = entity.Name,
+            Description = entity.Description,
+            IsActive = entity.IsActive,
+            CreatedOn = entity.CreatedOn,
+            CreatedBy = entity.CreatedBy,
+            UpdatedOn = entity.UpdatedOn,
+            UpdatedBy = entity.UpdatedBy,
+            DeletedOn = entity.DeletedOn,
+            DeletedBy = entity.DeletedBy
+        };
     }
 }
