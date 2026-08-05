@@ -1,6 +1,9 @@
-using InventoryManagementSystem.Application.Categories.Commands;
+using InventoryManagementSystem.Application.Categories.Commands.CreateCategory;
+using InventoryManagementSystem.Application.Categories.Commands.DeleteCategory;
+using InventoryManagementSystem.Application.Categories.Commands.UpdateCategory;
 using InventoryManagementSystem.Application.Categories.DTOs;
-using InventoryManagementSystem.Application.Categories.Queries;
+using InventoryManagementSystem.Application.Categories.Queries.GetCategories;
+using InventoryManagementSystem.Application.Categories.Queries.GetCategoryById;
 using InventoryManagementSystem.Application.Common.Models;
 using Microsoft.AspNetCore.Mvc;
 
