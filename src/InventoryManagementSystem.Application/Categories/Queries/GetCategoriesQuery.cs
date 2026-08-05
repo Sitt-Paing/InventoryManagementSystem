@@ -20,6 +20,7 @@ public class GetCategoriesQueryHandler : IRequestHandler<GetCategoriesQuery, Lis
     {
         return await _context.Categories
             .AsNoTracking()
+            .Where(c => !c.DeletedOn.HasValue)
             .Select(c => new CategoryDto
             {
                 Id = c.Id,
@@ -27,7 +28,11 @@ public class GetCategoriesQueryHandler : IRequestHandler<GetCategoriesQuery, Lis
                 Description = c.Description,
                 IsActive = c.IsActive,
                 CreatedOn = c.CreatedOn,
-                UpdatedOn = c.UpdatedOn
+                CreatedBy = c.CreatedBy,
+                UpdatedOn = c.UpdatedOn,
+                UpdatedBy = c.UpdatedBy,
+                DeletedOn = c.DeletedOn,
+                DeletedBy = c.DeletedBy
             })
             .ToListAsync(cancellationToken);
     }
