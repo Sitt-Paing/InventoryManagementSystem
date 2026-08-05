@@ -19,6 +19,7 @@ public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryComman
     public async Task<CategoryDto?> Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Categories
+            .Where(c => !c.DeletedOn.HasValue)
             .FirstOrDefaultAsync(c => c.Id == request.Id, cancellationToken);
 
         if (entity == null) return null;
