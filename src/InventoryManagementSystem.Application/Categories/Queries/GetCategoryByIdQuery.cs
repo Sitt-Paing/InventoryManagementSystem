@@ -21,6 +21,7 @@ public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery,
     {
         var category = await _context.Categories
             .AsNoTracking()
+            .Where(c => !c.DeletedOn.HasValue)
             .FirstOrDefaultAsync(c => c.Id == request.Id, cancellationToken);
 
         if (category == null) return null;
@@ -32,7 +33,11 @@ public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery,
             Description = category.Description,
             IsActive = category.IsActive,
             CreatedOn = category.CreatedOn,
-            UpdatedOn = category.UpdatedOn
+            CreatedBy = category.CreatedBy,
+            UpdatedOn = category.UpdatedOn,
+            UpdatedBy = category.UpdatedBy,
+            DeletedOn = category.DeletedOn,
+            DeletedBy = category.DeletedBy
         };
     }
 }
