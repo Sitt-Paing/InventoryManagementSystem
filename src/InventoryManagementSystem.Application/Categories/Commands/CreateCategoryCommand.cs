@@ -1,11 +1,12 @@
 using FluentValidation;
+using InventoryManagementSystem.Application.Categories.DTOs;
 using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Domain.Entities;
 using MediatR;
 
 namespace InventoryManagementSystem.Application.Categories.Commands;
 
-public record CreateCategoryCommand(string Name, string? Description) : IRequest<long>;
+public record CreateCategoryCommand(string Name, string? Description) : IRequest<CategoryDto>;
 
 public class CreateCategoryCommandValidator : AbstractValidator<CreateCategoryCommand>
 {
@@ -20,7 +21,7 @@ public class CreateCategoryCommandValidator : AbstractValidator<CreateCategoryCo
     }
 }
 
-public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryCommand, long>
+public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryCommand, CategoryDto>
 {
     private readonly IApplicationDbContext _context;
 
@@ -29,7 +30,7 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
         _context = context;
     }
 
-    public async Task<long> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
+    public async Task<CategoryDto> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
         var entity = new Category
         {
@@ -41,6 +42,18 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
         _context.Categories.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return entity.Id;
+        return new CategoryDto
+        {
+            Id = entity.Id,
+            Name = entity.Name,
+            Description = entity.Description,
+            IsActive = entity.IsActive,
+            CreatedOn = entity.CreatedOn,
+            CreatedBy = entity.CreatedBy,
+            UpdatedOn = entity.UpdatedOn,
+            UpdatedBy = entity.UpdatedBy,
+            DeletedOn = entity.DeletedOn,
+            DeletedBy = entity.DeletedBy
+        };
     }
 }
