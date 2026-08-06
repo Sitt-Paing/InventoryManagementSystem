@@ -25,20 +25,22 @@ public class GlobalExceptionHandler : IExceptionHandler
         if (exception is ValidationException validationException)
         {
             var errors = validationException.Errors
-                .Select(e => e.ErrorMessage)
+                .Select(e => new
+                {
+                    Field = e.PropertyName,
+                    Message = e.ErrorMessage
+                })
                 .ToList();
-
-            var firstError = errors.FirstOrDefault() ?? "Validation failed.";
 
             var validationResponse = new DefaultResponseModel
             {
-                StatusCode = StatusCodes.Status400BadRequest,
+                StatusCode = StatusCodes.Status422UnprocessableEntity,
                 Success = false,
-                Message = firstError,
+                Message = "Validation failed.",
                 Data = errors
             };
 
-            httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+            httpContext.Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
             await httpContext.Response.WriteAsJsonAsync(validationResponse, cancellationToken);
             return true;
         }
