@@ -39,6 +39,8 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference("/docs/scalar");
 }
 
+app.UseExceptionHandler();
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
