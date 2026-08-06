@@ -1,6 +1,7 @@
+using FluentValidation;
+using InventoryManagementSystem.Application.Common.Models;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace InventoryManagementSystem.Api.Middleware;
@@ -19,27 +20,48 @@ public class GlobalExceptionHandler : IExceptionHandler
         Exception exception,
         CancellationToken cancellationToken)
     {
-        _logger.LogError(exception, "An unhandled exception occurred: {Message}", exception.Message);
+        _logger.LogError(exception, "An exception occurred: {Message}", exception.Message);
 
-        var (statusCode, title) = exception switch
+        if (exception is ValidationException validationException)
         {
-            KeyNotFoundException => (StatusCodes.Status404NotFound, "Resource Not Found"),
-            UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, "Unauthorized Access"),
-            InvalidOperationException => (StatusCodes.Status400BadRequest, "Invalid Operation"),
-            ArgumentException => (StatusCodes.Status400BadRequest, "Bad Request"),
-            _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred")
+            var errors = validationException.Errors
+                .Select(e => e.ErrorMessage)
+                .ToList();
+
+            var firstError = errors.FirstOrDefault() ?? "Validation failed.";
+
+            var validationResponse = new DefaultResponseModel
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+                Success = false,
+                Message = firstError,
+                Data = errors
+            };
+
+            httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+            await httpContext.Response.WriteAsJsonAsync(validationResponse, cancellationToken);
+            return true;
+        }
+
+        var statusCode = exception switch
+        {
+            KeyNotFoundException => StatusCodes.Status404NotFound,
+            UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
+            InvalidOperationException => StatusCodes.Status400BadRequest,
+            ArgumentException => StatusCodes.Status400BadRequest,
+            _ => StatusCodes.Status500InternalServerError
         };
 
-        var problemDetails = new ProblemDetails
+        var defaultResponse = new DefaultResponseModel
         {
-            Status = statusCode,
-            Title = title,
-            Detail = exception.Message,
-            Instance = $"{httpContext.Request.Method} {httpContext.Request.Path}"
+            StatusCode = statusCode,
+            Success = false,
+            Message = exception.Message,
+            Data = null
         };
 
         httpContext.Response.StatusCode = statusCode;
-        await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
+        await httpContext.Response.WriteAsJsonAsync(defaultResponse, cancellationToken);
 
         return true;
     }
