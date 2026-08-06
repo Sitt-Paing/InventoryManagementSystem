@@ -6,7 +6,6 @@ public record ProductDto
     public required string Name { get; set; }
     public string? Sku { get; set; }
     public long CategoryId { get; set; }
-    public string? CategoryName { get; set; }
     public decimal UnitPrice { get; set; }
     public int CurrentStock { get; set; }
     public int ReorderLevel { get; set; }
