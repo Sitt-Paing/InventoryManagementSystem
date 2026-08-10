@@ -7,7 +7,7 @@ namespace InventoryManagementSystem.Domain.Entities;
 
 public partial class StockTransaction : BaseAuditableEntity<long>
 {
-    public string ProductId { get; set; } = null!;
+    public Guid ProductId { get; set; }
 
     public string UserId { get; set; } = null!;
 
