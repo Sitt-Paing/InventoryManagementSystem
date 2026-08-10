@@ -2,7 +2,7 @@ namespace InventoryManagementSystem.Application.Products.DTOs;
 
 public record ProductDto
 {
-    public required string Id { get; set; }
+    public required Guid Id { get; set; }
     public required string Name { get; set; }
     public string? Sku { get; set; }
     public long CategoryId { get; set; }
