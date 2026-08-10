@@ -17,8 +17,4 @@
     <ProjectReference Include="..\InventoryManagementSystem.Domain\InventoryManagementSystem.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Products\Commands\DeleteProduct\" />
-  </ItemGroup>
-
 </Project>
