@@ -5,7 +5,7 @@ using InventoryManagementSystem.Domain.Common;
 
 namespace InventoryManagementSystem.Domain.Entities;
 
-public partial class Product : BaseAuditableEntity<string>
+public partial class Product : BaseAuditableEntity<Guid>
 {
     public string Name { get; set; } = null!;
 
