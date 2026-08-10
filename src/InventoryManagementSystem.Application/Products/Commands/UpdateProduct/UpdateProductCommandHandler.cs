@@ -1,4 +1,4 @@
-﻿using InventoryManagementSystem.Application.Common.Interfaces;
+using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Application.Products.DTOs;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +19,6 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
     public async Task<ProductDto?> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Products
-            .AsNoTracking()
             .Where(x => !x.DeletedOn.HasValue)
             .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
@@ -28,6 +27,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         entity.Name = request.Name;
         entity.CategoryId = request.CategoryId;
         entity.Sku = request.Sku;
+        entity.Barcode = request.Barcode;
         entity.CurrentStock = request.CurrentStock;
         entity.UnitPrice = request.UnitPrice;
         entity.ReorderLevel = request.ReorderLevel;
@@ -40,6 +40,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             Name = entity.Name,
             CategoryId = entity.CategoryId,
             Sku = entity.Sku,
+            Barcode = entity.Barcode,
             CurrentStock = entity.CurrentStock,
             ReorderLevel = entity.ReorderLevel,
             UnitPrice = entity.UnitPrice,
