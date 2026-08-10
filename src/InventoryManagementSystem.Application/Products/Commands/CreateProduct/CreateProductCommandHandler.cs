@@ -19,7 +19,7 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
 
     public async Task<ProductDto> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
-        string sku = request.Sku;
+        string? sku = request.Sku;
         if (string.IsNullOrWhiteSpace(sku))
         {
             sku = await GenerateSkuAsync(request.Name, cancellationToken);
