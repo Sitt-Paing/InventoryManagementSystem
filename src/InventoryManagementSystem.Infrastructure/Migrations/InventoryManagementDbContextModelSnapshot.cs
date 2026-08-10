@@ -319,6 +319,10 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex(new[] { "Sku" }, "IX_Products_Sku")
+                        .IsUnique()
+                        .HasFilter("[SKU] IS NOT NULL");
+
                     b.ToTable("Products");
                 });
 
