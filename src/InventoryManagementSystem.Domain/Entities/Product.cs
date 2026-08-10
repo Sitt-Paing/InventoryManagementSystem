@@ -11,6 +11,8 @@ public partial class Product : BaseAuditableEntity<Guid>
 
     public string? Sku { get; set; }
 
+    public string? Barcode { get; set; }
+
     public long CategoryId { get; set; }
 
     public decimal UnitPrice { get; set; }
