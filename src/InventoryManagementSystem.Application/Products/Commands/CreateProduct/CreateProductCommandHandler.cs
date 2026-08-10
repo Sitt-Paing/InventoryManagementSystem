@@ -1,5 +1,6 @@
 ﻿using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Application.Products.DTOs;
+using InventoryManagementSystem.Domain.Entities;
 using MediatR;
 
 
@@ -16,9 +17,9 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
 
     public async Task<ProductDto> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
-        var entity = new Domain.Entities.Product
+        var entity = new Product
         {
-            Id = request.Id,
+            Id = Guid.NewGuid(),
             Name = request.Name,
             CategoryId = request.categoryId,
             UnitPrice = request.UnitPrice,
