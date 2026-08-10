@@ -1,4 +1,4 @@
-﻿using InventoryManagementSystem.Application.Common.Interfaces;
+using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Application.Products.DTOs;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +26,7 @@ public class GetProductsByIdQueryHandler : IRequestHandler<GetProductByIdQuery, 
             CurrentStock = product.CurrentStock,
             ReorderLevel = product.ReorderLevel,
             Sku = product.Sku,
+            Barcode = product.Barcode,
             UnitPrice = product.UnitPrice,
             CategoryId = product.CategoryId,
             CreatedOn = product.CreatedOn,
