@@ -28,7 +28,7 @@ namespace InventoryManagementSystem.Api.Controllers
 
         [HttpGet("{id}")]
         [EndpointSummary("Get product by Id")]
-        public async Task<IActionResult> GetProductById(string id)
+        public async Task<IActionResult> GetProductById(Guid id)
         {
             ProductDto result = await Mediator.Send(new GetProductByIdQuery(id));
             if (result == null)
