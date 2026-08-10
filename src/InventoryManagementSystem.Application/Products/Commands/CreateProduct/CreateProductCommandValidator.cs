@@ -9,7 +9,7 @@ public class CreateProductCommandValidator : AbstractValidator<CreateProductComm
 {
     public CreateProductCommandValidator()
     {
-        RuleFor(x => x.Id).NotEmpty().WithMessage("Product Id is required.");
+        //RuleFor(x => x.Id).NotEmpty().WithMessage("Product Id is required.");
         RuleFor(x => x.Name).NotEmpty().WithMessage("Product Name is required.");
         RuleFor(x => x.categoryId).GreaterThan(0).WithMessage("Category Id must be greater").NotEmpty().WithMessage("Category Id is required.");
         RuleFor(x => x.UnitPrice).GreaterThan(0).WithMessage("Unit Price must be greater than 0.").NotEmpty().WithMessage("Price is required.");
