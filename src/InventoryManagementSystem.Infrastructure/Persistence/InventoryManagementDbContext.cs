@@ -172,6 +172,7 @@ public partial class InventoryManagementDbContext : DbContext, IApplicationDbCon
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("SKU");
+            entity.Property(e => e.Barcode).HasMaxLength(100);
             entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.UpdatedBy).HasMaxLength(256);
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
