@@ -31,6 +31,10 @@ public partial class InventoryManagementDbContext : DbContext, IApplicationDbCon
             {
                 ApplyAuditValues(entry, auditableString, currentUserId);
             }
+            else if (entry.Entity is BaseAuditableEntity<Guid> auditableGuid)
+            {
+                ApplyAuditValues(entry, auditableGuid, currentUserId);
+            }
         }
 
         return await base.SaveChangesAsync(cancellationToken);
