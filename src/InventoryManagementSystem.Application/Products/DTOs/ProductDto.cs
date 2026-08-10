@@ -5,6 +5,7 @@ public record ProductDto
     public required Guid Id { get; set; }
     public required string Name { get; set; }
     public string? Sku { get; set; }
+    public string? Barcode { get; set; }
     public long CategoryId { get; set; }
     public decimal UnitPrice { get; set; }
     public int CurrentStock { get; set; }
