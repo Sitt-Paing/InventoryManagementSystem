@@ -1,4 +1,4 @@
-using InventoryManagementSystem.Application.Identity.Models;
+using InventoryManagementSystem.Application.Auth.Models;
 using System.Threading.Tasks;
 
 namespace InventoryManagementSystem.Application.Common.Interfaces;
