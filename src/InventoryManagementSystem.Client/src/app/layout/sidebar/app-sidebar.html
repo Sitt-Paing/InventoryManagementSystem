@@ -1,0 +1,49 @@
+<aside 
+  class="h-[calc(100vh-4rem)] border-r border-slate-700/60 bg-slate-900 text-slate-300 transition-all duration-300 ease-in-out flex flex-col justify-between overflow-y-auto select-none"
+  [ngClass]="sharedService.sidebarCollapsed() ? 'w-16' : 'w-64'">
+  
+  <div class="py-4 px-3 space-y-6">
+    <div *ngFor="let group of navGroups" class="space-y-1">
+      <h3 
+        *ngIf="!sharedService.sidebarCollapsed()" 
+        class="px-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider font-mono">
+        {{ group.groupName }}
+      </h3>
+
+      <div class="space-y-1">
+        <a 
+          *ngFor="let item of group.items"
+          [routerLink]="item.routerLink"
+          routerLinkActive="bg-indigo-600/20 text-indigo-400 font-semibold border-l-4 border-indigo-500"
+          [routerLinkActiveOptions]="{ exact: false }"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800/80 hover:text-white transition-all text-sm group text-slate-400 border-l-4 border-transparent">
+          
+          <i [class]="item.icon + ' text-base group-hover:scale-110 transition-transform'"></i>
+          
+          <span *ngIf="!sharedService.sidebarCollapsed()" class="truncate flex-1">
+            {{ item.label }}
+          </span>
+
+          <span 
+            *ngIf="!sharedService.sidebarCollapsed() && item.badge" 
+            [class]="'text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ' + item.badgeSeverity">
+            {{ item.badge }}
+          </span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Workspace Status Pill (ES_HR Style) -->
+  <div *ngIf="!sharedService.sidebarCollapsed()" class="p-3 m-3 rounded-xl bg-slate-800/60 border border-slate-700/50 space-y-2">
+    <div class="flex items-center justify-between text-xs text-slate-400">
+      <span class="flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Online Mode
+      </span>
+      <span class="font-mono text-[10px] text-slate-500">v2.0</span>
+    </div>
+    <p class="text-[11px] text-slate-400 line-clamp-1">
+      {{ sharedService.selectedBranch().branchName }}
+    </p>
+  </div>
+</aside>
