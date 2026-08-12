@@ -1,10 +1,10 @@
-using InventoryManagementSystem.Application.Identity.Commands.ChangePassword;
-using InventoryManagementSystem.Application.Identity.Commands.GenerateResetToken;
-using InventoryManagementSystem.Application.Identity.Commands.LoginUser;
-using InventoryManagementSystem.Application.Identity.Commands.RefreshToken;
-using InventoryManagementSystem.Application.Identity.Commands.RegisterUser;
-using InventoryManagementSystem.Application.Identity.Commands.ResetPassword;
-using InventoryManagementSystem.Application.Identity.Models;
+using InventoryManagementSystem.Application.Auth.Commands.ChangePassword;
+using InventoryManagementSystem.Application.Auth.Commands.GenerateResetToken;
+using InventoryManagementSystem.Application.Auth.Commands.LoginUser;
+using InventoryManagementSystem.Application.Auth.Commands.RefreshToken;
+using InventoryManagementSystem.Application.Auth.Commands.RegisterUser;
+using InventoryManagementSystem.Application.Auth.Commands.ResetPassword;
+using InventoryManagementSystem.Application.Auth.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
