@@ -1,0 +1,112 @@
+<div class="space-y-6">
+  <!-- Title & Action Bar -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/80 p-5 rounded-2xl border border-slate-800 shadow-lg">
+    <div>
+      <div class="flex items-center gap-2 text-xs font-medium text-slate-400 mb-1">
+        <span>Inventory</span>
+        <i class="pi pi-chevron-right text-[10px] text-slate-600"></i>
+        <span class="text-indigo-400">Categories</span>
+      </div>
+      <h2 class="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+        <i class="pi pi-tags text-purple-400"></i> Product Categories
+      </h2>
+    </div>
+
+    <p-button 
+      label="Add Category" 
+      icon="pi pi-plus" 
+      severity="primary" 
+      (click)="openCreate()"
+      styleClass="p-button-sm font-semibold shadow-lg shadow-indigo-600/30">
+    </p-button>
+  </div>
+
+  <!-- Categories Datatable Card (ES_HR Pattern) -->
+  <div class="bg-slate-900/90 rounded-2xl border border-slate-800 p-5 shadow-lg space-y-4">
+    <div class="flex items-center justify-between">
+      <span class="text-base font-bold text-white">Active Categories</span>
+      <div class="w-full sm:w-64">
+        <p-iconField iconPosition="left">
+          <p-inputIcon styleClass="pi pi-search text-slate-400 text-xs"></p-inputIcon>
+          <input 
+            type="text" 
+            pInputText 
+            placeholder="Search category..." 
+            (input)="tblCat.filterGlobal($any($event.target).value, 'contains')"
+            class="w-full text-xs py-2 pl-9 pr-3 bg-slate-800 border-slate-700 text-slate-200 rounded-lg focus:border-indigo-500" />
+        </p-iconField>
+      </div>
+    </div>
+
+    <p-table 
+      #tblCat 
+      [value]="categories" 
+      [paginator]="true" 
+      [rows]="10" 
+      [loading]="isLoading"
+      [globalFilterFields]="['categoryName', 'categoryCode', 'description']"
+      styleClass="p-datatable-sm p-datatable-gridlines text-slate-200"
+      responsiveLayout="scroll">
+
+      <ng-template #header>
+        <tr class="bg-slate-800/80 text-slate-300 text-xs uppercase tracking-wider">
+          <th pSortableColumn="categoryCode" class="py-3 px-4">Code <p-sortIcon field="categoryCode"></p-sortIcon></th>
+          <th pSortableColumn="categoryName" class="py-3 px-4">Category Name <p-sortIcon field="categoryName"></p-sortIcon></th>
+          <th class="py-3 px-4">Description</th>
+          <th pSortableColumn="totalProducts" class="py-3 px-4 text-center">Products Count <p-sortIcon field="totalProducts"></p-sortIcon></th>
+          <th class="py-3 px-4 text-center w-28">Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-cat>
+        <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 text-sm">
+          <td class="py-3 px-4 font-mono text-xs font-semibold text-indigo-400">{{ cat.categoryCode }}</td>
+          <td class="py-3 px-4 font-semibold text-slate-100">{{ cat.categoryName }}</td>
+          <td class="py-3 px-4 text-xs text-slate-400">{{ cat.description || 'N/A' }}</td>
+          <td class="py-3 px-4 text-center font-mono">
+            <span class="px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold text-indigo-300">
+              {{ cat.totalProducts || 0 }}
+            </span>
+          </td>
+          <td class="py-3 px-4 text-center">
+            <div class="flex items-center justify-center gap-1">
+              <button pButton icon="pi pi-pencil" [rounded]="true" [text]="true" severity="warn" (click)="openEdit(cat)"></button>
+              <button pButton icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (click)="deleteCategory(cat)"></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Create / Edit Category Modal Dialog -->
+  <p-dialog 
+    [(visible)]="modalVisible" 
+    [header]="dialogHeader" 
+    [modal]="true" 
+    [style]="{ width: '32rem' }"
+    styleClass="bg-slate-900 text-slate-100 border border-slate-700 shadow-2xl rounded-xl">
+
+    <form [formGroup]="catForm" (ngSubmit)="saveCategory()" class="space-y-4 pt-2">
+      <div class="space-y-1">
+        <label class="text-xs font-semibold text-slate-300">Category Code *</label>
+        <input type="text" pInputText formControlName="categoryCode" class="w-full bg-slate-800 border-slate-700 text-slate-200 text-sm py-2 px-3 rounded-lg" />
+      </div>
+
+      <div class="space-y-1">
+        <label class="text-xs font-semibold text-slate-300">Category Name *</label>
+        <input type="text" pInputText formControlName="categoryName" placeholder="Category Title" class="w-full bg-slate-800 border-slate-700 text-slate-200 text-sm py-2 px-3 rounded-lg" />
+      </div>
+
+      <div class="space-y-1">
+        <label class="text-xs font-semibold text-slate-300">Description</label>
+        <textarea pTextarea formControlName="description" rows="3" class="w-full bg-slate-800 border-slate-700 text-slate-200 text-sm p-3 rounded-lg"></textarea>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
+        <p-button label="Cancel" icon="pi pi-times" severity="secondary" (click)="modalVisible = false"></p-button>
+        <p-button label="Save Category" icon="pi pi-check" severity="primary" type="submit"></p-button>
+      </div>
+    </form>
+  </p-dialog>
+</div>

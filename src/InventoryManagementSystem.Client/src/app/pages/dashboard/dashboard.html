@@ -1,0 +1,189 @@
+<div class="space-y-6">
+  <!-- Welcome Banner (ES_HR Style) -->
+  <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 md:p-8 border border-indigo-500/20 shadow-xl">
+    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div class="space-y-2 max-w-xl">
+        <span class="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-mono font-semibold border border-indigo-500/30">
+          ES INVENTORY CONTROL CENTER
+        </span>
+        <h2 class="text-3xl font-extrabold text-white tracking-tight">
+          Welcome back, <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Sitt Paing</span>
+        </h2>
+        <p class="text-sm text-slate-400 leading-relaxed">
+          Here is your real-time inventory overview for <strong class="text-slate-200">{{ sharedService.selectedBranch().branchName }}</strong> under <strong class="text-slate-200">{{ sharedService.selectedCompany().companyName }}</strong>.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <a routerLink="/products">
+          <p-button 
+            label="Manage Products" 
+            icon="pi pi-box" 
+            severity="primary"
+            styleClass="p-button-sm font-semibold shadow-lg shadow-indigo-600/30">
+          </p-button>
+        </a>
+        <a routerLink="/stock-transactions">
+          <p-button 
+            label="Stock Movement" 
+            icon="pi pi-arrow-right-left" 
+            severity="secondary" 
+            [outlined]="true"
+            styleClass="p-button-sm font-semibold">
+          </p-button>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Metrics Stats Cards (ES_HR Grid Pattern) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    <!-- Card 1: Total Products -->
+    <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg relative overflow-hidden group hover:border-slate-700 transition-all">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Items</span>
+        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <i class="pi pi-box text-xl"></i>
+        </div>
+      </div>
+      <div class="text-3xl font-extrabold text-white mt-2 font-mono">{{ totalProductsCount }}</div>
+      <div class="flex items-center gap-2 mt-2 text-xs text-slate-400">
+        <span class="text-emerald-400 font-semibold flex items-center"><i class="pi pi-arrow-up text-[10px] mr-1"></i> Active</span>
+        <span>Across catalog</span>
+      </div>
+    </div>
+
+    <!-- Card 2: Low Stock Alert -->
+    <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg relative overflow-hidden group hover:border-amber-500/30 transition-all">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Low Stock Alert</span>
+        <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <i class="pi pi-exclamation-triangle text-xl"></i>
+        </div>
+      </div>
+      <div class="text-3xl font-extrabold text-amber-400 mt-2 font-mono">{{ lowStockCount }}</div>
+      <div class="flex items-center gap-2 mt-2 text-xs text-slate-400">
+        <span class="text-amber-400 font-semibold">Requires Restock</span>
+      </div>
+    </div>
+
+    <!-- Card 3: Out of Stock -->
+    <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg relative overflow-hidden group hover:border-rose-500/30 transition-all">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Out of Stock</span>
+        <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <i class="pi pi-times-circle text-xl"></i>
+        </div>
+      </div>
+      <div class="text-3xl font-extrabold text-rose-400 mt-2 font-mono">{{ outOfStockCount }}</div>
+      <div class="flex items-center gap-2 mt-2 text-xs text-slate-400">
+        <span class="text-rose-400 font-semibold">Critical Priority</span>
+      </div>
+    </div>
+
+    <!-- Card 4: Inventory Valuation -->
+    <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg relative overflow-hidden group hover:border-emerald-500/30 transition-all">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Valuation</span>
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <i class="pi pi-dollar text-xl"></i>
+        </div>
+      </div>
+      <div class="text-3xl font-extrabold text-emerald-400 mt-2 font-mono">${{ totalValuation | number:'1.2-2' }}</div>
+      <div class="flex items-center gap-2 mt-2 text-xs text-slate-400">
+        <span class="text-emerald-400 font-semibold">Asset Value</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Stock Activity Section (ES_HR Datatable Layout) -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 bg-slate-900/90 rounded-2xl border border-slate-800 p-5 shadow-lg space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="pi pi-history text-indigo-400"></i> Recent Stock Activity
+          </h3>
+          <p class="text-xs text-slate-400">Latest stock movements, sales dispatches, and adjustments</p>
+        </div>
+        <a routerLink="/stock-transactions" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300">
+          View All <i class="pi pi-arrow-right text-[10px]"></i>
+        </a>
+      </div>
+
+      <p-table 
+        [value]="recentTransactions" 
+        styleClass="p-datatable-sm text-slate-200"
+        responsiveLayout="scroll">
+        <ng-template #header>
+          <tr class="bg-slate-800/80 text-slate-400 text-xs uppercase font-mono">
+            <th class="py-2.5 px-3">Transaction</th>
+            <th class="py-2.5 px-3">Product</th>
+            <th class="py-2.5 px-3 text-center">Type</th>
+            <th class="py-2.5 px-3 text-right">Qty</th>
+            <th class="py-2.5 px-3 text-right">Amount</th>
+          </tr>
+        </ng-template>
+
+        <ng-template #body let-txn>
+          <tr class="border-b border-slate-800/60 text-xs hover:bg-slate-800/30">
+            <td class="py-2.5 px-3 font-mono text-indigo-400 font-semibold">{{ txn.transactionCode }}</td>
+            <td class="py-2.5 px-3 font-medium text-slate-100">{{ txn.productName }}</td>
+            <td class="py-2.5 px-3 text-center">
+              <p-tag [value]="txn.transactionType" [severity]="getTxnSeverity(txn.transactionType)" styleClass="text-[10px] px-2 py-0.5"></p-tag>
+            </td>
+            <td class="py-2.5 px-3 text-right font-mono font-bold">{{ txn.quantity }}</td>
+            <td class="py-2.5 px-3 text-right font-mono text-slate-200">${{ txn.totalAmount | number:'1.2-2' }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    <!-- Right Side Status Breakdown Widget -->
+    <div class="bg-slate-900/90 rounded-2xl border border-slate-800 p-5 shadow-lg space-y-4">
+      <div class="border-b border-slate-800 pb-3">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="pi pi-chart-pie text-purple-400"></i> Stock Distribution
+        </h3>
+        <p class="text-xs text-slate-400">Overall health of inventory levels</p>
+      </div>
+
+      <div class="space-y-4 pt-2">
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs font-semibold">
+            <span class="text-slate-300">In Stock Products</span>
+            <span class="text-emerald-400 font-mono">{{ totalProductsCount - lowStockCount - outOfStockCount }} Items</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+            <div class="h-full bg-emerald-500 rounded-full" [style.width]="((totalProductsCount - lowStockCount - outOfStockCount) / totalProductsCount * 100) + '%'"></div>
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs font-semibold">
+            <span class="text-slate-300">Low Stock Alert</span>
+            <span class="text-amber-400 font-mono">{{ lowStockCount }} Items</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+            <div class="h-full bg-amber-500 rounded-full" [style.width]="(lowStockCount / totalProductsCount * 100) + '%'"></div>
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs font-semibold">
+            <span class="text-slate-300">Out of Stock</span>
+            <span class="text-rose-400 font-mono">{{ outOfStockCount }} Items</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+            <div class="h-full bg-rose-500 rounded-full" [style.width]="(outOfStockCount / totalProductsCount * 100) + '%'"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-300 space-y-1 mt-4">
+        <span class="font-bold block flex items-center gap-1"><i class="pi pi-info-circle"></i> Quick Tip</span>
+        <p class="text-slate-400">Use the Products Master section to set custom reorder levels for each product.</p>
+      </div>
+    </div>
+  </div>
+</div>

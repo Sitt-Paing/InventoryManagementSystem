@@ -1,3 +1,116 @@
 @import "tailwindcss";
 @import "primeicons/primeicons.css";
-@plugin "tailwindcss-primeui";
+
+/* Global Font Setup */
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* PrimeNG Dark Theme Overrides for ES_HR Look */
+.p-select {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+
+  .p-select-label {
+    color: #f8fafc !important;
+    font-size: 0.75rem !important;
+  }
+}
+
+.p-select-overlay {
+  background-color: #0f172a !important;
+  border: 1px solid #334155 !important;
+  color: #f8fafc !important;
+}
+
+.p-select-option {
+  color: #cbd5e1 !important;
+  font-size: 0.8125rem !important;
+  
+  &:hover, &.p-select-option-selected {
+    background-color: #312e81 !important;
+    color: #ffffff !important;
+  }
+}
+
+.p-datatable {
+  .p-datatable-thead > tr > th {
+    background-color: #1e293b !important;
+    color: #94a3b8 !important;
+    border-color: #334155 !important;
+    font-weight: 600 !important;
+  }
+
+  .p-datatable-tbody > tr {
+    background-color: transparent !important;
+    color: #f1f5f9 !important;
+
+    > td {
+      border-color: #1e293b !important;
+    }
+
+    &:hover {
+      background-color: rgba(30, 41, 59, 0.5) !important;
+    }
+  }
+
+  .p-paginator {
+    background-color: #0f172a !important;
+    border-color: #334155 !important;
+    color: #cbd5e1 !important;
+
+    .p-paginator-page, .p-paginator-first, .p-paginator-prev, .p-paginator-next, .p-paginator-last {
+      color: #94a3b8 !important;
+      
+      &.p-paginator-page-selected {
+        background-color: #4f46e5 !important;
+        color: #ffffff !important;
+      }
+    }
+  }
+}
+
+.p-dialog {
+  .p-dialog-header {
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+    border-bottom: 1px solid #1e293b !important;
+  }
+  .p-dialog-content {
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+  }
+  .p-dialog-footer {
+    background-color: #0f172a !important;
+    border-top: 1px solid #1e293b !important;
+  }
+}
+
+.p-fieldset {
+  .p-fieldset-legend {
+    background-color: #1e293b !important;
+    color: #818cf8 !important;
+    border: 1px solid #334155 !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
