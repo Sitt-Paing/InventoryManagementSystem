@@ -1,5 +1,5 @@
 using InventoryManagementSystem.Application.Common.Interfaces;
-using InventoryManagementSystem.Infrastructure.Identity;
+using InventoryManagementSystem.Infrastructure.Auth;
 using InventoryManagementSystem.Infrastructure.Persistence;
 using InventoryManagementSystem.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
