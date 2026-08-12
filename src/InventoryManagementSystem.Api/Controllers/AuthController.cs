@@ -20,6 +20,7 @@ public class AuthController : ApiControllerBase
     /// Register a new user account.
     /// </summary>
     [HttpPost("register")]
+    [EndpointSummary("Register a new user account")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status400BadRequest)]
@@ -50,6 +51,7 @@ public class AuthController : ApiControllerBase
     /// Authenticate a user by Username or Email and issue JWT tokens.
     /// </summary>
     [HttpPost("login")]
+    [EndpointSummary("Login account")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status401Unauthorized)]
@@ -80,6 +82,7 @@ public class AuthController : ApiControllerBase
     /// Refresh access token using a valid refresh token.
     /// </summary>
     [HttpPost("refresh-token")]
+    [EndpointSummary("Create refresh token")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status400BadRequest)]
@@ -110,6 +113,7 @@ public class AuthController : ApiControllerBase
     /// Generate a password reset token for a user by email.
     /// </summary>
     [HttpPost("generate-reset-token")]
+    [EndpointSummary("create reset-token")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status400BadRequest)]
@@ -140,6 +144,7 @@ public class AuthController : ApiControllerBase
     /// Reset password using reset token.
     /// </summary>
     [HttpPost("reset-password")]
+    [EndpointSummary("Reset Password")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status400BadRequest)]
@@ -170,6 +175,7 @@ public class AuthController : ApiControllerBase
     /// Change password for the currently authenticated user.
     /// </summary>
     [HttpPost("change-password")]
+    [EndpointSummary("Change Password")]
     [Authorize]
     [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status400BadRequest)]
