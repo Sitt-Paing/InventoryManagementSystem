@@ -1,14 +1,14 @@
 <div class="space-y-6">
   <!-- Title & Actions Bar -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/80 p-5 rounded-2xl border border-slate-800 shadow-lg">
+  <div class="table-card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-      <div class="flex items-center gap-2 text-xs font-medium text-slate-400 mb-1">
+      <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider mb-1 text-emerald-600 dark:text-emerald-400 font-mono">
         <span>Inventory</span>
-        <i class="pi pi-chevron-right text-[10px] text-slate-600"></i>
-        <span class="text-indigo-400">Stock Transactions</span>
+        <i class="pi pi-chevron-right text-[10px]"></i>
+        <span>Stock Transactions</span>
       </div>
-      <h2 class="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-        <i class="pi pi-arrow-right-left text-emerald-400"></i> Stock Movements Audit Log
+      <h2 class="text-2xl font-extrabold tracking-tight flex items-center gap-2.5 text-slate-900 dark:text-slate-100">
+        <i class="pi pi-arrow-right-left text-emerald-600 dark:text-emerald-400"></i> Stock Movements Audit Log
       </h2>
     </div>
 
@@ -19,61 +19,60 @@
         severity="success" 
         [outlined]="true"
         (click)="excel()"
-        styleClass="p-button-sm font-semibold">
+        styleClass="p-button-sm font-bold">
       </p-button>
       <p-button 
         label="Record Movement" 
         icon="pi pi-plus" 
         severity="primary" 
         (click)="openCreate()"
-        styleClass="p-button-sm font-semibold shadow-lg shadow-indigo-600/30">
+        styleClass="p-button-sm font-bold">
       </p-button>
     </div>
   </div>
 
-  <!-- ES_HR Pattern: Filter Bar Section -->
-  <div class="bg-slate-900/90 rounded-2xl border border-slate-800 p-5 shadow-lg space-y-4">
-    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+  <!-- Filter Bar Section -->
+  <div class="table-card p-5 space-y-4">
+    <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
       <div class="flex items-center gap-2">
-        <i class="pi pi-filter text-indigo-400 text-sm"></i>
-        <span class="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono">Movement Filter</span>
+        <i class="pi pi-filter text-sm text-emerald-600 dark:text-emerald-400"></i>
+        <span class="text-xs font-extrabold uppercase tracking-wider font-mono text-slate-800 dark:text-slate-200">Movement Filter</span>
       </div>
-      <span class="text-xs text-slate-400">Branch: {{ sharedService.selectedBranch().branchName }}</span>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
       <!-- Movement Type Filter -->
       <div class="space-y-1.5">
-        <label class="text-xs font-semibold text-slate-300">Transaction Type</label>
+        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Transaction Type</label>
         <p-select 
           [options]="typeOptions" 
           [(ngModel)]="selectedType" 
           optionLabel="label" 
           optionValue="value"
           placeholder="All Types"
-          styleClass="w-full p-select-sm bg-slate-800 border-slate-700 text-slate-200">
+          styleClass="w-full p-select-sm">
         </p-select>
       </div>
 
-      <!-- Date Range (ES_HR Pattern) -->
+      <!-- Date Range -->
       <div class="space-y-1.5">
-        <label class="text-xs font-semibold text-slate-300">Date</label>
+        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Date</label>
         <p-datepicker 
           [(ngModel)]="filterDate" 
           dateFormat="dd/mm/yy" 
           [showIcon]="true"
-          styleClass="w-full p-inputtext-sm bg-slate-800 border-slate-700 text-slate-200">
+          styleClass="w-full p-inputtext-sm">
         </p-datepicker>
       </div>
 
-      <!-- Action Buttons (ES_HR Pattern) -->
+      <!-- Action Buttons -->
       <div class="flex items-center gap-2 md:col-span-2">
         <p-button 
           label="Apply Filter" 
           icon="pi pi-search" 
           severity="info" 
           (click)="view()"
-          styleClass="w-full p-button-sm font-medium">
+          styleClass="w-full p-button-sm font-bold">
         </p-button>
         <p-button 
           label="Reset" 
@@ -81,32 +80,32 @@
           severity="secondary" 
           [outlined]="true"
           (click)="resetState()"
-          styleClass="w-full p-button-sm font-medium">
+          styleClass="w-full p-button-sm font-bold">
         </p-button>
       </div>
     </div>
   </div>
 
   <!-- Main Transactions Table -->
-  <div class="bg-slate-900/90 rounded-2xl border border-slate-800 p-5 shadow-lg space-y-4">
+  <div class="table-card p-5 space-y-4">
     <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-3">
-        <span class="text-base font-bold text-white">Movement Logs</span>
-        <span class="px-2.5 py-0.5 rounded-full bg-slate-800 text-xs font-mono text-indigo-400 border border-slate-700">
+        <span class="text-base font-extrabold text-slate-900 dark:text-slate-100">Movement Logs</span>
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold border border-emerald-500/30 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
           {{ filteredTransactions.length }} logs
         </span>
       </div>
 
       <div class="w-full sm:w-72">
-        <p-iconField iconPosition="left">
-          <p-inputIcon styleClass="pi pi-search text-slate-400 text-xs"></p-inputIcon>
+        <div class="relative w-full">
           <input 
             type="text" 
             pInputText 
             placeholder="Search code, product, ref..." 
             (input)="tblTxn.filterGlobal($any($event.target).value, 'contains')"
-            class="w-full text-xs py-2 pl-9 pr-3 bg-slate-800 border-slate-700 text-slate-200 rounded-lg focus:border-indigo-500" />
-        </p-iconField>
+            class="w-full text-xs py-2 pl-8 pr-3 p-inputtext" />
+          <i class="pi pi-search absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400"></i>
+        </div>
       </div>
     </div>
 
@@ -117,41 +116,34 @@
       [rows]="10" 
       [loading]="isLoading"
       [globalFilterFields]="['transactionCode', 'productName', 'productCode', 'referenceNo', 'performedBy']"
-      styleClass="p-datatable-sm p-datatable-gridlines text-slate-200"
+      styleClass="p-datatable-sm"
       responsiveLayout="scroll">
 
       <ng-template #header>
-        <tr class="bg-slate-800/80 text-slate-300 text-xs uppercase tracking-wider">
-          <th pSortableColumn="transactionCode" class="py-3 px-4">Txn Code <p-sortIcon field="transactionCode"></p-sortIcon></th>
-          <th pSortableColumn="productName" class="py-3 px-4">Product <p-sortIcon field="productName"></p-sortIcon></th>
-          <th pSortableColumn="transactionType" class="py-3 px-4 text-center">Type <p-sortIcon field="transactionType"></p-sortIcon></th>
-          <th pSortableColumn="quantity" class="py-3 px-4 text-right">Quantity <p-sortIcon field="quantity"></p-sortIcon></th>
-          <th pSortableColumn="totalAmount" class="py-3 px-4 text-right">Total ($) <p-sortIcon field="totalAmount"></p-sortIcon></th>
-          <th pSortableColumn="referenceNo" class="py-3 px-4">Reference No <p-sortIcon field="referenceNo"></p-sortIcon></th>
-          <th pSortableColumn="transactionDate" class="py-3 px-4">Date <p-sortIcon field="transactionDate"></p-sortIcon></th>
-          <th class="py-3 px-4 text-center w-20">View</th>
+        <tr style="white-space:nowrap">
+          <th pSortableColumn="transactionCode">Txn Code <p-sortIcon field="transactionCode"></p-sortIcon></th>
+          <th pSortableColumn="productName">Product <p-sortIcon field="productName"></p-sortIcon></th>
+          <th pSortableColumn="transactionType">Type <p-sortIcon field="transactionType"></p-sortIcon></th>
+          <th pSortableColumn="quantity">Quantity <p-sortIcon field="quantity"></p-sortIcon></th>
+          <th pSortableColumn="totalAmount">Total ($) <p-sortIcon field="totalAmount"></p-sortIcon></th>
+          <th pSortableColumn="referenceNo">Reference No <p-sortIcon field="referenceNo"></p-sortIcon></th>
+          <th pSortableColumn="transactionDate">Date <p-sortIcon field="transactionDate"></p-sortIcon></th>
+          <th>View</th>
         </tr>
       </ng-template>
 
       <ng-template #body let-txn>
-        <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 text-sm">
-          <td class="py-3 px-4 font-mono text-xs font-semibold text-indigo-400">{{ txn.transactionCode }}</td>
-          <td class="py-3 px-4 font-medium text-slate-100">
-            <div>{{ txn.productName }}</div>
-            <div class="text-[11px] font-mono text-slate-400">{{ txn.productCode }}</div>
+        <tr style="white-space:nowrap">
+          <td>{{ txn.transactionCode }}</td>
+          <td>{{ txn.productName }} ({{ txn.productCode }})</td>
+          <td>
+            <p-tag [value]="txn.transactionType" [severity]="getTxnSeverity(txn.transactionType)" [rounded]="true"></p-tag>
           </td>
-          <td class="py-3 px-4 text-center">
-            <p-tag [value]="txn.transactionType" [severity]="getTxnSeverity(txn.transactionType)" styleClass="text-xs font-semibold px-2 py-0.5"></p-tag>
-          </td>
-          <td class="py-3 px-4 text-right font-mono font-bold text-slate-100">
-            {{ txn.quantity }}
-          </td>
-          <td class="py-3 px-4 text-right font-mono text-slate-200">
-            ${{ txn.totalAmount | number:'1.2-2' }}
-          </td>
-          <td class="py-3 px-4 text-xs font-mono text-slate-300">{{ txn.referenceNo || 'N/A' }}</td>
-          <td class="py-3 px-4 text-xs text-slate-400 font-mono">{{ txn.transactionDate }}</td>
-          <td class="py-3 px-4 text-center">
+          <td>{{ txn.quantity }}</td>
+          <td>${{ txn.totalAmount | number:'1.2-2' }}</td>
+          <td>{{ txn.referenceNo || 'N/A' }}</td>
+          <td>{{ txn.transactionDate }}</td>
+          <td>
             <button pButton icon="pi pi-eye" [rounded]="true" [text]="true" severity="info" (click)="openDetail(txn)"></button>
           </td>
         </tr>
@@ -159,56 +151,55 @@
     </p-table>
   </div>
 
-  <!-- Detail Dialog Modal (ES_HR Pattern) -->
+  <!-- Detail Dialog Modal -->
   <p-dialog 
     [(visible)]="detailModalVisible" 
     [header]="dialogHeader" 
     [modal]="true" 
-    [style]="{ width: '40rem' }"
-    styleClass="bg-slate-900 text-slate-100 border border-slate-700 shadow-2xl rounded-xl">
+    [style]="{ width: '40rem' }">
     
     <div *ngIf="selectedTxn" class="space-y-4 pt-2">
-      <p-fieldset legend="Movement Summary" styleClass="border border-slate-700 bg-slate-800/40 rounded-xl">
+      <p-fieldset legend="Movement Summary">
         <div class="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <span class="text-xs text-slate-400 block">Product</span>
-            <span class="font-semibold text-slate-100">{{ selectedTxn.productName }}</span>
+            <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Product</span>
+            <span class="font-bold text-slate-900 dark:text-slate-100">{{ selectedTxn.productName }}</span>
           </div>
           <div>
-            <span class="text-xs text-slate-400 block">Product Code</span>
-            <span class="font-mono text-indigo-300">{{ selectedTxn.productCode }}</span>
+            <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Product Code</span>
+            <span class="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{{ selectedTxn.productCode }}</span>
           </div>
           <div>
-            <span class="text-xs text-slate-400 block">Movement Quantity</span>
-            <span class="font-mono font-bold text-white text-base">{{ selectedTxn.quantity }}</span>
+            <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Movement Quantity</span>
+            <span class="font-mono font-bold text-base text-slate-900 dark:text-slate-100">{{ selectedTxn.quantity }}</span>
           </div>
           <div>
-            <span class="text-xs text-slate-400 block">Total Financial Impact</span>
-            <span class="font-mono font-bold text-emerald-400 text-base">${{ selectedTxn.totalAmount | number:'1.2-2' }}</span>
+            <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Total Financial Impact</span>
+            <span class="font-mono font-extrabold text-emerald-600 dark:text-emerald-400 text-base">${{ selectedTxn.totalAmount | number:'1.2-2' }}</span>
           </div>
         </div>
       </p-fieldset>
 
-      <p-fieldset legend="Audit Metadata" styleClass="border border-slate-700 bg-slate-800/40 rounded-xl">
+      <p-fieldset legend="Audit Metadata">
         <div class="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <span class="text-xs text-slate-400 block">Reference No</span>
-            <span class="font-mono text-slate-200">{{ selectedTxn.referenceNo || 'N/A' }}</span>
+            <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Reference No</span>
+            <span class="font-mono text-slate-800 dark:text-slate-200 font-bold">{{ selectedTxn.referenceNo || 'N/A' }}</span>
           </div>
           <div>
-            <span class="text-xs text-slate-400 block">Performed By</span>
-            <span class="text-slate-200">{{ selectedTxn.performedBy }}</span>
+            <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Performed By</span>
+            <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedTxn.performedBy }}</span>
           </div>
           <div class="col-span-2">
-            <span class="text-xs text-slate-400 block">Notes / Reason</span>
-            <span class="text-slate-300 italic">{{ selectedTxn.notes || 'No remarks provided.' }}</span>
+            <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Notes / Reason</span>
+            <span class="italic font-medium text-slate-700 dark:text-slate-300">{{ selectedTxn.notes || 'No remarks provided.' }}</span>
           </div>
         </div>
       </p-fieldset>
     </div>
 
     <ng-template #footer>
-      <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+      <div class="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
         <p-button label="Close" icon="pi pi-times" severity="secondary" (click)="detailModalVisible = false"></p-button>
       </div>
     </ng-template>
@@ -219,12 +210,11 @@
     [(visible)]="formModalVisible" 
     [header]="dialogHeader" 
     [modal]="true" 
-    [style]="{ width: '36rem' }"
-    styleClass="bg-slate-900 text-slate-100 border border-slate-700 shadow-2xl rounded-xl">
+    [style]="{ width: '36rem' }">
 
     <form [formGroup]="txnForm" (ngSubmit)="saveTransaction()" class="space-y-4 pt-2">
       <div class="space-y-1">
-        <label class="text-xs font-semibold text-slate-300">Product *</label>
+        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Product *</label>
         <p-select 
           [options]="products" 
           formControlName="productId" 
@@ -232,39 +222,39 @@
           optionLabel="name" 
           optionValue="productId"
           placeholder="Select Product"
-          styleClass="w-full p-select-sm bg-slate-800 border-slate-700 text-slate-200">
+          styleClass="w-full p-select-sm">
         </p-select>
       </div>
 
       <div class="grid grid-cols-2 gap-4">
         <div class="space-y-1">
-          <label class="text-xs font-semibold text-slate-300">Transaction Type *</label>
+          <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Transaction Type *</label>
           <p-select 
             [options]="typeOptions.slice(1)" 
             formControlName="transactionType" 
             optionLabel="label" 
             optionValue="value"
-            styleClass="w-full p-select-sm bg-slate-800 border-slate-700 text-slate-200">
+            styleClass="w-full p-select-sm">
           </p-select>
         </div>
 
         <div class="space-y-1">
-          <label class="text-xs font-semibold text-slate-300">Quantity *</label>
-          <input type="number" pInputText formControlName="quantity" class="w-full bg-slate-800 border-slate-700 text-slate-200 text-sm py-2 px-3 rounded-lg" />
+          <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Quantity *</label>
+          <input type="number" pInputText formControlName="quantity" class="w-full text-sm py-2 px-3 rounded-lg" />
         </div>
       </div>
 
       <div class="space-y-1">
-        <label class="text-xs font-semibold text-slate-300">Reference No (PO / Invoice)</label>
-        <input type="text" pInputText formControlName="referenceNo" placeholder="PO-12345" class="w-full bg-slate-800 border-slate-700 text-slate-200 text-sm py-2 px-3 rounded-lg" />
+        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Reference No (PO / Invoice)</label>
+        <input type="text" pInputText formControlName="referenceNo" placeholder="PO-12345" class="w-full text-sm py-2 px-3 rounded-lg" />
       </div>
 
       <div class="space-y-1">
-        <label class="text-xs font-semibold text-slate-300">Notes / Remarks</label>
-        <textarea pTextarea formControlName="notes" rows="3" placeholder="Reason or movement details" class="w-full bg-slate-800 border-slate-700 text-slate-200 text-sm p-3 rounded-lg"></textarea>
+        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Notes / Remarks</label>
+        <textarea pTextarea formControlName="notes" rows="3" placeholder="Reason or movement details" class="w-full text-sm p-3 rounded-lg"></textarea>
       </div>
 
-      <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
+      <div class="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
         <p-button label="Cancel" icon="pi pi-times" severity="secondary" (click)="formModalVisible = false"></p-button>
         <p-button label="Submit Movement" icon="pi pi-check" severity="primary" type="submit"></p-button>
       </div>
