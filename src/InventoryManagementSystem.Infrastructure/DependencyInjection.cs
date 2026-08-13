@@ -23,12 +23,18 @@ public static class DependencyInjection
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         services.AddDbContext<ApplicationDbContext>(options =>
+        {
             options.UseSqlServer(connectionString,
-                b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
+                b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
+            options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+        });
 
         services.AddDbContext<InventoryManagementDbContext>(options =>
+        {
             options.UseSqlServer(connectionString,
-                b => b.MigrationsAssembly(typeof(InventoryManagementDbContext).Assembly.FullName)));
+                b => b.MigrationsAssembly(typeof(InventoryManagementDbContext).Assembly.FullName));
+            options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+        });
 
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<InventoryManagementDbContext>());
         services.AddScoped<ApplicationDbContextInitializer>();
