@@ -9,17 +9,20 @@ public class ApplicationDbContextInitializer
 {
     private readonly ILogger<ApplicationDbContextInitializer> _logger;
     private readonly ApplicationDbContext _context;
+    private readonly InventoryManagementDbContext _inventoryContext;
     private readonly UserManager<IdentityUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
 
     public ApplicationDbContextInitializer(
         ILogger<ApplicationDbContextInitializer> logger,
         ApplicationDbContext context,
+        InventoryManagementDbContext inventoryContext,
         UserManager<IdentityUser> userManager,
         RoleManager<IdentityRole> roleManager)
     {
         _logger = logger;
         _context = context;
+        _inventoryContext = inventoryContext;
         _userManager = userManager;
         _roleManager = roleManager;
     }
@@ -35,8 +38,19 @@ public class ApplicationDbContextInitializer
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while initialising the database.");
-            throw;
+            _logger.LogWarning(ex, "An error occurred while initialising ApplicationDbContext.");
+        }
+
+        try
+        {
+            if (_inventoryContext.Database.IsSqlServer())
+            {
+                await _inventoryContext.Database.MigrateAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "An error occurred while initialising InventoryManagementDbContext.");
         }
     }
 
