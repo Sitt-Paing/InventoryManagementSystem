@@ -1,29 +1,38 @@
 import { Routes } from '@angular/router';
-import { AppLayout } from './layout/app-layout';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
+    path: 'auth',
+    loadChildren: () => import('./pages/auth/auth.routes')
+  },
+  {
     path: '',
-    component: AppLayout,
+    loadComponent: () => import('./layout/app-layout').then((m) => m.AppLayout),
     children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full'
+      },
       {
         path: 'dashboard',
-        loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.DashboardComponent)
+        loadComponent: () => import('./pages/dashboard/dashboard').then((m) => m.DashboardComponent),
+        canActivate: [authGuard]
       },
       {
-        path: 'products',
-        loadComponent: () => import('./pages/products/products').then(m => m.ProductsComponent)
+        path: 'master',
+        loadChildren: () => import('./pages/master/master.routes').then(m => m.default),
+        canActivate: [authGuard]
       },
-      {
-        path: 'categories',
-        loadComponent: () => import('./pages/categories/categories').then(m => m.CategoriesComponent)
-      },
-      {
-        path: 'stock-transactions',
-        loadComponent: () => import('./pages/stock-transactions/stock-transactions').then(m => m.StockTransactionsComponent)
-      }
+      // Backward compatibility redirects
+      { path: 'products', redirectTo: 'master/products', pathMatch: 'full' },
+      { path: 'categories', redirectTo: 'master/categories', pathMatch: 'full' },
+      { path: 'stock-transactions', redirectTo: 'process/stock-transactions', pathMatch: 'full' }
     ]
   },
-  { path: '**', redirectTo: '' }
+  {
+    path: '**',
+    redirectTo: 'auth/login'
+  }
 ];
