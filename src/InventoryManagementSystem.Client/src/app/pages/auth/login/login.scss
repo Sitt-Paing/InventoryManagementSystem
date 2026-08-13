@@ -1,0 +1,244 @@
+:host {
+  display: block;
+}
+
+.login-wrapper {
+  min-height: 100vh;
+  background-color: var(--bg-page);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 1.5rem;
+}
+
+/* Elevated Login Card */
+.login-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 1.5rem;
+  box-shadow: var(--card-shadow);
+  padding: 3rem 2.5rem;
+  width: 100%;
+  max-width: 480px;
+  position: relative;
+  z-index: 10;
+  animation: slideUpFade 0.4s ease-out;
+}
+
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Brand Title */
+.login-brand-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.login-brand-header h1 {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #059669;
+  margin: 0 0 0.35rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.dark .login-brand-header h1 {
+  color: #10b981;
+}
+
+.login-brand-header p {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Error message */
+.login-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  color: #ef4444;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* Form */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.form-label {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: 0.01em;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-faint);
+  font-size: 0.9rem;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.login-input {
+  width: 100%;
+  padding: 0.7rem 0.875rem 0.7rem 2.5rem !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 10px !important;
+  font-size: 0.9rem !important;
+  color: var(--text-main) !important;
+  background-color: var(--bg-card) !important;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.login-input:focus {
+  border-color: #059669 !important;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15) !important;
+  outline: none;
+}
+
+/* PrimeNG Password overrides */
+::ng-deep .login-password {
+  width: 100%;
+}
+::ng-deep .login-password .p-password-input {
+  width: 100%;
+  padding: 0.7rem 2.75rem 0.7rem 2.5rem !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 10px !important;
+  font-size: 0.9rem !important;
+  color: var(--text-main) !important;
+  background-color: var(--bg-card) !important;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+::ng-deep .login-password .p-password-input:focus {
+  border-color: #059669 !important;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15) !important;
+}
+
+/* Field error */
+.field-error {
+  font-size: 0.75rem;
+  color: #ef4444;
+  font-weight: 600;
+}
+
+/* Remember me & Forgot Password */
+.form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8125rem;
+}
+
+.form-remember {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.forgot-link {
+  color: #059669;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+.dark .forgot-link {
+  color: #10b981;
+}
+.forgot-link:hover {
+  text-decoration: underline;
+}
+
+/* Green Submit button */
+.login-btn {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  background-color: #059669 !important;
+  border: none !important;
+  border-radius: 10px !important;
+  font-size: 0.9375rem !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
+  margin-top: 0.5rem;
+}
+.login-btn:hover:not(:disabled) {
+  background-color: #047857 !important;
+  box-shadow: 0 6px 20px rgba(5, 150, 105, 0.45) !important;
+}
+.login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Footer */
+.login-footer {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  font-weight: 600;
+}
+.login-footer span {
+  color: #059669;
+  font-weight: 800;
+}
+.dark .login-footer span {
+  color: #10b981;
+}
+
+/* PrimeNG Checkbox overrides */
+::ng-deep .p-checkbox {
+  width: 18px;
+  height: 18px;
+}
+::ng-deep .p-checkbox .p-checkbox-box {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 5px !important;
+  background-color: var(--bg-card) !important;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+::ng-deep .p-checkbox.p-highlight .p-checkbox-box {
+  border-color: #059669 !important;
+  background-color: #059669 !important;
+}
+::ng-deep .p-checkbox .p-checkbox-icon {
+  color: #ffffff !important;
+  font-size: 11px;
+}
