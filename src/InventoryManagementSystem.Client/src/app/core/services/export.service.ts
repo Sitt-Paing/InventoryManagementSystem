@@ -27,4 +27,8 @@ export class ExportService {
       console.error('Export failed:', e);
     }
   }
+
+  excelAll(filename: string, tableElement: any): void {
+    this.excel(filename, tableElement);
+  }
 }
