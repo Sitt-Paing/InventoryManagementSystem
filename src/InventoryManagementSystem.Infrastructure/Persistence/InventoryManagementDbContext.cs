@@ -162,7 +162,11 @@ public partial class InventoryManagementDbContext : DbContext, IApplicationDbCon
 
         modelBuilder.Entity<Product>(entity =>
         {
-            //entity.Property(e => e.Id).HasMaxLength(50);
+            entity.Property(e => e.Id)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => ParseGuidOrDefault(v)
+                );
             entity.Property(e => e.CreatedBy).HasMaxLength(256);
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.DeletedBy).HasMaxLength(256);
@@ -192,7 +196,11 @@ public partial class InventoryManagementDbContext : DbContext, IApplicationDbCon
             entity.Property(e => e.DeletedBy).HasMaxLength(256);
             entity.Property(e => e.DeletedOn).HasColumnType("datetime");
             entity.Property(e => e.Note).HasMaxLength(250);
-            //entity.Property(e => e.ProductId).HasMaxLength(50);
+            entity.Property(e => e.ProductId)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => ParseGuidOrEmpty(v)
+                );
             entity.Property(e => e.TransactionDate).HasColumnType("datetime");
             entity.Property(e => e.TransactionType)
                 .HasMaxLength(30)
@@ -208,6 +216,18 @@ public partial class InventoryManagementDbContext : DbContext, IApplicationDbCon
         });
 
         OnModelCreatingPartial(modelBuilder);
+    }
+
+    private static Guid ParseGuidOrDefault(string v)
+    {
+        Guid g;
+        return Guid.TryParse(v, out g) ? g : Guid.NewGuid();
+    }
+
+    private static Guid ParseGuidOrEmpty(string v)
+    {
+        Guid g;
+        return Guid.TryParse(v, out g) ? g : Guid.Empty;
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
