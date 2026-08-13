@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { AppHeader } from './header/app-header';
 import { AppSidebar } from './sidebar/app-sidebar';
+import { SharedService } from '../core/services/shared.service';
 
 @Component({
   selector: 'app-layout',
@@ -11,4 +12,6 @@ import { AppSidebar } from './sidebar/app-sidebar';
   templateUrl: './app-layout.html',
   styleUrl: './app-layout.scss'
 })
-export class AppLayout {}
+export class AppLayout {
+  constructor(public sharedService: SharedService) {}
+}
