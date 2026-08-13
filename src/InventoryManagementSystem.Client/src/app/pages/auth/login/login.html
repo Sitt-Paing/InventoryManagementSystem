@@ -1,0 +1,101 @@
+<div class="login-wrapper" [class.dark]="sharedService.isDarkMode()">
+
+  <!-- Top-Right Floating Controls -->
+  <div class="fixed top-6 right-6 flex items-center gap-3 z-50">
+    <button
+      type="button"
+      (click)="sharedService.toggleDarkMode()"
+      class="p-2.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-emerald-600 transition-colors cursor-pointer shadow-sm"
+      [title]="sharedService.isDarkMode() ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+      <i [class]="sharedService.isDarkMode() ? 'pi pi-sun text-amber-400 text-sm' : 'pi pi-moon text-slate-700 text-sm'"></i>
+    </button>
+  </div>
+
+  <div class="login-card">
+
+    <!-- Header Title -->
+    <div class="login-brand-header">
+      <h1>INVENTORY MANAGEMENT SYSTEM</h1>
+      <p>Sign in to continue</p>
+    </div>
+
+    <!-- Error message -->
+    @if (errorMessage()) {
+      <div class="login-error">
+        <i class="pi pi-exclamation-circle"></i>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form" autocomplete="on">
+
+      <!-- Email or Username -->
+      <div class="form-group">
+        <label class="form-label" for="loginUsername">Email or Username</label>
+        <div class="input-wrapper">
+          <i class="pi pi-user input-icon"></i>
+          <input
+            id="loginUsername"
+            type="text"
+            pInputText
+            formControlName="usernameOrEmail"
+            placeholder="Email or Username"
+            class="login-input"
+            autocomplete="username"
+          />
+        </div>
+        @if (loginForm.get('usernameOrEmail')?.invalid && loginForm.get('usernameOrEmail')?.touched) {
+          <span class="field-error">Email or username is required.</span>
+        }
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label class="form-label" for="loginPassword">Password</label>
+        <div class="input-wrapper">
+          <i class="pi pi-lock input-icon"></i>
+          <p-password
+            inputId="loginPassword"
+            formControlName="password"
+            placeholder="Password"
+            [feedback]="false"
+            [toggleMask]="true"
+            styleClass="login-password"
+            inputStyleClass="login-input"
+            autocomplete="current-password"
+          />
+        </div>
+        @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+          <span class="field-error">Password is required (min 6 characters).</span>
+        }
+      </div>
+
+      <!-- Remember me & Forgot Password -->
+      <div class="form-options">
+        <div class="form-remember">
+          <p-checkbox formControlName="rememberMe" inputId="rememberMe" [binary]="true" />
+          <label for="rememberMe">Remember me</label>
+        </div>
+        <a href="javascript:void(0)" class="forgot-link">Forgot Password?</a>
+      </div>
+
+      <!-- Submit CTA Button -->
+      <button
+        pButton
+        type="submit"
+        class="login-btn"
+        [loading]="isSubmitting()"
+        [disabled]="isSubmitting()"
+        label="Sign In"
+      ></button>
+
+    </form>
+
+    <!-- Footer
+    <div class="login-footer">
+      <p>Powered by <span>EFFICIENT SOFT</span></p>
+    </div> -->
+
+  </div>
+</div>
