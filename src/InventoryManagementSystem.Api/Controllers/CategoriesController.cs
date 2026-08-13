@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryManagementSystem.Api.Controllers;
 
+[Route("api/categories")]
+[ApiController]
 public class CategoriesController : ApiControllerBase
 {
     [HttpGet]
