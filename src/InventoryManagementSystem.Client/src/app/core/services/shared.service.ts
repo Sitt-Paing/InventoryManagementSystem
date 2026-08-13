@@ -5,55 +5,48 @@ import { CompanyModel, BranchModel } from '../models/company-branch.model';
   providedIn: 'root'
 })
 export class SharedService {
-  private readonly defaultCompanyKey = 'DEFAULT_COMPANY_ID';
-  private readonly defaultBranchKey = 'DEFAULT_BRANCH_ID';
 
-  companies = signal<CompanyModel[]>([
-    { companyId: 'COMP001', companyName: 'Efficient Soft HQ', code: 'ESHQ' },
-    { companyId: 'COMP002', companyName: 'Efficient Tech Global', code: 'ETG' }
-  ]);
-
-  branches = signal<BranchModel[]>([
-    { branchId: 1, companyId: 'COMP001', branchName: 'Main Warehouse - Yangon', location: 'Yangon Central' },
-    { branchId: 2, companyId: 'COMP001', branchName: 'Mandalay Hub', location: 'Mandalay City' },
-    { branchId: 3, companyId: 'COMP002', branchName: 'Singapore Logistics Center', location: 'Jurong West' }
-  ]);
-
-  selectedCompany = signal<CompanyModel>(this.companies()[0]);
-  selectedBranch = signal<BranchModel>(this.branches()[0]);
   sidebarCollapsed = signal<boolean>(false);
-  isDarkMode = signal<boolean>(true);
+  isDarkMode = signal<boolean>(this.loadDarkModePreference());
 
   constructor() {
-    const savedComp = localStorage.getItem(this.defaultCompanyKey);
-    const savedBranch = localStorage.getItem(this.defaultBranchKey);
+    // Apply initial dark mode class on startup
+    this.applyDarkModeClass(this.isDarkMode());
+  }
 
-    if (savedComp) {
-      const comp = this.companies().find(c => c.companyId === savedComp);
-      if (comp) this.selectedCompany.set(comp);
+  private loadDarkModePreference(): boolean {
+    const saved = localStorage.getItem('theme');
+    if (saved !== null) {
+      return saved === 'dark';
     }
-    if (savedBranch) {
-      const br = this.branches().find(b => b.branchId === Number.parseInt(savedBranch));
-      if (br) this.selectedBranch.set(br);
+    // Default to light mode
+    return false;
+  }
+
+  private applyDarkModeClass(dark: boolean): void {
+    if (dark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
   }
 
-  getDefaultCompany(): string {
-    return this.selectedCompany().companyId;
+  getUserName(): string {
+    const raw = localStorage.getItem('AUTH_USER');
+    if (raw) {
+      try {
+        return JSON.parse(raw)?.userName ?? 'Guest';
+      } catch { return 'Guest'; }
+    }
+    return 'Guest';
   }
 
-  getDefaultBranch(): string {
-    return this.selectedBranch().branchId.toString();
+  getDefaultCompany(): string | null {
+    return localStorage.getItem('DEFAULT_COMPANY');
   }
 
-  setCompany(company: CompanyModel): void {
-    this.selectedCompany.set(company);
-    localStorage.setItem(this.defaultCompanyKey, company.companyId);
-  }
-
-  setBranch(branch: BranchModel): void {
-    this.selectedBranch.set(branch);
-    localStorage.setItem(this.defaultBranchKey, branch.branchId.toString());
+  getDefaultBranch(): string | null {
+    return localStorage.getItem('DEFAULT_BRANCH');
   }
 
   toggleSidebar(): void {
@@ -61,6 +54,11 @@ export class SharedService {
   }
 
   toggleDarkMode(): void {
-    this.isDarkMode.update(val => !val);
+    this.isDarkMode.update(val => {
+      const next = !val;
+      localStorage.setItem('theme', next ? 'dark' : 'light');
+      this.applyDarkModeClass(next);
+      return next;
+    });
   }
 }
