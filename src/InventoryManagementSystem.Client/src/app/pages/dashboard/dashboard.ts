@@ -48,13 +48,13 @@ export class DashboardComponent implements OnInit {
   }
 
   loadData(): void {
-    this.productService.getByCB().subscribe(res => {
-      this.products = res.data;
-      this.totalProductsCount = this.products.length;
-      this.lowStockCount = this.products.filter(p => p.status === 'Low Stock').length;
-      this.outOfStockCount = this.products.filter(p => p.status === 'Out of Stock').length;
-      this.totalValuation = this.products.reduce((acc, p) => acc + (p.unitPrice * p.quantityInStock), 0);
-    });
+    // this.productService.getByCB().subscribe(res => {
+    //   this.products = res.data;
+    //   this.totalProductsCount = this.products.length;
+    //   this.lowStockCount = this.products.filter(p => p.status === 'Low Stock').length;
+    //   this.outOfStockCount = this.products.filter(p => p.status === 'Out of Stock').length;
+    //   this.totalValuation = this.products.reduce((acc, p) => acc + (p.unitPrice * p.quantityInStock), 0);
+    // });
 
     this.transactionService.getByCB().subscribe(res => {
       this.recentTransactions = res.data.slice(0, 5);
