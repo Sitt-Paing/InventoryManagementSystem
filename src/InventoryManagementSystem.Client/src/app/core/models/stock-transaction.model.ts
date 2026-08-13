@@ -12,6 +12,4 @@ export interface StockTransactionModel {
   notes?: string;
   transactionDate: Date | string;
   performedBy: string;
-  companyId: string;
-  branchId: number;
 }
