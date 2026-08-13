@@ -32,6 +32,16 @@ builder.Services.AddProblemDetails();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyHeader()
+               .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
 // Initialise and seed database
@@ -48,12 +58,15 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference("/docs/scalar");
 }
 
+
 app.UseExceptionHandler();
+app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
 
 app.MapControllers();
 
