@@ -96,9 +96,9 @@ export class StockTransactionsComponent implements OnInit {
   }
 
   loadProducts(): void {
-    this.productService.getByCB().subscribe(res => {
-      this.products = res.data;
-    });
+    // this.productService.getByCB().subscribe(res => {
+    //   this.products = res.data;
+    // });
   }
 
   loadTransactions(): void {
