@@ -1,5 +1,5 @@
 export interface ProductModel {
-  productId: number;
+  productId: number | string;
   productCode: string;
   name: string;
   description?: string;
@@ -11,8 +11,6 @@ export interface ProductModel {
   reorderLevel: number;
   unitOfMeasure: string;
   status: 'In Stock' | 'Low Stock' | 'Out of Stock';
-  companyId: string;
-  branchId: number;
   createdAt: Date | string;
   updatedAt?: Date | string;
 }
