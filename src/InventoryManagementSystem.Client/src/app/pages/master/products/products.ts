@@ -87,20 +87,20 @@ export class Products implements OnInit {
     { label: 'Out of Stock', value: 'Out of Stock' },
   ];
 
-  get categoryFilterOptions(): any[] {
-    return [{ id: null, name: 'All Categories' }, ...this.categories];
-  }
+  // get categoryFilterOptions(): any[] {
+  //   return [{ id: null, name: 'All Categories' }, ...this.categories];
+  // }
 
-  onCategoryFilterChange(): void {
-    if (this.selectedCategoryId == null || this.selectedCategoryId === 0) {
-      this.filteredProducts = [...this.products];
-    } else {
-      this.filteredProducts = this.products.filter(
-        p => Number(p.categoryId) === Number(this.selectedCategoryId)
-      );
-    }
-    this.cdr.detectChanges();
-  }
+  // onCategoryFilterChange(): void {
+  //   if (this.selectedCategoryId == null || this.selectedCategoryId === 0) {
+  //     this.filteredProducts = [...this.products];
+  //   } else {
+  //     this.filteredProducts = this.products.filter(
+  //       p => Number(p.categoryId) === Number(this.selectedCategoryId)
+  //     );
+  //   }
+  //   this.cdr.detectChanges();
+  // }
 
   private formBuilder = inject(FormBuilder);
   public productForm = this.formBuilder.group({
@@ -170,7 +170,7 @@ export class Products implements OnInit {
     this.productService.get().subscribe({
       next: res => {
         this.products = (res.data || []) as ProductModel[];
-        this.onCategoryFilterChange();
+        // this.onCategoryFilterChange();
         this.isLoading = false;
         this.cdr.detectChanges();
       },
