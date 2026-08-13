@@ -1,12 +1,12 @@
 <aside 
-  class="h-[calc(100vh-4rem)] border-r border-slate-700/60 bg-slate-900 text-slate-300 transition-all duration-300 ease-in-out flex flex-col justify-between overflow-y-auto select-none"
-  [ngClass]="sharedService.sidebarCollapsed() ? 'w-16' : 'w-64'">
+  class="app-sidebar h-[calc(100vh-3.5rem)] transition-all duration-300 ease-in-out flex flex-col justify-between overflow-y-auto select-none"
+  [ngClass]="sharedService.sidebarCollapsed() ? 'w-16' : 'w-60'">
   
-  <div class="py-4 px-3 space-y-6">
+  <div class="py-4 px-3 space-y-5">
     <div *ngFor="let group of navGroups" class="space-y-1">
       <h3 
         *ngIf="!sharedService.sidebarCollapsed()" 
-        class="px-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider font-mono">
+        class="px-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 my-1">
         {{ group.groupName }}
       </h3>
 
@@ -14,11 +14,11 @@
         <a 
           *ngFor="let item of group.items"
           [routerLink]="item.routerLink"
-          routerLinkActive="bg-indigo-600/20 text-indigo-400 font-semibold border-l-4 border-indigo-500"
+          routerLinkActive="active-nav-item"
           [routerLinkActiveOptions]="{ exact: false }"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800/80 hover:text-white transition-all text-sm group text-slate-400 border-l-4 border-transparent">
+          class="flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm font-medium opacity-80 hover:opacity-100">
           
-          <i [class]="item.icon + ' text-base group-hover:scale-110 transition-transform'"></i>
+          <i [class]="item.icon + ' text-base group-hover:scale-105 transition-transform'"></i>
           
           <span *ngIf="!sharedService.sidebarCollapsed()" class="truncate flex-1">
             {{ item.label }}
@@ -34,16 +34,26 @@
     </div>
   </div>
 
-  <!-- Bottom Workspace Status Pill (ES_HR Style) -->
-  <div *ngIf="!sharedService.sidebarCollapsed()" class="p-3 m-3 rounded-xl bg-slate-800/60 border border-slate-700/50 space-y-2">
-    <div class="flex items-center justify-between text-xs text-slate-400">
-      <span class="flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Online Mode
-      </span>
-      <span class="font-mono text-[10px] text-slate-500">v2.0</span>
+  <!-- Bottom User Status Pill -->
+  <div *ngIf="!sharedService.sidebarCollapsed()" class="p-2.5 m-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80">
+    <div class="flex items-center gap-2.5">
+      <div class="w-7 h-7 rounded-full text-white font-bold flex items-center justify-center text-[10px] shadow-xs"
+           style="background: var(--accent-gradient);">
+        {{ sharedService.getUserName().charAt(0).toUpperCase() }}
+      </div>
+      <div class="overflow-hidden flex-1 leading-tight">
+        <p class="text-xs font-bold truncate">{{ sharedService.getUserName() }}</p>
+        <p class="text-[10px] font-semibold flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Online
+        </p>
+      </div>
+      <button
+        type="button"
+        (click)="logout()"
+        class="opacity-60 hover:opacity-100 hover:text-rose-500 transition-colors p-1"
+        title="Logout">
+        <i class="pi pi-power-off text-xs"></i>
+      </button>
     </div>
-    <p class="text-[11px] text-slate-400 line-clamp-1">
-      {{ sharedService.selectedBranch().branchName }}
-    </p>
   </div>
 </aside>
