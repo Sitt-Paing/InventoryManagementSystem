@@ -1,5 +1,5 @@
-<header class="h-16 border-b border-slate-700/60 bg-slate-900/90 backdrop-blur sticky top-0 z-40 px-4 flex items-center justify-between shadow-md">
-  <!-- Left Section: Toggle, Brand, Company & Branch Selectors (ES_HR Style) -->
+<header class="app-header h-14 sticky top-0 z-40 px-4 flex items-center justify-between shadow-xs transition-colors duration-200">
+  <!-- Left Section: Sidebar Toggle & Brand Logo -->
   <div class="flex items-center gap-3">
     <button 
       pButton 
@@ -9,101 +9,74 @@
       [rounded]="true" 
       severity="secondary"
       (click)="sharedService.toggleSidebar()" 
-      title="Toggle Sidebar"
-      class="text-slate-300 hover:text-white">
+      title="Toggle Sidebar">
     </button>
 
-    <div class="flex items-center gap-2.5">
-      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-indigo-500/25">
-        <i class="pi pi-box text-white text-lg font-bold"></i>
+    <!-- Brand Logo -->
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 rounded-md flex items-center justify-center text-white font-bold shadow-xs"
+           style="background: var(--accent-gradient);">
+        <i class="pi pi-box text-xs"></i>
       </div>
-      <div class="hidden sm:block">
-        <h1 class="text-sm font-bold text-white tracking-wide leading-tight">ES INVENTORY</h1>
-        <p class="text-[10px] text-indigo-300/80 font-mono tracking-wider">ENTERPRISE SYSTEM</p>
+      <div class="leading-tight">
+        <h1 class="text-sm font-bold tracking-tight">INVENTORY</h1>
       </div>
     </div>
 
-    <div class="h-6 w-px bg-slate-700/70 mx-1 hidden md:block"></div>
-
-    <!-- Company Selector (ES_HR pattern) -->
-    <div class="hidden lg:flex items-center gap-2">
-      <span class="text-xs text-slate-400 font-medium flex items-center gap-1">
-        <i class="pi pi-building text-xs text-indigo-400"></i> Company:
-      </span>
-      <p-select 
-        [options]="sharedService.companies()" 
-        [ngModel]="sharedService.selectedCompany()" 
-        (ngModelChange)="onCompanyChange($event)"
-        optionLabel="companyName" 
-        styleClass="p-select-sm border-slate-700 bg-slate-800 text-slate-200 text-xs w-48 shadow-sm">
-      </p-select>
-    </div>
-
-    <!-- Branch Selector (ES_HR pattern) -->
-    <div class="hidden xl:flex items-center gap-2">
-      <span class="text-xs text-slate-400 font-medium flex items-center gap-1">
-        <i class="pi pi-map-marker text-xs text-emerald-400"></i> Branch:
-      </span>
-      <p-select 
-        [options]="sharedService.branches()" 
-        [ngModel]="sharedService.selectedBranch()" 
-        (ngModelChange)="onBranchChange($event)"
-        optionLabel="branchName" 
-        styleClass="p-select-sm border-slate-700 bg-slate-800 text-slate-200 text-xs w-52 shadow-sm">
-      </p-select>
+    <!-- Breadcrumb (Center-Left) -->
+    <div class="hidden md:flex items-center gap-1.5 text-xs font-medium opacity-70 ml-3">
+      <i class="pi pi-home text-xs"></i>
+      <span>/</span>
+      <span>{{ breadcrumb.parent }}</span>
+      <span>/</span>
+      <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ breadcrumb.child }}</span>
     </div>
   </div>
 
-  <!-- Right Section: Quick Search, Notifications, Theme & Profile -->
-  <div class="flex items-center gap-3">
-    <!-- Global Quick Search -->
-    <div class="hidden md:block w-48 lg:w-64">
-      <p-iconField iconPosition="left">
-        <p-inputIcon styleClass="pi pi-search text-slate-400 text-xs"></p-inputIcon>
-        <input 
-          type="text" 
-          pInputText 
-          placeholder="Global search..." 
-          class="w-full text-xs py-1.5 pl-8 pr-3 bg-slate-800/80 border-slate-700 text-slate-200 rounded-lg focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
-      </p-iconField>
+  <!-- Right Section: Global Search, Language, Theme Toggle & User -->
+  <div class="flex items-center gap-3 ml-auto">
+    <!-- Search Input Box -->
+    <!-- <div class="relative hidden sm:block w-48 lg:w-60">
+      <input 
+        type="text" 
+        placeholder="Search..." 
+        class="w-full text-xs py-1.5 pl-3 pr-8 rounded-lg outline-none p-inputtext" />
+      <i class="pi pi-search absolute right-2.5 top-1/2 -translate-y-1/2 text-xs opacity-50 pointer-events-none"></i>
+    </div> -->
+
+    <!-- Language Selector Pill -->
+    <div class="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold cursor-pointer">
+      <i class="pi pi-globe text-xs text-emerald-600"></i>
+      <span>EN</span>
+      <i class="pi pi-chevron-down text-[10px] opacity-60"></i>
     </div>
 
-    <!-- Notification Icon -->
+    <!-- Theme Toggle Icon Button -->
     <button 
-      pButton 
       type="button" 
-      icon="pi pi-bell" 
-      [text]="true" 
-      [rounded]="true" 
-      severity="secondary"
-      class="text-slate-300 hover:text-white relative">
-      <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-    </button>
-
-    <!-- Theme Toggle -->
-    <button 
-      pButton 
-      type="button" 
-      [icon]="sharedService.isDarkMode() ? 'pi pi-moon' : 'pi pi-sun'" 
-      [text]="true" 
-      [rounded]="true" 
-      severity="secondary"
       (click)="sharedService.toggleDarkMode()"
-      class="text-slate-300 hover:text-white">
+      class="p-2 rounded-lg transition-colors opacity-80 hover:opacity-100 cursor-pointer"
+      [title]="sharedService.isDarkMode() ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+      <i [class]="sharedService.isDarkMode() ? 'pi pi-sun text-sm text-amber-400' : 'pi pi-moon text-sm text-slate-700'"></i>
     </button>
 
-    <div class="h-6 w-px bg-slate-700/70 mx-1"></div>
+    <div class="h-5 w-px opacity-30 bg-current"></div>
 
-    <!-- User Profile Dropdown -->
-    <div class="flex items-center gap-2.5 cursor-pointer p-1 rounded-lg hover:bg-slate-800 transition-colors">
-      <div class="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-xs shadow-md ring-2 ring-indigo-500/30">
-        SP
+    <!-- User Dropdown -->
+    <p-menu #userMenu [model]="userMenuItems" [popup]="true"></p-menu>
+    <button
+      type="button"
+      (click)="userMenu.toggle($event)"
+      class="flex items-center gap-2 px-2 py-1 rounded-lg transition-colors cursor-pointer hover:opacity-80">
+      <div class="w-7 h-7 rounded-full text-white font-bold flex items-center justify-center text-xs"
+           style="background: var(--accent-gradient);">
+        {{ displayName.charAt(0).toUpperCase() }}
       </div>
-      <div class="hidden sm:block text-left">
-        <p class="text-xs font-semibold text-slate-100 leading-tight">Sitt Paing</p>
-        <p class="text-[10px] text-slate-400">System Admin</p>
+      <div class="hidden sm:block text-left leading-tight">
+        <p class="text-xs font-bold">{{ displayName }}</p>
+        <p class="text-[9px] opacity-60 uppercase font-mono">ADMIN</p>
       </div>
-      <i class="pi pi-chevron-down text-slate-400 text-[10px] ml-1"></i>
-    </div>
+      <i class="pi pi-chevron-down text-[10px] opacity-50"></i>
+    </button>
   </div>
 </header>
