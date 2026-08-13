@@ -17,9 +17,8 @@
     <div class="flex items-center gap-2">
       <!-- Category Filter Selectbox -->
       <p-select
-        [options]="categoryFilterOptions"
+        [options]="categories"
         [(ngModel)]="selectedCategoryId"
-        (onChange)="onCategoryFilterChange()"
         optionLabel="name"
         optionValue="id"
         placeholder="All Categories"
