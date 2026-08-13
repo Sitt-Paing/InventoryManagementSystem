@@ -1,0 +1,146 @@
+<p-toast key="globalMessage"></p-toast>
+<p-confirmDialog key="positionDialog"></p-confirmDialog>
+
+<div class="table-card p-4 space-y-4">
+  <div class="flex justify-between ">
+    <div>
+       <p-splitbutton
+        label="Create"
+        icon="pi pi-plus"
+        [model]="items"
+        size="small"
+        (onClick)="create()"
+      />
+    </div>
+
+     <div class="flex ml-auto">
+      <p-iconfield iconPosition="left" class="xl:ml-auto 2xl:ml-auto">
+        <p-inputicon>
+          <i class="pi pi-search"></i>
+        </p-inputicon>
+        <input
+          #search
+          pInputText
+          type="text"
+          (input)="tblCategory.filterGlobal(search.value, 'contains')"
+          placeholder="Search keyword"
+          [style]="{ width: '100%' }"
+        />
+      </p-iconfield>
+    </div>
+  </div>
+
+
+  <p-table
+    #tblCategory
+    [value]="categories"
+    [(selection)]="selectedCategory"
+    dataKey="id"
+    selectionMode="single"
+    stripedRows="true"
+    sortField="createdOn"
+    [sortOrder]="-1"
+    [paginator]="true"
+     [tableStyle]="{ 'min-width': '50rem' }"
+    [rows]="20"
+    [rowsPerPageOptions]="[20, 50, 100]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    [loading]="isLoading"
+    [globalFilterFields]="['name', 'description', 'createdBy', 'updatedBy']">
+
+    <ng-template #header>
+      <tr style="white-space:nowrap">
+        <th pFrozenColumn [style]="{ width: '10px' }">#</th>
+        <th pSortableColumn="name">Category Name <p-sortIcon field="name"></p-sortIcon></th>
+        <th pSortableColumn="description">Description <p-sortIcon field="description"></p-sortIcon></th>
+        <th pSortableColumn="isActive">Status <p-sortIcon field="isActive"></p-sortIcon></th>
+        <th pSortableColumn="createdOn">Created On <p-sortIcon field="createdOn"></p-sortIcon></th>
+        <th pSortableColumn="createdBy">Created By <p-sortIcon field="createdBy"></p-sortIcon></th>
+        <th pSortableColumn="updatedOn">Updated On <p-sortIcon field="updatedOn"></p-sortIcon></th>
+        <th pSortableColumn="updatedBy">Updated By <p-sortIcon field="updatedBy"></p-sortIcon></th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-cat>
+      <tr style="white-space:nowrap" [pSelectableRow]="cat">
+        <td>
+          <span class="pi pi-circle" [class.pi-check-circle]="selectedCategory === cat" [style.color]="selectedCategory === cat ? 'var(--accent-color)' : 'var(--text-faint)'"></span>
+        </td>
+        <td>{{ cat.name }}</td>
+        <td>{{ cat.description || '—' }}</td>
+        <td>
+          <p-tag [value]="cat.isActive ? 'Active' : 'Inactive'"
+                 [severity]="cat.isActive ? 'success' : 'info'"
+                 icon="{{ cat.isActive ? 'pi pi-check' : 'pi pi-minus-circle' }}"
+                 [rounded]="true"></p-tag>
+        </td>
+        <td>
+          {{ cat.createdOn ? (cat.createdOn | date:'dd/MMM/yyyy hh:mm:ss a') : '—' }}
+        </td>
+        <td>{{ cat.createdBy || 'devadmin' }}</td>
+        <td>
+          {{ cat.updatedOn ? (cat.updatedOn | date:'dd/MMM/yyyy hh:mm:ss a') : '—' }}
+        </td>
+        <td>{{ cat.updatedBy || '—' }}</td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="8" class="text-center py-8 text-sm opacity-60">
+          No categories found.
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Modal Dialog -->
+<p-dialog
+  header="{{ isEdit ? 'Edit Category' : 'Create Category' }}"
+  [(visible)]="modalVisible"
+  [breakpoints]="{ '1920px': '30vw', '1440px': '30vw', '1024px': '30vw', '768px': '80vw', '425px': '100vw', '375px': '100vw', '320px': '100vw' }"
+  [modal]="true"
+  [style]="{ 'min-width': '30vw' }"
+  [draggable]="false"
+  [resizable]="false"
+  (onHide)="onDialogHide()">
+
+  <form [formGroup]="categoryForm" (ngSubmit)="onSubmit()">
+    @for (message of errorMessage(); track message; let first = $first) {
+      <p-message [severity]="message.severity" [closable]="false" [ngClass]="{ 'mt-2': !first }">
+        {{ message.detail }}
+      </p-message>
+    }
+
+    <div class="grid grid-cols-12 gap-5 mt-2">
+      <!-- Category Name -->
+      <div class="col-span-12 flex flex-col gap-2">
+        <label htmlFor="name" class="text-xs font-bold">Category Name</label>
+        <input formControlName="name" pInputText placeholder="Enter Category name..." required />
+        @if(categoryForm.controls['name'].invalid && categoryForm.get('name')?.dirty){
+          <small class="text-xs text-rose-500 font-bold">Category name is required.</small>
+        }
+      </div>
+
+      <!-- Description -->
+      <div class="col-span-12 flex flex-col gap-2">
+        <label htmlFor="description" class="text-xs font-bold">Description</label>
+        <textarea formControlName="description" pInputText placeholder="Enter Description..." rows="3"></textarea>
+      </div>
+
+      <!-- Status -->
+      <div class="col-span-6 flex items-center gap-2">
+        <p-toggleSwitch formControlName="isActive"></p-toggleSwitch>
+        <span class="text-xs font-bold">Status</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="mt-5 flex justify-end gap-2">
+      <button pButton label="Cancel" severity="secondary" type="button" (click)="onDialogHide()"></button>
+      <button pButton [label]="isEdit ? 'Update' : 'Save'" [severity]="isEdit ? 'info' : 'success'" type="submit" [loading]="isSubmitting"></button>
+    </div>
+  </form>
+</p-dialog>
