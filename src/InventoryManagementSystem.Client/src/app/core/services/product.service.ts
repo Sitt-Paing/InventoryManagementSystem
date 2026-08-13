@@ -5,8 +5,6 @@ import { environment } from '../../../environments/environment';
 import { RootModel } from '../models/root.model';
 import { ProductModel } from '../models/product.model';
 
-const jsonHeaders = new HttpHeaders({ 'Content-Type': 'application/json' });
-
 @Injectable({
   providedIn: 'root'
 })
@@ -25,12 +23,12 @@ export class ProductService {
 
   create(model: ProductModel): Observable<RootModel> {
     const url = `${environment.main_url}/products`;
-    return this.http.post<RootModel>(url, JSON.stringify(model), { headers: jsonHeaders });
+    return this.http.post<RootModel>(url, JSON.stringify(model));
   }
 
   update(model: ProductModel): Observable<RootModel> {
     const url = `${environment.main_url}/products/${model.productId}`;
-    return this.http.put<RootModel>(url, JSON.stringify(model), { headers: jsonHeaders });
+    return this.http.put<RootModel>(url, JSON.stringify(model));
   }
 
   delete(id: string | number): Observable<RootModel> {
