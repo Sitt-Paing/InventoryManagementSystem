@@ -1,0 +1,202 @@
+<p-toast key="globalMessage"></p-toast>
+<p-confirmDialog key="positionDialog"></p-confirmDialog>
+
+<div class="table-card p-5 space-y-4">
+  <!-- Header Bar: Create SplitButton & Global Search Keyword -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <p-splitbutton
+        label="Create"
+        icon="pi pi-plus"
+        [model]="items"
+        (onClick)="create()"
+        size="small">
+      </p-splitbutton>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <!-- Category Filter Selectbox -->
+      <p-select
+        [options]="categoryFilterOptions"
+        [(ngModel)]="selectedCategoryId"
+        (onChange)="onCategoryFilterChange()"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="All Categories"
+        styleClass="w-48 text-xs">
+      </p-select>
+
+      <div class="relative w-full sm:w-64">
+        <input
+          #search
+          pInputText
+          type="text"
+          (input)="tblProducts.filterGlobal(search.value, 'contains')"
+          placeholder="Search keyword"
+          class="w-full text-xs py-2 pl-3 pr-8 rounded-lg outline-none p-inputtext" />
+        <i class="pi pi-search absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <p-table
+    #tblProducts
+    [value]="filteredProducts"
+    [(selection)]="selectedProduct"
+    dataKey="productId"
+    selectionMode="single"
+    sortField="createdAt"
+    [sortOrder]="-1"
+    [paginator]="true"
+    [rows]="20"
+    [rowsPerPageOptions]="[20, 50, 100]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    [loading]="isLoading"
+    [globalFilterFields]="['productCode', 'name', 'unitOfMeasure']"
+    styleClass="p-datatable-sm"
+    responsiveLayout="scroll">
+
+    <ng-template #header>
+      <tr style="white-space:nowrap">
+        <th pFrozenColumn [style]="{ width: '10px' }">#</th>
+        <th pSortableColumn="productCode">Code <p-sortIcon field="productCode"></p-sortIcon></th>
+        <th pSortableColumn="name">Product Name <p-sortIcon field="name"></p-sortIcon></th>
+        <th>Category</th>
+        <th pSortableColumn="unitPrice">Unit Price <p-sortIcon field="unitPrice"></p-sortIcon></th>
+        <th pSortableColumn="quantityInStock">In Stock <p-sortIcon field="quantityInStock"></p-sortIcon></th>
+        <th pSortableColumn="isActive">Status <p-sortIcon field="isActive"></p-sortIcon></th>
+        <th pSortableColumn="createdAt">Created On <p-sortIcon field="createdAt"></p-sortIcon></th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-prod>
+      <tr style="white-space:nowrap" [pSelectableRow]="prod">
+        <td>
+          <span class="pi pi-circle" [class.pi-check-circle]="selectedProduct === prod" [style.color]="selectedProduct === prod ? 'var(--accent-color)' : 'var(--text-faint)'"></span>
+        </td>
+        <td>{{ prod.productCode || '—' }}</td>
+        <td>{{ prod.name }}</td>
+        <td>{{ getCategoryName(prod.categoryId) }}</td>
+        <td>{{ prod.unitPrice | currency:'USD':'symbol':'1.2-2' }}</td>
+        <td>{{ prod.quantityInStock }} {{ prod.unitOfMeasure }}</td>
+        <td>
+          <p-tag [value]="prod.isActive ? 'Active' : 'Inactive'"
+                 [severity]="prod.isActive ? 'success' : 'info'"
+                 icon="{{ prod.isActive ? 'pi pi-check' : 'pi pi-minus-circle' }}"
+                 [rounded]="true"></p-tag>
+        </td>
+        <td>
+          {{ prod.createdAt ? (prod.createdAt | date:'dd/MMM/yyyy hh:mm:ss a') : '—' }}
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="8" class="text-center py-8 text-sm font-semibold text-slate-500">
+          No products found.
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Modal Dialog -->
+<p-dialog
+  header="{{ isEdit ? 'Edit Product' : 'Create Product' }}"
+  [(visible)]="modalVisible"
+  [breakpoints]="{ '1920px': '36rem', '1024px': '40vw', '768px': '80vw', '375px': '100vw', '320px': '100vw' }"
+  [modal]="true"
+  [style]="{ width: '36rem' }"
+  [draggable]="false"
+  [resizable]="false"
+  (onHide)="onDialogHide()">
+
+  <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+    @for (message of errorMessage(); track message; let first = $first) {
+      <p-message [severity]="message.severity" [closable]="false" [ngClass]="{ 'mt-2': !first }">
+        {{ message.detail }}
+      </p-message>
+    }
+
+    <div class="grid grid-cols-2 gap-4 pt-2">
+      <!-- Product Name -->
+      <div class="col-span-2 flex flex-col gap-2">
+        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Product Name *</label>
+        <input formControlName="name" pInputText placeholder="Enter Product name..." required />
+        @if(productForm.controls['name'].invalid && productForm.get('name')?.dirty){
+          <small class="text-xs text-rose-500 font-bold">Product name is required.</small>
+        }
+      </div>
+
+      <!-- Product Code -->
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Product Code</label>
+        <input formControlName="productCode" pInputText placeholder="e.g. PRD-001" />
+      </div>
+
+      <!-- Unit of Measure -->
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Unit of Measure *</label>
+        <input formControlName="unitOfMeasure" pInputText placeholder="PCS / KG / UNIT" required />
+      </div>
+
+      <!-- Category -->
+      <div class="col-span-2 flex flex-col gap-2">
+        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Category *</label>
+        <p-select
+          formControlName="categoryId"
+          [options]="categories"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Select Category..."
+          styleClass="w-full">
+        </p-select>
+      </div>
+
+      <!-- Unit Price -->
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Unit Price *</label>
+        <input formControlName="unitPrice" type="number" pInputText min="0" step="0.01" />
+      </div>
+
+      <!-- Cost Price -->
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Cost Price</label>
+        <input formControlName="costPrice" type="number" pInputText min="0" step="0.01" />
+      </div>
+
+      <!-- Quantity In Stock -->
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Quantity In Stock *</label>
+        <input formControlName="quantityInStock" type="number" pInputText min="0" />
+      </div>
+
+      <!-- Reorder Level -->
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Reorder Level *</label>
+        <input formControlName="reorderLevel" type="number" pInputText min="1" />
+      </div>
+
+      <!-- Description -->
+      <div class="col-span-2 flex flex-col gap-2">
+        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Description</label>
+        <textarea formControlName="description" pInputText placeholder="Enter Description..." rows="3"></textarea>
+      </div>
+
+      <!-- Status Toggle -->
+      <div class="col-span-2 flex items-center gap-2">
+        <p-toggleSwitch formControlName="isActive"></p-toggleSwitch>
+        <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Status</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="mt-5 flex justify-end gap-2">
+      <button pButton label="Cancel" severity="secondary" type="button" (click)="onDialogHide()"></button>
+      <button pButton [label]="isEdit ? 'Update' : 'Save'" [severity]="isEdit ? 'info' : 'success'" type="submit" [loading]="isSubmitting"></button>
+    </div>
+  </form>
+</p-dialog>
