@@ -5,7 +5,8 @@
     <button
       type="button"
       (click)="sharedService.toggleDarkMode()"
-      class="p-2.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-emerald-600 transition-colors cursor-pointer shadow-sm"
+      class="px-2 py-1 rounded-full border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-emerald-600 transition-colors cursor-pointer shadow-sm"
+      [style.background-color]="sharedService.isDarkMode() ? '#1e293b' : '#ffffff'"
       [title]="sharedService.isDarkMode() ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
       <i [class]="sharedService.isDarkMode() ? 'pi pi-sun text-amber-400 text-sm' : 'pi pi-moon text-slate-700 text-sm'"></i>
     </button>
@@ -61,7 +62,7 @@
             placeholder="Password"
             [feedback]="false"
             [toggleMask]="true"
-            styleClass="login-password"
+            class="login-password"
             inputStyleClass="login-input"
             autocomplete="current-password"
           />
