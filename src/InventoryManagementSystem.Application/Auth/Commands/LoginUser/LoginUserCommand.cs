@@ -36,7 +36,7 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, AuthRes
 
     public async Task<AuthResultDto> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
-        var loginRequest = new LoginRequest
+        LoginRequest loginRequest = new LoginRequest
         {
             UserNameOrEmail = request.UserNameOrEmail,
             Password = request.Password
