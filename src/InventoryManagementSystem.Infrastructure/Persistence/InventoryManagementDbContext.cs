@@ -19,7 +19,7 @@ public partial class InventoryManagementDbContext : DbContext, IApplicationDbCon
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        var currentUserId = _currentUserService?.UserId ?? "System";
+        var currentUserId = _currentUserService?.UserName ?? _currentUserService?.UserId ?? "System";
 
         foreach (var entry in ChangeTracker.Entries())
         {
