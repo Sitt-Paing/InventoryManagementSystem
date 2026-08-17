@@ -55,7 +55,8 @@
     <button 
       type="button" 
       (click)="sharedService.toggleDarkMode()"
-      class="p-2 rounded-lg transition-colors opacity-80 hover:opacity-100 cursor-pointer"
+      class="px-2 py-1 rounded-full transition-colors cursor-pointer border border-slate-200 dark:border-slate-700"
+      [style.background-color]="sharedService.isDarkMode() ? '#1e293b' : '#ffffff'"
       [title]="sharedService.isDarkMode() ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
       <i [class]="sharedService.isDarkMode() ? 'pi pi-sun text-sm text-amber-400' : 'pi pi-moon text-sm text-slate-700'"></i>
     </button>
