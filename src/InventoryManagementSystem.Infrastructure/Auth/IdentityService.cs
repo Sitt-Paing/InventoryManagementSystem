@@ -41,7 +41,7 @@ public class IdentityService : IIdentityService
     {
         _logger.LogInformation("Registration attempt for user: {UserName}, Email: {Email}", request.UserName, request.Email);
 
-        var existingUser = await _userManager.FindByEmailAsync(request.Email);
+        IdentityUser? existingUser = await _userManager.FindByEmailAsync(request.Email);
         if (existingUser != null)
         {
             return new AuthResultDto
@@ -52,13 +52,13 @@ public class IdentityService : IIdentityService
             };
         }
 
-        var user = new IdentityUser
+        IdentityUser user = new IdentityUser
         {
             UserName = request.UserName,
             Email = request.Email
         };
 
-        var result = await _userManager.CreateAsync(user, request.Password);
+        IdentityResult result = await _userManager.CreateAsync(user, request.Password);
         if (!result.Succeeded)
         {
             return new AuthResultDto
@@ -100,7 +100,7 @@ public class IdentityService : IIdentityService
             };
         }
 
-        var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: false);
+        SignInResult result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: false);
         if (!result.Succeeded)
         {
             if (result.IsLockedOut)
@@ -126,7 +126,7 @@ public class IdentityService : IIdentityService
 
     public async Task<AuthResultDto> RefreshTokenAsync(RefreshTokenRequest request)
     {
-        var principal = GetPrincipalFromExpiredToken(request.AccessToken);
+        ClaimsPrincipal? principal = GetPrincipalFromExpiredToken(request.AccessToken);
         if (principal == null)
         {
             return new AuthResultDto
@@ -136,7 +136,7 @@ public class IdentityService : IIdentityService
             };
         }
 
-        var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId))
         {
             return new AuthResultDto
@@ -146,7 +146,7 @@ public class IdentityService : IIdentityService
             };
         }
 
-        var user = await _userManager.FindByIdAsync(userId);
+        IdentityUser? user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
             return new AuthResultDto
@@ -156,8 +156,8 @@ public class IdentityService : IIdentityService
             };
         }
 
-        var savedRefreshToken = await _userManager.GetAuthenticationTokenAsync(user, "InventoryManagementSystem", "RefreshToken");
-        var savedExpiryString = await _userManager.GetAuthenticationTokenAsync(user, "InventoryManagementSystem", "RefreshTokenExpiry");
+        string? savedRefreshToken = await _userManager.GetAuthenticationTokenAsync(user, "InventoryManagementSystem", "RefreshToken");
+        string? savedExpiryString = await _userManager.GetAuthenticationTokenAsync(user, "InventoryManagementSystem", "RefreshTokenExpiry");
 
         if (savedRefreshToken != request.RefreshToken)
         {
@@ -183,7 +183,7 @@ public class IdentityService : IIdentityService
 
     public async Task<string?> GeneratePasswordResetTokenAsync(string email)
     {
-        var user = await _userManager.FindByEmailAsync(email);
+        IdentityUser? user = await _userManager.FindByEmailAsync(email);
         if (user == null) return null;
 
         return await _userManager.GeneratePasswordResetTokenAsync(user);
@@ -191,13 +191,13 @@ public class IdentityService : IIdentityService
 
     public async Task<ResultDto> ResetPasswordAsync(ResetPasswordRequest request)
     {
-        var user = await _userManager.FindByEmailAsync(request.Email);
+        IdentityUser? user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
         {
             return ResultDto.Failure("User not found.");
         }
 
-        var result = await _userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+        IdentityResult result = await _userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
         if (!result.Succeeded)
         {
             return ResultDto.Failure(result.Errors.Select(e => e.Description), "Password reset failed.");
@@ -208,13 +208,13 @@ public class IdentityService : IIdentityService
 
     public async Task<ResultDto> ChangePasswordAsync(string userId, ChangePasswordRequest request)
     {
-        var user = await _userManager.FindByIdAsync(userId);
+        IdentityUser? user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
             return ResultDto.Failure("User not found.");
         }
 
-        var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+        IdentityResult result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
         if (!result.Succeeded)
         {
             return ResultDto.Failure(result.Errors.Select(e => e.Description), "Change password failed.");
@@ -225,11 +225,13 @@ public class IdentityService : IIdentityService
 
     private async Task<AuthResultDto> GenerateAuthResponseAsync(IdentityUser user)
     {
-        var roles = await _userManager.GetRolesAsync(user);
-        var claims = new List<Claim>
+        IList<string> roles = await _userManager.GetRolesAsync(user);
+        List<Claim> claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id),
             new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
+            new Claim(JwtRegisteredClaimNames.Name, user.UserName ?? string.Empty),
+            new Claim("username", user.UserName ?? string.Empty),
             new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
@@ -239,17 +241,17 @@ public class IdentityService : IIdentityService
             claims.Add(new Claim(ClaimTypes.Role, role));
         }
 
-        var secretKey = _configuration["JwtSettings:SecretKey"] ?? "SuperSecretKeyForInventoryManagementSystem_JwtToken_2026!#";
-        var issuer = _configuration["JwtSettings:Issuer"] ?? "InventoryManagementSystem";
-        var audience = _configuration["JwtSettings:Audience"] ?? "InventoryManagementSystemClient";
-        var expiryMinutes = int.TryParse(_configuration["JwtSettings:ExpiryMinutes"], out var exp) ? exp : 60;
-        var refreshTokenExpiryDays = int.TryParse(_configuration["JwtSettings:RefreshTokenExpiryDays"], out var refExp) ? refExp : 7;
+        string? secretKey = _configuration["JwtSettings:SecretKey"] ?? "SuperSecretKeyForInventoryManagementSystem_JwtToken_2026!#";
+        string? issuer = _configuration["JwtSettings:Issuer"] ?? "InventoryManagementSystem";
+        string? audience = _configuration["JwtSettings:Audience"] ?? "InventoryManagementSystemClient";
+        int expiryMinutes = int.TryParse(_configuration["JwtSettings:ExpiryMinutes"], out var exp) ? exp : 60;
+        int refreshTokenExpiryDays = int.TryParse(_configuration["JwtSettings:RefreshTokenExpiryDays"], out var refExp) ? refExp : 7;
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expires = DateTime.UtcNow.AddMinutes(expiryMinutes);
+        SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+        SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        DateTime expires = DateTime.UtcNow.AddMinutes(expiryMinutes);
 
-        var tokenDescriptor = new SecurityTokenDescriptor
+        SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
             Expires = expires,
@@ -258,12 +260,12 @@ public class IdentityService : IIdentityService
             SigningCredentials = creds
         };
 
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-        var accessToken = tokenHandler.WriteToken(token);
+        JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+        SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
+        string? accessToken = tokenHandler.WriteToken(token);
 
-        var refreshToken = GenerateRefreshToken();
-        var refreshTokenExpiry = DateTime.UtcNow.AddDays(refreshTokenExpiryDays);
+        string? refreshToken = GenerateRefreshToken();
+        DateTime refreshTokenExpiry = DateTime.UtcNow.AddDays(refreshTokenExpiryDays);
 
         await _userManager.SetAuthenticationTokenAsync(user, "InventoryManagementSystem", "RefreshToken", refreshToken);
         await _userManager.SetAuthenticationTokenAsync(user, "InventoryManagementSystem", "RefreshTokenExpiry", refreshTokenExpiry.ToString("O"));
@@ -284,7 +286,7 @@ public class IdentityService : IIdentityService
 
     private string GenerateRefreshToken()
     {
-        var randomNumber = new byte[32];
+        byte[] randomNumber = new byte[32];
         using var rng = RandomNumberGenerator.Create();
         rng.GetBytes(randomNumber);
         return Convert.ToBase64String(randomNumber);
@@ -292,11 +294,11 @@ public class IdentityService : IIdentityService
 
     private ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
     {
-        var secretKey = _configuration["JwtSettings:SecretKey"] ?? "SuperSecretKeyForInventoryManagementSystem_JwtToken_2026!#";
-        var issuer = _configuration["JwtSettings:Issuer"] ?? "InventoryManagementSystem";
-        var audience = _configuration["JwtSettings:Audience"] ?? "InventoryManagementSystemClient";
+        string? secretKey = _configuration["JwtSettings:SecretKey"] ?? "SuperSecretKeyForInventoryManagementSystem_JwtToken_2026!#";
+        string? issuer = _configuration["JwtSettings:Issuer"] ?? "InventoryManagementSystem";
+        string? audience = _configuration["JwtSettings:Audience"] ?? "InventoryManagementSystemClient";
 
-        var tokenValidationParameters = new TokenValidationParameters
+        TokenValidationParameters tokenValidationParameters = new TokenValidationParameters
         {
             ValidateAudience = true,
             ValidAudience = audience,
@@ -307,8 +309,8 @@ public class IdentityService : IIdentityService
             ValidateLifetime = false
         };
 
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
+        JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+        ClaimsPrincipal principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
 
         if (securityToken is not JwtSecurityToken jwtSecurityToken ||
             !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
