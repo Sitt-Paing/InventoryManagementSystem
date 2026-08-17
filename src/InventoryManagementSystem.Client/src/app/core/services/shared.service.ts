@@ -41,8 +41,13 @@ export class SharedService {
   //   return 'Guest';
   // }
 
-  getUserName(): string | null {
-    return localStorage.getItem('userName');
+  getUserName(): string {
+    return localStorage.getItem('userName') ?? 'Guest';
+  }
+
+  getUserInitial(): string {
+    const name = this.getUserName();
+    return (name && name.length > 0 ? name.charAt(0) : 'U').toUpperCase();
   }
 
   getDefaultCompany(): string | null {
