@@ -1,4 +1,6 @@
+using InventoryManagementSystem.Api.Extensions;
 using InventoryManagementSystem.Api.Middleware;
+using InventoryManagementSystem.Api.Services;
 using InventoryManagementSystem.Application;
 using InventoryManagementSystem.Infrastructure;
 using InventoryManagementSystem.Infrastructure.Persistence;
@@ -29,16 +31,23 @@ builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
+builder.Services.AddScoped<ICookieService, CookieService>();
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-XSRF-TOKEN";
+});
+
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApiDoc();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        builder.AllowAnyOrigin()
-               .AllowAnyHeader()
-               .AllowAnyMethod();
+        policy.SetIsOriginAllowed(_ => true)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
