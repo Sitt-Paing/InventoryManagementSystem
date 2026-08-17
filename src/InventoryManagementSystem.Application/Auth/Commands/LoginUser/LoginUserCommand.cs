@@ -11,6 +11,9 @@ public record LoginUserCommand : IRequest<AuthResultDto>
 {
     public string UserNameOrEmail { get; init; } = null!;
     public string Password { get; init; } = null!;
+    public bool RememberMe { get; init; }
+    public string? Theme { get; init; }
+    public string? Language { get; init; }
 }
 
 public class LoginUserCommandValidator : AbstractValidator<LoginUserCommand>
@@ -39,7 +42,10 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, AuthRes
         LoginRequest loginRequest = new LoginRequest
         {
             UserNameOrEmail = request.UserNameOrEmail,
-            Password = request.Password
+            Password = request.Password,
+            RememberMe = request.RememberMe,
+            Theme = request.Theme,
+            Language = request.Language
         };
 
         return await _identityService.LoginAsync(loginRequest);
