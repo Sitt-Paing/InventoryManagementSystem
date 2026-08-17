@@ -5,10 +5,12 @@ using InventoryManagementSystem.Application.Categories.DTOs;
 using InventoryManagementSystem.Application.Categories.Queries.GetCategories;
 using InventoryManagementSystem.Application.Categories.Queries.GetCategoryById;
 using InventoryManagementSystem.Application.Common.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryManagementSystem.Api.Controllers;
 
+[Authorize]
 [Route("api/categories")]
 [ApiController]
 public class CategoriesController : ApiControllerBase
