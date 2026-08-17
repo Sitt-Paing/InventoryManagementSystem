@@ -5,11 +5,13 @@ using InventoryManagementSystem.Application.Products.Commands.UpdateProduct;
 using InventoryManagementSystem.Application.Products.DTOs;
 using InventoryManagementSystem.Application.Products.Queries.GetProducts;
 using InventoryManagementSystem.Application.Products.Queries.GetProductsById;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryManagementSystem.Api.Controllers
 {
+    [Authorize]
     [Route("api/products")]
     [ApiController]
     public class ProductsController : ApiControllerBase
