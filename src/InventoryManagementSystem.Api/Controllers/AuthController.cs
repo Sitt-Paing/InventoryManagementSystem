@@ -11,11 +11,23 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
+using InventoryManagementSystem.Api.Services;
+using Microsoft.AspNetCore.Antiforgery;
+
 namespace InventoryManagementSystem.Api.Controllers;
 
 [Route("api/[controller]")]
 public class AuthController : ApiControllerBase
 {
+    private readonly ICookieService _cookieService;
+    private readonly IAntiforgery _antiforgery;
+
+    public AuthController(ICookieService cookieService, IAntiforgery antiforgery)
+    {
+        _cookieService = cookieService;
+        _antiforgery = antiforgery;
+    }
+
     /// <summary>
     /// Register a new user account.
     /// </summary>
@@ -48,7 +60,7 @@ public class AuthController : ApiControllerBase
     }
 
     /// <summary>
-    /// Authenticate a user by Username or Email and issue JWT tokens.
+    /// Authenticate a user by Username or Email, issue JWT tokens, and store in HttpOnly cookies.
     /// </summary>
     [HttpPost("login")]
     [EndpointSummary("Login account")]
@@ -69,28 +81,85 @@ public class AuthController : ApiControllerBase
             });
         }
 
+        // Set HttpOnly authentication cookies
+        DateTime accessExpiry = result.Expiry ?? DateTime.UtcNow.AddMinutes(15);
+        DateTime refreshExpiry = DateTime.UtcNow.AddDays(15);
+        _cookieService.SetAuthCookies(result.AccessToken ?? string.Empty, result.RefreshToken ?? string.Empty, accessExpiry, refreshExpiry, command.RememberMe);
+
+        // Set Anti-CSRF Cookie
+        var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
+        if (!string.IsNullOrEmpty(tokens.RequestToken))
+        {
+            Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken, new CookieOptions
+            {
+                HttpOnly = false,
+                Secure = Request.IsHttps,
+                SameSite = Request.IsHttps ? SameSiteMode.None : SameSiteMode.Lax,
+                Path = "/"
+            });
+        }
+
         return Ok(new DefaultResponseModel
         {
             StatusCode = StatusCodes.Status200OK,
             Success = true,
             Message = result.Message ?? "Login successful.",
-            Data = result
+            Data = new
+            {
+                result.UserId,
+                result.UserName,
+                result.Email,
+                result.Roles,
+                Theme = command.Theme,
+                Language = command.Language,
+                RememberMe = command.RememberMe
+            }
         });
     }
 
     /// <summary>
-    /// Refresh access token using a valid refresh token.
+    /// Refresh access token using HttpOnly refresh token cookie (or body payload).
     /// </summary>
     [HttpPost("refresh-token")]
     [EndpointSummary("Create refresh token")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand command)
+    public async Task<IActionResult> RefreshToken([FromBody(EmptyBodyBehavior = Microsoft.AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Allow)] RefreshTokenCommand? command)
     {
-        var result = await Mediator.Send(command);
+        string? accessToken = command?.AccessToken;
+        string? refreshToken = command?.RefreshToken;
+
+        if (string.IsNullOrEmpty(refreshToken))
+        {
+            refreshToken = _cookieService.GetRefreshToken();
+        }
+
+        if (string.IsNullOrEmpty(accessToken))
+        {
+            accessToken = _cookieService.GetAccessToken();
+        }
+
+        if (string.IsNullOrEmpty(refreshToken) || string.IsNullOrEmpty(accessToken))
+        {
+            return BadRequest(new DefaultResponseModel
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+                Success = false,
+                Message = "Missing access token or refresh token.",
+                Data = null
+            });
+        }
+
+        var result = await Mediator.Send(new RefreshTokenCommand
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken
+        });
+
         if (!result.Succeeded)
         {
+            _cookieService.ClearAuthCookies();
             return BadRequest(new DefaultResponseModel
             {
                 StatusCode = StatusCodes.Status400BadRequest,
@@ -100,12 +169,102 @@ public class AuthController : ApiControllerBase
             });
         }
 
+        DateTime accessExpiry = result.Expiry ?? DateTime.UtcNow.AddMinutes(15);
+        DateTime refreshExpiry = DateTime.UtcNow.AddDays(15);
+        _cookieService.SetAuthCookies(result.AccessToken ?? string.Empty, result.RefreshToken ?? string.Empty, accessExpiry, refreshExpiry, true);
+
         return Ok(new DefaultResponseModel
         {
             StatusCode = StatusCodes.Status200OK,
             Success = true,
             Message = result.Message ?? "Token refreshed successfully.",
-            Data = result
+            Data = new
+            {
+                result.UserId,
+                result.UserName,
+                result.Email,
+                result.Roles
+            }
+        });
+    }
+
+    /// <summary>
+    /// Logout current user and clear all auth cookies.
+    /// </summary>
+    [HttpPost("logout")]
+    [EndpointSummary("Logout account")]
+    [Authorize]
+    [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status200OK)]
+    public IActionResult Logout()
+    {
+        _cookieService.ClearAuthCookies();
+        return Ok(new DefaultResponseModel
+        {
+            StatusCode = StatusCodes.Status200OK,
+            Success = true,
+            Message = "Logged out successfully.",
+            Data = null
+        });
+    }
+
+    /// <summary>
+    /// Get current authenticated user profile and preferences.
+    /// </summary>
+    [HttpGet("me")]
+    [EndpointSummary("Get current user profile")]
+    [Authorize]
+    [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status200OK)]
+    public IActionResult GetCurrentUser()
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                     ?? User.FindFirst("sub")?.Value;
+        var userName = User.Identity?.Name 
+                       ?? User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+        var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+        var roles = User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).ToList();
+
+        return Ok(new DefaultResponseModel
+        {
+            StatusCode = StatusCodes.Status200OK,
+            Success = true,
+            Message = "User profile retrieved successfully.",
+            Data = new CurrentUserDto
+            {
+                UserId = userId,
+                UserName = userName,
+                Email = email,
+                Roles = roles
+            }
+        });
+    }
+
+    /// <summary>
+    /// Generate and set Anti-CSRF token cookie.
+    /// </summary>
+    [HttpGet("csrf-token")]
+    [EndpointSummary("Get CSRF token")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status200OK)]
+    public IActionResult GetCsrfToken()
+    {
+        var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
+        if (!string.IsNullOrEmpty(tokens.RequestToken))
+        {
+            Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken, new CookieOptions
+            {
+                HttpOnly = false,
+                Secure = Request.IsHttps,
+                SameSite = Request.IsHttps ? SameSiteMode.None : SameSiteMode.Lax,
+                Path = "/"
+            });
+        }
+
+        return Ok(new DefaultResponseModel
+        {
+            StatusCode = StatusCodes.Status200OK,
+            Success = true,
+            Message = "CSRF token generated successfully.",
+            Data = new { CsrfToken = tokens.RequestToken }
         });
     }
 
