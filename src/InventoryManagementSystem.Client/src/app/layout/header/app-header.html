@@ -71,11 +71,11 @@
       class="flex items-center gap-2 px-2 py-1 rounded-lg transition-colors cursor-pointer hover:opacity-80">
       <div class="w-7 h-7 rounded-full text-white font-bold flex items-center justify-center text-xs"
            style="background: var(--accent-gradient);">
-        {{ displayName.charAt(0).toUpperCase() }}
+        {{ userInitial }}
       </div>
       <div class="hidden sm:block text-left leading-tight">
         <p class="text-xs font-bold">{{ displayName }}</p>
-        <p class="text-[9px] opacity-60 uppercase font-mono">ADMIN</p>
+        <p class="text-[9px] opacity-60 uppercase font-mono">{{ userRole }}</p>
       </div>
       <i class="pi pi-chevron-down text-[10px] opacity-50"></i>
     </button>
