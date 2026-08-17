@@ -35,14 +35,14 @@
   </div>
 
   <!-- Bottom User Status Pill -->
-  <div *ngIf="!sharedService.sidebarCollapsed()" class="p-2.5 m-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80">
+  <div *ngIf="!sharedService.sidebarCollapsed()" class="p-2.5 m-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-300/20">
     <div class="flex items-center gap-2.5">
       <div class="w-7 h-7 rounded-full text-white font-bold flex items-center justify-center text-[10px] shadow-xs"
            style="background: var(--accent-gradient);">
-        {{ sharedService.getUserName().charAt(0).toUpperCase() }}
+        {{ (sharedService.getUserName() ?? 'U').charAt(0).toUpperCase() }}
       </div>
       <div class="overflow-hidden flex-1 leading-tight">
-        <p class="text-xs font-bold truncate">{{ sharedService.getUserName() }}</p>
+        <p class="text-xs font-bold truncate">{{ sharedService.getUserName() ?? 'User' }}</p>
         <p class="text-[10px] font-semibold flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Online
         </p>
