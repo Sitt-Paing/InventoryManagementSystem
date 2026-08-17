@@ -99,16 +99,23 @@ export class AppHeader implements OnInit, OnDestroy {
     }
   }
 
-  get currentUser() {
-    return this.authService.getCurrentUser();
+  get displayName(): string {
+    return this.authService.getUserName();
   }
 
-  get displayName(): string {
-    return this.currentUser?.userName ?? 'Guest';
+  get userInitial(): string {
+    return this.authService.getUserInitial();
+  }
+
+  get userRole(): string {
+    const roles = this.authService.getUserRoles();
+    return roles.length > 0 ? roles[0] : 'User';
   }
 
   logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/auth/login']);
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/auth/login']),
+      error: () => this.router.navigate(['/auth/login'])
+    });
   }
 }
