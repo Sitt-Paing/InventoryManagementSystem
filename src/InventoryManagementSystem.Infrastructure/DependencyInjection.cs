@@ -41,12 +41,14 @@ public static class DependencyInjection
 
         services.AddScoped<IIdentityService, IdentityService>();
 
+
         var secretKey = configuration["JwtSettings:SecretKey"] ?? "SuperSecretKeyForInventoryManagementSystem_JwtToken_2026!#";
         var issuer = configuration["JwtSettings:Issuer"] ?? "InventoryManagementSystem";
         var audience = configuration["JwtSettings:Audience"] ?? "InventoryManagementSystemClient";
 
         services.AddAuthentication(options =>
         {
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         })
@@ -64,6 +66,17 @@ public static class DependencyInjection
                 ValidAudience = audience,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
                 ClockSkew = TimeSpan.Zero
+            };
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    if (string.IsNullOrEmpty(context.Token) && context.Request.Cookies.TryGetValue("access_token", out var token))
+                    {
+                        context.Token = token;
+                    }
+                    return Task.CompletedTask;
+                }
             };
         });
 
