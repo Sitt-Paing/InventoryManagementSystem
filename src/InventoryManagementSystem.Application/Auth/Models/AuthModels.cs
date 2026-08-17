@@ -16,6 +16,19 @@ public class LoginRequest
 {
     public string UserNameOrEmail { get; set; } = null!;
     public string Password { get; set; } = null!;
+    public bool RememberMe { get; set; }
+    public string? Theme { get; set; }
+    public string? Language { get; set; }
+}
+
+public class CurrentUserDto
+{
+    public string? UserId { get; set; }
+    public string? UserName { get; set; }
+    public string? Email { get; set; }
+    public List<string> Roles { get; set; } = new();
+    public string? Theme { get; set; }
+    public string? Language { get; set; }
 }
 
 public class RefreshTokenRequest
