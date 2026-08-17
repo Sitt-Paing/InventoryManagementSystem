@@ -31,14 +31,18 @@ export class SharedService {
     }
   }
 
-  getUserName(): string {
-    const raw = localStorage.getItem('AUTH_USER');
-    if (raw) {
-      try {
-        return JSON.parse(raw)?.userName ?? 'Guest';
-      } catch { return 'Guest'; }
-    }
-    return 'Guest';
+  // getUserName(): string {
+  //   const raw = localStorage.getItem('AUTH_USER');
+  //   if (raw) {
+  //     try {
+  //       return JSON.parse(raw)?.userName ?? 'Guest';
+  //     } catch { return 'Guest'; }
+  //   }
+  //   return 'Guest';
+  // }
+
+  getUserName(): string | null {
+    return localStorage.getItem('userName');
   }
 
   getDefaultCompany(): string | null {
