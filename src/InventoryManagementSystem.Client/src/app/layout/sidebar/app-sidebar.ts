@@ -39,14 +39,24 @@ export class AppSidebar {
     private router: Router
   ) {}
 
+  get userName(): string {
+    return this.authService.getUserName();
+  }
+
+  get userInitial(): string {
+    return this.authService.getUserInitial();
+  }
+
   hasRole(item: any): boolean {
-    const user = this.authService.getCurrentUser();
-    const userRoles = (user?.roles && user.roles.length > 0) ? user.roles : ['admin', 'administrator', 'company', 'manager', 'employee'];
-    return hasAnyMenuRole(item, userRoles);
+    const userRoles = this.authService.getUserRoles();
+    const roles = userRoles.length > 0 ? userRoles : ['admin', 'administrator', 'company', 'manager', 'employee'];
+    return hasAnyMenuRole(item, roles);
   }
 
   logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/auth/login']);
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/auth/login']),
+      error: () => this.router.navigate(['/auth/login'])
+    });
   }
 }
