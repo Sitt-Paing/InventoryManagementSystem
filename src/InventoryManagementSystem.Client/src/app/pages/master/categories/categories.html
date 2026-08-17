@@ -1,7 +1,7 @@
 <p-toast key="globalMessage"></p-toast>
 <p-confirmDialog key="positionDialog"></p-confirmDialog>
 
-<div class="table-card p-4 space-y-4">
+<div class="table-card p-4 space-y-2">
   <div class="flex justify-between ">
     <div>
        <p-splitbutton
@@ -78,7 +78,7 @@
         <td>
           {{ cat.createdOn ? (cat.createdOn | date:'dd/MMM/yyyy hh:mm:ss a') : '—' }}
         </td>
-        <td>{{ cat.createdBy || 'devadmin' }}</td>
+        <td>{{ cat.createdBy || '—' }}</td>
         <td>
           {{ cat.updatedOn ? (cat.updatedOn | date:'dd/MMM/yyyy hh:mm:ss a') : '—' }}
         </td>
