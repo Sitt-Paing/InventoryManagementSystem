@@ -55,11 +55,10 @@ export class LoginComponent {
 
     this.authService.login(model).subscribe({
       next: (res) => {
-        const dto = res.data as any;
-        if (res.success && dto?.succeeded && dto?.accessToken) {
+        if (res.success) {
           this.router.navigate(['/dashboard']);
         } else {
-          this.errorMessage.set(dto?.message ?? res.message ?? 'Login failed. Please check your credentials.');
+          this.errorMessage.set(res.message ?? 'Login failed. Please check your credentials.');
           this.isSubmitting.set(false);
           this.cdr.detectChanges();
         }
