@@ -2,6 +2,7 @@ import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter, withEnabledBlockingInitialNavigation, withInMemoryScrolling } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { contentTypeInterceptor } from './core/interceptors/content-type.interceptor';
+import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
@@ -24,7 +25,7 @@ export const appConfig: ApplicationConfig = {
     { provide: LocationStrategy, useClass: HashLocationStrategy },
     provideHttpClient(
       withFetch(),
-      withInterceptors([contentTypeInterceptor])
+      withInterceptors([contentTypeInterceptor, authInterceptor])
     ),
     provideAnimationsAsync(),
     providePrimeNG({
