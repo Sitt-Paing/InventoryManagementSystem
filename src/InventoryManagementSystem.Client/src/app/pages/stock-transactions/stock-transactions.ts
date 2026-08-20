@@ -140,8 +140,8 @@ export class StockTransactionsComponent implements OnInit {
     this.formModalVisible = true;
   }
 
-  onProductSelect(productId: number): void {
-    const prd = this.products.find(p => p.productId === productId);
+  onProductSelect(productId: any): void {
+    const prd = this.products.find(p => String(p.id || p.productId) === String(productId));
     if (prd) {
       this.txnForm.patchValue({ unitPrice: prd.unitPrice });
     }
