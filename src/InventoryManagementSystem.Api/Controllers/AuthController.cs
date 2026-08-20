@@ -193,7 +193,7 @@ public class AuthController : ApiControllerBase
     /// </summary>
     [HttpPost("logout")]
     [EndpointSummary("Logout account")]
-    [Authorize]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status200OK)]
     public IActionResult Logout()
     {
