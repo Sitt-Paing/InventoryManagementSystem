@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using System;
 
 namespace InventoryManagementSystem.Api.Services;
@@ -50,6 +50,7 @@ public class CookieService : ICookieService
     public void ClearAuthCookies()
     {
         bool isHttps = Context.Request.IsHttps;
+
         CookieOptions deleteOptions = new CookieOptions
         {
             HttpOnly = true,
@@ -59,10 +60,6 @@ public class CookieService : ICookieService
             Path = "/"
         };
 
-        Context.Response.Cookies.Delete(AccessTokenCookieName, deleteOptions);
-        Context.Response.Cookies.Delete(RefreshTokenCookieName, deleteOptions);
-
-        // Clean up any legacy cookies if present
         CookieOptions clientDeleteOptions = new CookieOptions
         {
             HttpOnly = false,
@@ -71,11 +68,10 @@ public class CookieService : ICookieService
             Expires = DateTime.UtcNow.AddDays(-1),
             Path = "/"
         };
-        Context.Response.Cookies.Delete("user_name", clientDeleteOptions);
-        Context.Response.Cookies.Delete("user_role", clientDeleteOptions);
-        Context.Response.Cookies.Delete("remember_me", clientDeleteOptions);
-        Context.Response.Cookies.Delete("theme", clientDeleteOptions);
-        Context.Response.Cookies.Delete("language", clientDeleteOptions);
+
+        Context.Response.Cookies.Delete(AccessTokenCookieName, deleteOptions);
+        Context.Response.Cookies.Delete(RefreshTokenCookieName, deleteOptions);
+        Context.Response.Cookies.Delete("XSRF-TOKEN", clientDeleteOptions);
     }
 
     public string? GetRefreshToken()
