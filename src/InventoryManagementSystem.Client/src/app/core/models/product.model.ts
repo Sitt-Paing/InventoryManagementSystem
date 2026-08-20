@@ -1,16 +1,23 @@
-export interface ProductModel {
-  productId: number | string;
-  productCode: string;
+﻿export interface ProductModel {
+  id?: string;
+  productId?: string | number;
   name: string;
-  description?: string;
+  sku?: string;
+  productCode?: string;
+  barcode?: string;
   categoryId: number;
   categoryName?: string;
   unitPrice: number;
-  costPrice: number;
-  quantityInStock: number;
+  costPrice?: number;
+  currentStock: number;
+  quantityInStock?: number;
   reorderLevel: number;
-  unitOfMeasure: string;
-  status: 'In Stock' | 'Low Stock' | 'Out of Stock';
-  createdAt: Date | string;
+  unitOfMeasure?: string;
+  status?: string;
+  createdOn?: Date | string;
+  createdAt?: Date | string;
+  createdBy?: string;
+  updatedOn?: Date | string;
   updatedAt?: Date | string;
+  updatedBy?: string;
 }
