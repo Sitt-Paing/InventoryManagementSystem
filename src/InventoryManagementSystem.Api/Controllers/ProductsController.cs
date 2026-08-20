@@ -1,4 +1,4 @@
-﻿using InventoryManagementSystem.Application.Common.Models;
+using InventoryManagementSystem.Application.Common.Models;
 using InventoryManagementSystem.Application.Products.Commands.CreateProduct;
 using InventoryManagementSystem.Application.Products.Commands.DeleteProduct;
 using InventoryManagementSystem.Application.Products.Commands.UpdateProduct;
@@ -17,10 +17,10 @@ namespace InventoryManagementSystem.Api.Controllers
     public class ProductsController : ApiControllerBase
     {
         [HttpGet]
-        [EndpointSummary("Get all products")]
-        public async Task<IActionResult> GetProducts()
+        [EndpointSummary("Get all products or filter by category")]
+        public async Task<IActionResult> GetProducts([FromQuery] long? categoryId = null)
         {
-            List<ProductDto> result = await Mediator.Send(new GetProductsQuery());
+            List<ProductDto> result = await Mediator.Send(new GetProductsQuery(categoryId));
             return Ok(new DefaultResponseModel
             {
                 StatusCode = StatusCodes.Status200OK,
