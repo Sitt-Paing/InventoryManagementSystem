@@ -19,9 +19,16 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, List<Pr
     }
     public async Task<List<ProductDto>> Handle(GetProductsQuery request, CancellationToken cancellationToken)
     {
-        return await _context.Products
+        var query = _context.Products
             .AsNoTracking()
-            .Where(p => !p.DeletedOn.HasValue)
+            .Where(p => !p.DeletedOn.HasValue);
+
+        if (request.CategoryId.HasValue && request.CategoryId.Value > 0)
+        {
+            query = query.Where(p => p.CategoryId == request.CategoryId.Value);
+        }
+
+        return await query
             .Select(p => new ProductDto
             {
                 Id = p.Id,
