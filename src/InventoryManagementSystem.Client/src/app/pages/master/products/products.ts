@@ -1,4 +1,4 @@
-import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+﻿import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectorRef, Component, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CategoryModel } from '../../../core/models/category.model';
@@ -10,12 +10,8 @@ import { ProductService } from '../../../core/services/product.service';
 import { SharedService } from '../../../core/services/shared.service';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { DatePickerModule } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
-import { DividerModule } from 'primeng/divider';
-import { FieldsetModule } from 'primeng/fieldset';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
@@ -24,9 +20,7 @@ import { SelectModule } from 'primeng/select';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
-import { ToggleSwitch, ToggleSwitchModule } from 'primeng/toggleswitch';
 
 @Component({
   selector: 'app-products',
@@ -35,7 +29,6 @@ import { ToggleSwitch, ToggleSwitchModule } from 'primeng/toggleswitch';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    ToggleSwitchModule,
     SplitButtonModule,
     TagModule,
     DialogModule,
@@ -48,12 +41,6 @@ import { ToggleSwitch, ToggleSwitchModule } from 'primeng/toggleswitch';
     TableModule,
     ToastModule,
     InputIconModule,
-    SelectModule,
-    TextareaModule,
-    FieldsetModule,
-    DividerModule,
-    DatePickerModule,
-    CardModule,
   ],
   providers: [DatePipe, CurrencyPipe, ConfirmationService, ExportService, MessageService],
   templateUrl: './products.html',
@@ -70,55 +57,23 @@ export class Products implements OnInit {
 
   items!: MenuItem[];
   modalVisible: boolean = false;
-  detailModalVisible: boolean = false;
   isEdit: boolean = false;
   isLoading: boolean = false;
   isSubmitting: boolean = false;
-  buttonChange: boolean = false;
 
-  // Filter state
+  // Category filter select box state
   selectedCategoryId: number | null = null;
-  selectedCategory: CategoryModel | null = null;
-  selectedStatus: string | null = null;
-  statusOptions = [
-    { label: 'All Statuses', value: null },
-    { label: 'In Stock', value: 'In Stock' },
-    { label: 'Low Stock', value: 'Low Stock' },
-    { label: 'Out of Stock', value: 'Out of Stock' },
-  ];
-
-  // get categoryFilterOptions(): any[] {
-  //   return [{ id: null, name: 'All Categories' }, ...this.categories];
-  // }
-
-  // onCategoryFilterChange(): void {
-  //   if (this.selectedCategoryId == null || this.selectedCategoryId === 0) {
-  //     this.filteredProducts = [...this.products];
-  //   } else {
-  //     this.filteredProducts = this.products.filter(
-  //       p => Number(p.categoryId) === Number(this.selectedCategoryId)
-  //     );
-  //   }
-  //   this.cdr.detectChanges();
-  // }
 
   private formBuilder = inject(FormBuilder);
   public productForm = this.formBuilder.group({
-    productId: [0 as any],
-    productCode: [''],
+    id: [null as string | null],
     name: ['', Validators.required],
-    description: [''],
-    categoryId: [null as any, Validators.required],
+    categoryId: [null as number | null, Validators.required],
+    sku: [''],
+    barcode: [''],
     unitPrice: [0, [Validators.required, Validators.min(0)]],
-    costPrice: [0],
-    quantityInStock: [0, [Validators.required, Validators.min(0)]],
+    currentStock: [0, [Validators.required, Validators.min(0)]],
     reorderLevel: [10, [Validators.required, Validators.min(1)]],
-    unitOfMeasure: ['PCS', Validators.required],
-    isActive: [true],
-    createdOn: [null as any],
-    createdBy: [null as any],
-    updatedOn: [null as any],
-    updatedBy: [null as any],
   });
 
   constructor(
@@ -170,7 +125,7 @@ export class Products implements OnInit {
     this.productService.get().subscribe({
       next: res => {
         this.products = (res.data || []) as ProductModel[];
-        // this.onCategoryFilterChange();
+        this.onCategoryFilterChange();
         this.isLoading = false;
         this.cdr.detectChanges();
       },
@@ -181,31 +136,28 @@ export class Products implements OnInit {
     });
   }
 
-  view(): void {
-    this.filteredProducts = this.products.filter(p => {
-      const matchCat = !this.selectedCategory || p.categoryId === this.selectedCategory.id;
-      const matchStatus = !this.selectedStatus || p.status === this.selectedStatus;
-      return matchCat && matchStatus;
-    });
-    this.buttonChange = true;
-  }
-
-  resetState(): void {
-    this.selectedCategoryId = null;
-    this.selectedCategory = null;
-    this.selectedStatus = null;
-    this.filteredProducts = [...this.products];
-    this.buttonChange = false;
+  onCategoryFilterChange(): void {
+    if (this.selectedCategoryId == null || this.selectedCategoryId === 0) {
+      this.filteredProducts = [...this.products];
+    } else {
+      this.filteredProducts = this.products.filter(
+        p => Number(p.categoryId) === Number(this.selectedCategoryId)
+      );
+    }
+    this.cdr.detectChanges();
   }
 
   create(): void {
     this.isEdit = false;
     this.productForm.reset();
     this.errorMessage.set([]);
-    this.productForm.controls.productId.setValue(0);
-    this.productForm.controls.isActive.setValue(true);
-    this.productForm.controls.unitOfMeasure.setValue('PCS');
-    this.productForm.controls.reorderLevel.setValue(10);
+    this.productForm.patchValue({
+      id: null,
+      unitPrice: 0,
+      currentStock: 0,
+      reorderLevel: 10,
+      categoryId: this.selectedCategoryId && this.selectedCategoryId > 0 ? this.selectedCategoryId : null
+    });
     this.modalVisible = true;
   }
 
@@ -213,71 +165,65 @@ export class Products implements OnInit {
     this.isEdit = true;
     this.productForm.reset();
 
-    if (this.selectedProduct != null && this.selectedProduct !== undefined) {
+    if (this.selectedProduct != null) {
+      const prodId = this.selectedProduct.id ? String(this.selectedProduct.id) : (this.selectedProduct.productId ? String(this.selectedProduct.productId) : null);
       this.productForm.patchValue({
-        productId: this.selectedProduct.productId,
-        productCode: this.selectedProduct.productCode,
+        id: prodId,
         name: this.selectedProduct.name,
-        description: this.selectedProduct.description,
-        categoryId: this.selectedProduct.categoryId,
+        categoryId: Number(this.selectedProduct.categoryId),
+        sku: this.selectedProduct.sku || this.selectedProduct.productCode || '',
+        barcode: this.selectedProduct.barcode || '',
         unitPrice: this.selectedProduct.unitPrice,
-        costPrice: this.selectedProduct.costPrice,
-        quantityInStock: this.selectedProduct.quantityInStock,
+        currentStock: this.selectedProduct.currentStock ?? this.selectedProduct.quantityInStock ?? 0,
         reorderLevel: this.selectedProduct.reorderLevel,
-        unitOfMeasure: this.selectedProduct.unitOfMeasure,
-        isActive: (this.selectedProduct as any).isActive ?? true,
-        createdOn: this.selectedProduct.createdAt as any,
       });
       this.modalVisible = true;
-      this.selectedProduct = null as any;
       this.errorMessage.set([]);
     } else {
       this.messageService.add({
         key: 'globalMessage',
         severity: 'warn',
         summary: 'Warning',
-        detail: 'Please Select Product',
+        detail: 'Please Select a Product',
       });
     }
   }
 
   delete(): void {
     if (this.selectedProduct != null) {
+      const prodId = this.selectedProduct.id ? String(this.selectedProduct.id) : (this.selectedProduct.productId ? String(this.selectedProduct.productId) : '');
       this.confirmationService.confirm({
-        message: 'Are You Sure Want To Delete?',
+        message: 'Are you sure you want to delete this product?',
         header: 'Delete Confirmation',
         icon: 'pi pi-info-circle',
+        key: 'positionDialog',
         accept: () => {
-          this.productService.delete(this.selectedProduct.productId).subscribe(res => {
-            this.messageService.add({
-              key: 'globalMessage',
-              severity: 'success',
-              summary: 'Confirmed',
-              detail: res.message ?? 'Product deleted successfully.',
-            });
-            this.loadData();
-            this.selectedProduct = null as any;
-            this.cdr.detectChanges();
+          this.productService.delete(prodId).subscribe({
+            next: res => {
+              this.messageService.add({
+                key: 'globalMessage',
+                severity: 'success',
+                summary: 'Confirmed',
+                detail: res.message ?? 'Product deleted successfully.',
+              });
+              this.loadData();
+              this.selectedProduct = null as any;
+              this.cdr.detectChanges();
+            },
           });
         },
         reject: () => {
           this.selectedProduct = null as any;
         },
-        key: 'positionDialog',
       });
     } else {
       this.messageService.add({
         key: 'globalMessage',
         severity: 'warn',
         summary: 'Warning',
-        detail: 'Please Select Product',
+        detail: 'Please Select a Product',
       });
     }
-  }
-
-  openDetail(product: ProductModel): void {
-    this.selectedProduct = product;
-    this.detailModalVisible = true;
   }
 
   onSubmit(): void {
@@ -289,15 +235,20 @@ export class Products implements OnInit {
     }
 
     this.isSubmitting = true;
-    const model = this.productForm.value as ProductModel;
+    const formVal = this.productForm.value;
 
     if (!this.isEdit) {
-      model.productId = 0;
-      model.createdAt = new Date();
-      (model as any).createdBy = this.shareService.getUserName() ?? '';
-      this.isSubmitting = true;
+      const payload = {
+        name: formVal.name,
+        categoryId: formVal.categoryId,
+        sku: formVal.sku,
+        barcode: formVal.barcode,
+        unitPrice: formVal.unitPrice,
+        currentStock: formVal.currentStock,
+        reorderLevel: formVal.reorderLevel,
+      };
 
-      this.productService.create(model).subscribe({
+      this.productService.create(payload).subscribe({
         next: res => {
           if (res.success) {
             this.modalVisible = false;
@@ -315,10 +266,18 @@ export class Products implements OnInit {
         error: () => { this.isSubmitting = false; },
       });
     } else {
-      (model as any).updatedAt = new Date();
-      (model as any).updatedBy = this.shareService.getUserName() ?? '';
+      const payload = {
+        id: formVal.id,
+        name: formVal.name,
+        categoryId: formVal.categoryId,
+        sku: formVal.sku,
+        barcode: formVal.barcode,
+        unitPrice: formVal.unitPrice,
+        currentStock: formVal.currentStock,
+        reorderLevel: formVal.reorderLevel,
+      };
 
-      this.productService.update(model).subscribe({
+      this.productService.update(payload).subscribe({
         next: res => {
           if (res.success) {
             this.modalVisible = false;
@@ -348,16 +307,7 @@ export class Products implements OnInit {
     this.exportService.excelAll('Products', this.tblProducts);
   }
 
-  getStatusSeverity(status: string): 'success' | 'warn' | 'danger' | 'info' {
-    switch (status) {
-      case 'In Stock': return 'success';
-      case 'Low Stock': return 'warn';
-      case 'Out of Stock': return 'danger';
-      default: return 'info';
-    }
-  }
-
-  getCategoryName(categoryId: number): string {
-    return this.categories.find(c => c.id === categoryId)?.name ?? '—';
+  getCategoryName(categoryId: number | string): string {
+    return this.categories.find(c => Number(c.id) === Number(categoryId))?.name ?? '—';
   }
 }
