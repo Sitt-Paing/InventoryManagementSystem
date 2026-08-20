@@ -1,9 +1,9 @@
-<p-toast key="globalMessage"></p-toast>
-<p-confirmDialog key="positionDialog"></p-confirmDialog>
+﻿<p-toast key="globalMessage"></p-toast>
+<p-confirmDialog key="positionDialog" position="bottom" rejectButtonStyleClass="p-button-outlined"></p-confirmDialog>
 
-<div class="table-card p-5 space-y-4">
-  <!-- Header Bar: Create SplitButton & Global Search Keyword -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div class="table-card">
+  <!-- Top Toolbar: Create Button, Category Filter & Global Search -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 p-4 pb-0">
     <div>
       <p-splitbutton
         label="Create"
@@ -14,38 +14,44 @@
       </p-splitbutton>
     </div>
 
-    <div class="flex items-center gap-2">
-      <!-- Category Filter Selectbox -->
+    <div class="flex flex-wrap items-center gap-3 ml-auto">
+      <!-- Category Filter Select Box -->
       <p-select
         [options]="categories"
         [(ngModel)]="selectedCategoryId"
+        (onChange)="onCategoryFilterChange()"
+        [showClear]="true"
         optionLabel="name"
         optionValue="id"
         placeholder="All Categories"
-        styleClass="w-48 text-xs">
+      >
       </p-select>
 
-      <div class="relative w-full sm:w-64">
+      <!-- Global Search -->
+      <p-iconfield iconPosition="left" class="w-full sm:w-60">
+        <p-inputicon>
+          <i class="pi pi-search"></i>
+        </p-inputicon>
         <input
           #search
           pInputText
           type="text"
           (input)="tblProducts.filterGlobal(search.value, 'contains')"
+          size="small"
           placeholder="Search keyword"
-          class="w-full text-xs py-2 pl-3 pr-8 rounded-lg outline-none p-inputtext" />
-        <i class="pi pi-search absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none"></i>
-      </div>
+          class="w-full text-xs" />
+      </p-iconfield>
     </div>
   </div>
 
-  <!-- Data Table -->
+  <!-- PrimeNG Data Table -->
   <p-table
     #tblProducts
     [value]="filteredProducts"
     [(selection)]="selectedProduct"
-    dataKey="productId"
+    dataKey="id"
     selectionMode="single"
-    sortField="createdAt"
+    sortField="createdOn"
     [sortOrder]="-1"
     [paginator]="true"
     [rows]="20"
@@ -53,48 +59,53 @@
     [showCurrentPageReport]="true"
     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
     [loading]="isLoading"
-    [globalFilterFields]="['productCode', 'name', 'unitOfMeasure']"
-    styleClass="p-datatable-sm"
-    responsiveLayout="scroll">
+    stripedRows="true"
+    [globalFilterFields]="['name', 'sku', 'barcode', 'createdBy']"
+    [tableStyle]="{ 'min-width': '50rem' }">
 
+    <!-- Table Header -->
     <ng-template #header>
       <tr style="white-space:nowrap">
         <th pFrozenColumn [style]="{ width: '10px' }">#</th>
-        <th pSortableColumn="productCode">Code <p-sortIcon field="productCode"></p-sortIcon></th>
         <th pSortableColumn="name">Product Name <p-sortIcon field="name"></p-sortIcon></th>
         <th>Category</th>
+        <th pSortableColumn="sku">SKU <p-sortIcon field="sku"></p-sortIcon></th>
         <th pSortableColumn="unitPrice">Unit Price <p-sortIcon field="unitPrice"></p-sortIcon></th>
-        <th pSortableColumn="quantityInStock">In Stock <p-sortIcon field="quantityInStock"></p-sortIcon></th>
-        <th pSortableColumn="isActive">Status <p-sortIcon field="isActive"></p-sortIcon></th>
-        <th pSortableColumn="createdAt">Created On <p-sortIcon field="createdAt"></p-sortIcon></th>
+        <th pSortableColumn="currentStock">Stock <p-sortIcon field="currentStock"></p-sortIcon></th>
+        <th pSortableColumn="reorderLevel">Reorder Level <p-sortIcon field="reorderLevel"></p-sortIcon></th>
+        <th pSortableColumn="createdOn">Created On <p-sortIcon field="createdOn"></p-sortIcon></th>
+        <th pSortableColumn="createdBy">Created By <p-sortIcon field="createdBy"></p-sortIcon></th>
       </tr>
     </ng-template>
 
+    <!-- Table Body -->
     <ng-template #body let-prod>
       <tr style="white-space:nowrap" [pSelectableRow]="prod">
         <td>
           <span class="pi pi-circle" [class.pi-check-circle]="selectedProduct === prod" [style.color]="selectedProduct === prod ? 'var(--accent-color)' : 'var(--text-faint)'"></span>
         </td>
-        <td>{{ prod.productCode || '—' }}</td>
-        <td>{{ prod.name }}</td>
-        <td>{{ getCategoryName(prod.categoryId) }}</td>
+        <td class="font-medium">{{ prod.name }}</td>
+        <td>
+          <p-tag [value]="getCategoryName(prod.categoryId)" severity="info" [rounded]="true"></p-tag>
+        </td>
+        <td>{{ prod.sku || '—' }}</td>
         <td>{{ prod.unitPrice | currency:'USD':'symbol':'1.2-2' }}</td>
-        <td>{{ prod.quantityInStock }} {{ prod.unitOfMeasure }}</td>
         <td>
-          <p-tag [value]="prod.isActive ? 'Active' : 'Inactive'"
-                 [severity]="prod.isActive ? 'success' : 'info'"
-                 icon="{{ prod.isActive ? 'pi pi-check' : 'pi pi-minus-circle' }}"
-                 [rounded]="true"></p-tag>
+          <span [class.text-rose-600]="prod.currentStock <= prod.reorderLevel" class="font-semibold">
+            {{ prod.currentStock }}
+          </span>
         </td>
+        <td>{{ prod.reorderLevel }}</td>
         <td>
-          {{ prod.createdAt ? (prod.createdAt | date:'dd/MMM/yyyy hh:mm:ss a') : '—' }}
+          {{ prod.createdOn ? (prod.createdOn | date:'dd/MMM/yyyy hh:mm:ss a') : '—' }}
         </td>
+        <td>{{ prod.createdBy || '—' }}</td>
       </tr>
     </ng-template>
 
     <ng-template #emptymessage>
       <tr>
-        <td colspan="8" class="text-center py-8 text-sm font-semibold text-slate-500">
+        <td colspan="9" class="text-center py-8 text-sm font-semibold text-slate-500">
           No products found.
         </td>
       </tr>
@@ -102,13 +113,21 @@
   </p-table>
 </div>
 
-<!-- Modal Dialog -->
+<!-- Product Form Modal Dialog -->
 <p-dialog
-  header="{{ isEdit ? 'Edit Product' : 'Create Product' }}"
+  [header]="isEdit ? 'Edit Product' : 'Create Product'"
   [(visible)]="modalVisible"
-  [breakpoints]="{ '1920px': '36rem', '1024px': '40vw', '768px': '80vw', '375px': '100vw', '320px': '100vw' }"
+  [breakpoints]="{
+    '1920px': '35vw',
+    '1440px': '35vw',
+    '1024px': '45vw',
+    '768px': '80vw',
+    '425px': '100vw',
+    '375px': '100vw',
+    '320px': '100vw'
+  }"
   [modal]="true"
-  [style]="{ width: '36rem' }"
+  [style]="{ 'min-width': '35vw' }"
   [draggable]="false"
   [resizable]="false"
   (onHide)="onDialogHide()">
@@ -120,32 +139,21 @@
       </p-message>
     }
 
-    <div class="grid grid-cols-2 gap-4 pt-2">
+    <div class="grid grid-cols-12 gap-4 mt-2">
       <!-- Product Name -->
-      <div class="col-span-2 flex flex-col gap-2">
-        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Product Name *</label>
-        <input formControlName="name" pInputText placeholder="Enter Product name..." required />
+      <div class="col-span-12 flex flex-col gap-1.5">
+        <label for="name" class="text-xs font-bold">Product Name *</label>
+        <input id="name" formControlName="name" pInputText placeholder="Enter Product name..." required />
         @if(productForm.controls['name'].invalid && productForm.get('name')?.dirty){
-          <small class="text-xs text-rose-500 font-bold">Product name is required.</small>
+          <small class="text-xs text-red-500">Product name is required.</small>
         }
       </div>
 
-      <!-- Product Code -->
-      <div class="flex flex-col gap-2">
-        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Product Code</label>
-        <input formControlName="productCode" pInputText placeholder="e.g. PRD-001" />
-      </div>
-
-      <!-- Unit of Measure -->
-      <div class="flex flex-col gap-2">
-        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Unit of Measure *</label>
-        <input formControlName="unitOfMeasure" pInputText placeholder="PCS / KG / UNIT" required />
-      </div>
-
-      <!-- Category -->
-      <div class="col-span-2 flex flex-col gap-2">
-        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Category *</label>
+      <!-- Category Select -->
+      <div class="col-span-12 flex flex-col gap-1.5">
+        <label for="categoryId" class="text-xs font-bold">Category *</label>
         <p-select
+          id="categoryId"
           formControlName="categoryId"
           [options]="categories"
           optionLabel="name"
@@ -153,49 +161,58 @@
           placeholder="Select Category..."
           styleClass="w-full">
         </p-select>
+        @if(productForm.controls['categoryId'].invalid && productForm.get('categoryId')?.dirty){
+          <small class="text-xs text-red-500">Category is required.</small>
+        }
+      </div>
+
+      <!-- SKU -->
+      <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5">
+        <label for="sku" class="text-xs font-bold">SKU</label>
+        <input id="sku" formControlName="sku" pInputText placeholder="e.g. PRD-001" />
+      </div>
+
+      <!-- Barcode -->
+      <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5">
+        <label for="barcode" class="text-xs font-bold">Barcode</label>
+        <input id="barcode" formControlName="barcode" pInputText placeholder="e.g. 123456789" />
       </div>
 
       <!-- Unit Price -->
-      <div class="flex flex-col gap-2">
-        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Unit Price *</label>
-        <input formControlName="unitPrice" type="number" pInputText min="0" step="0.01" />
+      <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
+        <label for="unitPrice" class="text-xs font-bold">Unit Price *</label>
+        <input id="unitPrice" formControlName="unitPrice" type="number" pInputText min="0" step="0.01" />
       </div>
 
-      <!-- Cost Price -->
-      <div class="flex flex-col gap-2">
-        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Cost Price</label>
-        <input formControlName="costPrice" type="number" pInputText min="0" step="0.01" />
-      </div>
-
-      <!-- Quantity In Stock -->
-      <div class="flex flex-col gap-2">
-        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Quantity In Stock *</label>
-        <input formControlName="quantityInStock" type="number" pInputText min="0" />
+      <!-- Current Stock -->
+      <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
+        <label for="currentStock" class="text-xs font-bold">Current Stock *</label>
+        <input id="currentStock" formControlName="currentStock" type="number" pInputText min="0" />
       </div>
 
       <!-- Reorder Level -->
-      <div class="flex flex-col gap-2">
-        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Reorder Level *</label>
-        <input formControlName="reorderLevel" type="number" pInputText min="1" />
-      </div>
-
-      <!-- Description -->
-      <div class="col-span-2 flex flex-col gap-2">
-        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Description</label>
-        <textarea formControlName="description" pInputText placeholder="Enter Description..." rows="3"></textarea>
-      </div>
-
-      <!-- Status Toggle -->
-      <div class="col-span-2 flex items-center gap-2">
-        <p-toggleSwitch formControlName="isActive"></p-toggleSwitch>
-        <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Status</span>
+      <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
+        <label for="reorderLevel" class="text-xs font-bold">Reorder Level *</label>
+        <input id="reorderLevel" formControlName="reorderLevel" type="number" pInputText min="1" />
       </div>
     </div>
 
-    <!-- Actions -->
+    <!-- Submit Action Button -->
     <div class="mt-5 flex justify-end gap-2">
-      <button pButton label="Cancel" severity="secondary" type="button" (click)="onDialogHide()"></button>
-      <button pButton [label]="isEdit ? 'Update' : 'Save'" [severity]="isEdit ? 'info' : 'success'" type="submit" [loading]="isSubmitting"></button>
+      <p-button
+        label="Cancel"
+        severity="secondary"
+        [text]="true"
+        type="button"
+        (click)="onDialogHide()">
+      </p-button>
+      <p-button
+        icon="pi pi-check"
+        [label]="isEdit ? 'Update' : 'Save'"
+        type="submit"
+        [severity]="isEdit ? 'info' : 'success'"
+        [loading]="isSubmitting">
+      </p-button>
     </div>
   </form>
 </p-dialog>
