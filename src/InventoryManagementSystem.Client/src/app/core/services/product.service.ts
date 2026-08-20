@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+﻿import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -11,8 +11,11 @@ import { ProductModel } from '../models/product.model';
 export class ProductService {
   private http = inject(HttpClient);
 
-  get(): Observable<RootModel> {
-    const url = `${environment.main_url}/products`;
+  get(categoryId?: number | null): Observable<RootModel> {
+    let url = `${environment.main_url}/products`;
+    if (categoryId != null && categoryId > 0) {
+      url += `?categoryId=${categoryId}`;
+    }
     return this.http.get<RootModel>(url);
   }
 
@@ -21,14 +24,15 @@ export class ProductService {
     return this.http.get<RootModel>(url);
   }
 
-  create(model: ProductModel): Observable<RootModel> {
+  create(model: any): Observable<RootModel> {
     const url = `${environment.main_url}/products`;
-    return this.http.post<RootModel>(url, JSON.stringify(model));
+    return this.http.post<RootModel>(url, model);
   }
 
-  update(model: ProductModel): Observable<RootModel> {
-    const url = `${environment.main_url}/products/${model.productId}`;
-    return this.http.put<RootModel>(url, JSON.stringify(model));
+  update(model: any): Observable<RootModel> {
+    const id = model.id || model.productId;
+    const url = `${environment.main_url}/products/${id}`;
+    return this.http.put<RootModel>(url, model);
   }
 
   delete(id: string | number): Observable<RootModel> {
@@ -36,9 +40,9 @@ export class ProductService {
     return this.http.delete<RootModel>(url);
   }
 
-  // Legacy compat: used by ProductsComponent save
   save(model: Partial<ProductModel>): Observable<RootModel> {
-    const isEdit = model.productId && model.productId !== 0 && model.productId !== '0';
-    return isEdit ? this.update(model as ProductModel) : this.create(model as ProductModel);
+    const id = model.id || model.productId;
+    const isEdit = id && id !== '0';
+    return isEdit ? this.update(model) : this.create(model);
   }
 }
