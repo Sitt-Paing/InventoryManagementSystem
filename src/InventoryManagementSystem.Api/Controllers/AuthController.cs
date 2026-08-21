@@ -125,7 +125,7 @@ public class AuthController : ApiControllerBase
     [AllowAnonymous]
     [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> RefreshToken([FromBody(EmptyBodyBehavior = Microsoft.AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Allow)] RefreshTokenCommand? command)
+    public async Task<IActionResult> RefreshToken(RefreshTokenCommand? command)
     {
         string? accessToken = command?.AccessToken;
         string? refreshToken = command?.RefreshToken;
