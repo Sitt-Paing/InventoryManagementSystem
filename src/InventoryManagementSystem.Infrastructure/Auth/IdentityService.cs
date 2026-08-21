@@ -245,7 +245,7 @@ public class IdentityService : IIdentityService
         string? issuer = _configuration["JwtSettings:Issuer"] ?? "InventoryManagementSystem";
         string? audience = _configuration["JwtSettings:Audience"] ?? "InventoryManagementSystemClient";
         int expiryMinutes = int.TryParse(_configuration["JwtSettings:ExpiryMinutes"], out var exp) ? exp : 60;
-        int refreshTokenExpiryDays = int.TryParse(_configuration["JwtSettings:RefreshTokenExpiryDays"], out var refExp) ? refExp : 7;
+        int refreshTokenExpiryDays = int.TryParse(_configuration["JwtSettings:RefreshTokenExpiryDays"], out var refExp) ? refExp : 15;
 
         SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
