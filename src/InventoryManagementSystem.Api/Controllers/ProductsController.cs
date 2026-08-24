@@ -30,6 +30,17 @@ namespace InventoryManagementSystem.Api.Controllers
             });
         }
 
+        [HttpGet("export")]
+        [EndpointSummary("Export products to Excel or CSV")]
+        public async Task<IActionResult> ExportProducts(
+            [FromQuery] long? categoryId = null,
+            [FromQuery] string format = "excel",
+            [FromQuery] string fontName = "Pyidaungsu")
+        {
+            var result = await Mediator.Send(new InventoryManagementSystem.Application.Products.Queries.ExportProducts.ExportProductsQuery(categoryId, format, fontName));
+            return File(result.Content, result.ContentType, result.FileName);
+        }
+
         [HttpGet("{id}")]
         [EndpointSummary("Get product by Id")]
         public async Task<IActionResult> GetProductById(Guid id)
