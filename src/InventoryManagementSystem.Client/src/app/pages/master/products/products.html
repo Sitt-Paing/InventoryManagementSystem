@@ -75,6 +75,8 @@
         <th pSortableColumn="reorderLevel">Reorder Level <p-sortIcon field="reorderLevel"></p-sortIcon></th>
         <th pSortableColumn="createdOn">Created On <p-sortIcon field="createdOn"></p-sortIcon></th>
         <th pSortableColumn="createdBy">Created By <p-sortIcon field="createdBy"></p-sortIcon></th>
+        <th pSortableColumn="updatedOn">Updated On <p-sortIcon field="updatedOn"></p-sortIcon></th>
+        <th pSortableColumn="updatedBy">Updated By <p-sortIcon field="updatedBy"></p-sortIcon></th>
       </tr>
     </ng-template>
 
@@ -97,9 +99,13 @@
         </td>
         <td>{{ prod.reorderLevel }}</td>
         <td>
-          {{ prod.createdOn ? (prod.createdOn | date:'dd/MMM/yyyy hh:mm:ss a') : '—' }}
+          {{ prod.createdOn ? (prod.createdOn | date:'dd/MMM/yyyy hh:mm:ss a') : 'N/A' }}
         </td>
-        <td>{{ prod.createdBy || '—' }}</td>
+        <td>{{ prod.createdBy || 'N/A' }}</td>
+        <td>
+          {{ prod.updatedOn ? (prod.updatedOn | date:'dd/MMM/yyyy hh:mm:ss a') : 'N/A' }}
+        </td>
+        <td>{{ prod.updatedBy || 'N/A' }}</td>
       </tr>
     </ng-template>
 
