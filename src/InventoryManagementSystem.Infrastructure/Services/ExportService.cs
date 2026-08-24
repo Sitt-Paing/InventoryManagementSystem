@@ -10,54 +10,72 @@ public class ExportService : IExportService
 {
     private const string DefaultFontName = "Pyidaungsu";
 
-    public byte[] ExportToExcel<T>(IEnumerable<T> data, string sheetName = "Sheet1", string fontName = DefaultFontName)
-    {
-        var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-        var columnMappings = properties.ToDictionary(p => p.Name, p => p.Name);
-        return ExportToExcel(data, columnMappings, sheetName, fontName);
-    }
-
-    public byte[] ExportToExcel<T>(
-        IEnumerable<T> data,
-        Dictionary<string, string> columnMappings,
+    public Stream? ExportToExcelStreamSpecificColumns<T>(
+        List<T>? list,
+        KeyValuePair<string, string>[] columns,
         string sheetName = "Sheet1",
         string fontName = DefaultFontName)
     {
-        using var workbook = new XLWorkbook();
+        if (list == null || list.Count == 0)
+        {
+            return null;
+        }
+
+        var columnDict = columns?.ToDictionary(c => c.Key, c => c.Value) ?? new Dictionary<string, string>();
+        return ExportToExcelStreamSpecificColumns(list, columnDict, sheetName, fontName);
+    }
+
+    public Stream? ExportToExcelStreamSpecificColumns<T>(
+        List<T>? list,
+        Dictionary<string, string> columns,
+        string sheetName = "Sheet1",
+        string fontName = DefaultFontName)
+    {
+        if (list == null || list.Count == 0)
+        {
+            return null;
+        }
+
+        var workbook = new XLWorkbook();
         var worksheet = workbook.Worksheets.Add(sheetName);
 
         var appliedFont = string.IsNullOrWhiteSpace(fontName) ? DefaultFontName : fontName;
         worksheet.Style.Font.FontName = appliedFont;
 
-        var propMap = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => columnMappings.ContainsKey(p.Name))
+        // If no explicit columns provided, fallback to all readable public instance properties
+        var propMap = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        var activeColumns = columns != null && columns.Count > 0
+            ? columns
+            : propMap.ToDictionary(p => p.Name, p => p.Name);
+
+        var filteredProps = propMap
+            .Where(p => activeColumns.ContainsKey(p.Name))
             .ToDictionary(p => p.Name, p => p);
 
-        // Render Header Row
+        // Header Row
         int colIndex = 1;
-        foreach (var (_, headerText) in columnMappings)
+        foreach (var (_, headerText) in activeColumns)
         {
             var headerCell = worksheet.Cell(1, colIndex);
             headerCell.Value = headerText;
             headerCell.Style.Font.Bold = true;
             headerCell.Style.Font.FontName = appliedFont;
-            headerCell.Style.Fill.BackgroundColor = XLColor.FromHtml("#C5DCFB");
+            headerCell.Style.Fill.BackgroundColor = XLColor.FromHtml("#c5dcfb");
             headerCell.Style.Border.BottomBorder = XLBorderStyleValues.Medium;
             colIndex++;
         }
 
-        // Render Data Rows
+        // Data Rows
         int rowIndex = 2;
-        var dataList = data as IList<T> ?? data.ToList();
-        foreach (var item in dataList)
+        foreach (var item in list)
         {
             colIndex = 1;
-            foreach (var (propName, _) in columnMappings)
+            foreach (var (propName, _) in activeColumns)
             {
                 var cell = worksheet.Cell(rowIndex, colIndex);
                 cell.Style.Font.FontName = appliedFont;
 
-                if (propMap.TryGetValue(propName, out var prop))
+                if (filteredProps.TryGetValue(propName, out var prop))
                 {
                     var value = prop.GetValue(item);
                     if (value != null)
@@ -72,9 +90,28 @@ public class ExportService : IExportService
 
         worksheet.Columns().AdjustToContents();
 
-        using var stream = new MemoryStream();
+        var stream = new MemoryStream();
         workbook.SaveAs(stream);
-        return stream.ToArray();
+        stream.Position = 0;
+        return stream;
+    }
+
+    public byte[] ExportToExcel<T>(IEnumerable<T> data, string sheetName = "Sheet1", string fontName = DefaultFontName)
+    {
+        var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        var columnMappings = properties.ToDictionary(p => p.Name, p => p.Name);
+        return ExportToExcel(data, columnMappings, sheetName, fontName);
+    }
+
+    public byte[] ExportToExcel<T>(
+        IEnumerable<T> data,
+        Dictionary<string, string> columnMappings,
+        string sheetName = "Sheet1",
+        string fontName = DefaultFontName)
+    {
+        var dataList = data as List<T> ?? data.ToList();
+        using var stream = ExportToExcelStreamSpecificColumns(dataList, columnMappings, sheetName, fontName) as MemoryStream;
+        return stream?.ToArray() ?? Array.Empty<byte>();
     }
 
     public byte[] ExportToCsv<T>(IEnumerable<T> data)
@@ -93,7 +130,6 @@ public class ExportService : IExportService
         using var memoryStream = new MemoryStream();
         using (var writer = new StreamWriter(memoryStream))
         {
-            // Write Header
             writer.WriteLine(string.Join(",", columnMappings.Values.Select(h => $"\"{h.Replace("\"", "\"\"")}\"")));
 
             var propMap = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
