@@ -31,4 +31,19 @@ export class ExportService {
   excelAll(filename: string, tableElement: any): void {
     this.excel(filename, tableElement);
   }
+
+  excel_blob(filename: string, blob: Blob): void {
+    try {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${filename}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('Export blob download failed:', e);
+    }
+  }
 }
