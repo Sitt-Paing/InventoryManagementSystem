@@ -1,4 +1,4 @@
-﻿import { HttpClient } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -44,5 +44,21 @@ export class ProductService {
     const id = model.id || model.productId;
     const isEdit = id && id !== '0';
     return isEdit ? this.update(model) : this.create(model);
+  }
+
+  exportExcel(categoryId?: number | null, fontName: string = 'Pyidaungsu'): Observable<Blob> {
+    let url = `${environment.main_url}/products/export?format=excel&fontName=${encodeURIComponent(fontName)}`;
+    if (categoryId != null && categoryId > 0) {
+      url += `&categoryId=${categoryId}`;
+    }
+    return this.http.get(url, { responseType: 'blob' });
+  }
+
+  exportCsv(categoryId?: number | null): Observable<Blob> {
+    let url = `${environment.main_url}/products/export?format=csv`;
+    if (categoryId != null && categoryId > 0) {
+      url += `&categoryId=${categoryId}`;
+    }
+    return this.http.get(url, { responseType: 'blob' });
   }
 }
