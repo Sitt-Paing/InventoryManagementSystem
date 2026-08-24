@@ -2,6 +2,7 @@ import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectorRef, Component, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CategoryModel } from '../../../core/models/category.model';
+import { ExportColumnModel } from '../../../core/models/export-column.model';
 import { ProductModel } from '../../../core/models/product.model';
 import { CategoryService } from '../../../core/services/category.service';
 import { ExportService } from '../../../core/services/export.service';
@@ -306,22 +307,32 @@ export class Products implements OnInit {
   }
 
   excel(): void {
-    this.productService.exportExcel(this.selectedCategoryId, 'Pyidaungsu').subscribe({
-      next: (blob: Blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Products_${new Date().toISOString().slice(0, 10)}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      },
-      error: () => {
-        // Fallback to client-side table export if backend call fails
-        this.exportService.excelAll('Products', this.tblProducts);
-      }
-    });
+    const exportColumn: ExportColumnModel[] = [
+      { key: 'Name', value: 'Product Name' },
+      { key: 'Sku', value: 'SKU' },
+      { key: 'Barcode', value: 'Barcode' },
+      { key: 'UnitPrice', value: 'Unit Price' },
+      { key: 'CurrentStock', value: 'Current Stock' },
+      { key: 'ReorderLevel', value: 'Reorder Level' },
+      { key: 'CreatedOn', value: 'Created On' },
+      { key: 'CreatedBy', value: 'Created By' }
+    ];
+
+    this.productService
+      .excel(
+        this.selectedCategoryId,
+        undefined,
+        'CreatedOn',
+        -1,
+        exportColumn
+      )
+      .subscribe({
+        next: (res) => this.exportService.excel_blob('Product List', res),
+        error: (err) => {
+          console.error('Export failed', err);
+          this.exportService.excelAll('Products', this.tblProducts);
+        }
+      });
   }
 
   getCategoryName(categoryId: number | string): string {
