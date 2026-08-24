@@ -68,7 +68,7 @@
           <span class="pi pi-circle" [class.pi-check-circle]="selectedCategory === cat" [style.color]="selectedCategory === cat ? 'var(--accent-color)' : 'var(--text-faint)'"></span>
         </td>
         <td>{{ cat.name }}</td>
-        <td>{{ cat.description || '—' }}</td>
+        <td>{{ cat.description || 'N/A' }}</td>
         <td>
           <p-tag [value]="cat.isActive ? 'Active' : 'Inactive'"
                  [severity]="cat.isActive ? 'success' : 'info'"
@@ -76,13 +76,13 @@
                  [rounded]="true"></p-tag>
         </td>
         <td>
-          {{ cat.createdOn ? (cat.createdOn | date:'dd/MMM/yyyy hh:mm:ss a') : '—' }}
+          {{ cat.createdOn ? (cat.createdOn | date:'dd/MMM/yyyy hh:mm:ss a') : 'N/A' }}
         </td>
-        <td>{{ cat.createdBy || '—' }}</td>
+        <td>{{ cat.createdBy || 'N/A' }}</td>
         <td>
-          {{ cat.updatedOn ? (cat.updatedOn | date:'dd/MMM/yyyy hh:mm:ss a') : '—' }}
+          {{ cat.updatedOn ? (cat.updatedOn | date:'dd/MMM/yyyy hh:mm:ss a') : 'N/A' }}
         </td>
-        <td>{{ cat.updatedBy || '—' }}</td>
+        <td>{{ cat.updatedBy || 'N/A' }}</td>
       </tr>
     </ng-template>
 
