@@ -1,4 +1,4 @@
-﻿import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectorRef, Component, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CategoryModel } from '../../../core/models/category.model';
@@ -306,7 +306,22 @@ export class Products implements OnInit {
   }
 
   excel(): void {
-    this.exportService.excelAll('Products', this.tblProducts);
+    this.productService.exportExcel(this.selectedCategoryId, 'Pyidaungsu').subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Products_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => {
+        // Fallback to client-side table export if backend call fails
+        this.exportService.excelAll('Products', this.tblProducts);
+      }
+    });
   }
 
   getCategoryName(categoryId: number | string): string {
