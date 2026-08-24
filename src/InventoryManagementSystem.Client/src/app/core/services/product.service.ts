@@ -61,4 +61,22 @@ export class ProductService {
     }
     return this.http.get(url, { responseType: 'blob' });
   }
+
+  excel(
+    categoryId?: number | null,
+    q?: string,
+    sortField?: string,
+    order?: number,
+    columns: import('../models/export-column.model').ExportColumnModel[] = []
+  ): Observable<Blob> {
+    let url: string = `${environment.main_url}/products/excel?`;
+    const params: string[] = [];
+    if (categoryId != null && categoryId > 0) params.push(`categoryId=${categoryId}`);
+    if (q) params.push(`q=${encodeURIComponent(q)}`);
+    if (sortField) params.push(`sortField=${encodeURIComponent(sortField)}`);
+    if (order != null) params.push(`order=${order}`);
+    url += params.join('&');
+
+    return this.http.post(url, columns, { responseType: 'blob' });
+  }
 }
