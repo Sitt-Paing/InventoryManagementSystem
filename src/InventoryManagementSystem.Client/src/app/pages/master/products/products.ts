@@ -1,4 +1,4 @@
-import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+﻿import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectorRef, Component, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CategoryModel } from '../../../core/models/category.model';
@@ -249,7 +249,7 @@ export class Products implements OnInit {
         reorderLevel: formVal.reorderLevel,
       };
 
-      
+
 
       this.productService.create(payload).subscribe({
         next: res => {
@@ -309,6 +309,7 @@ export class Products implements OnInit {
   excel(): void {
     const exportColumn: ExportColumnModel[] = [
       { key: 'Name', value: 'Product Name' },
+      { key: 'CategoryName', value: 'Category' },
       { key: 'Sku', value: 'SKU' },
       { key: 'Barcode', value: 'Barcode' },
       { key: 'UnitPrice', value: 'Unit Price' },
