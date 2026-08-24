@@ -41,6 +41,56 @@ namespace InventoryManagementSystem.Api.Controllers
             return File(result.Content, result.ContentType, result.FileName);
         }
 
+        [HttpPost("excel")]
+        [EndpointSummary("Export Excel")]
+        [EndpointDescription("Product List Export")]
+        [Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
+        [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+        public async Task<IActionResult> PostExcelAsync(
+            [FromQuery] long? categoryId,
+            [FromQuery] string? q,
+            [FromQuery] string? sortField,
+            [FromQuery] int? order,
+            [FromBody] KeyValuePair<string, string>[] columns)
+        {
+            var products = await Mediator.Send(new GetProductsQuery(categoryId));
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                products = products.Where(p =>
+                    p.Name.Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                    (p.Sku != null && p.Sku.Contains(q, StringComparison.OrdinalIgnoreCase)) ||
+                    (p.Barcode != null && p.Barcode.Contains(q, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
+
+            if (products.Count == 0)
+            {
+                return BadRequest(new DefaultResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Success = false,
+                    Message = "Failed to export excel: No data found.",
+                    Data = null
+                });
+            }
+
+            Stream? stream = ExportService.ExportToExcelStreamSpecificColumns(products, columns, "Product List", "Pyidaungsu");
+
+            if (stream == null)
+            {
+                return BadRequest(new DefaultResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Success = false,
+                    Message = "Failed to export excel.",
+                    Data = null
+                });
+            }
+
+            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Product List.xlsx");
+        }
+
         [HttpGet("{id}")]
         [EndpointSummary("Get product by Id")]
         public async Task<IActionResult> GetProductById(Guid id)
