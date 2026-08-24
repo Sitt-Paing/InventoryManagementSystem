@@ -40,6 +40,7 @@ public static class DependencyInjection
         services.AddScoped<ApplicationDbContextInitializer>();
 
         services.AddScoped<IIdentityService, IdentityService>();
+        services.AddTransient<IExportService, ExportService>();
 
 
         var secretKey = configuration["JwtSettings:SecretKey"] ?? "SuperSecretKeyForInventoryManagementSystem_JwtToken_2026!#";
