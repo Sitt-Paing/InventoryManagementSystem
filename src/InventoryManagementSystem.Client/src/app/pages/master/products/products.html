@@ -70,6 +70,7 @@
         <th pSortableColumn="name">Product Name <p-sortIcon field="name"></p-sortIcon></th>
         <th>Category</th>
         <th pSortableColumn="sku">SKU <p-sortIcon field="sku"></p-sortIcon></th>
+        <th>Barcode</th>
         <th pSortableColumn="unitPrice">Unit Price <p-sortIcon field="unitPrice"></p-sortIcon></th>
         <th pSortableColumn="currentStock">Stock <p-sortIcon field="currentStock"></p-sortIcon></th>
         <th pSortableColumn="reorderLevel">Reorder Level <p-sortIcon field="reorderLevel"></p-sortIcon></th>
@@ -92,7 +93,8 @@
         </td>
         <td>{{ prod.sku || '—' }}</td>
         <td>
-          <app-barcode [value]="prod.barcode"></app-barcode>
+          <p-button label="Barcode" icon="pi pi-eye" size="small" (click)="ViewBarcode(prod)"></p-button>
+          <!-- <app-barcode [value]="prod.barcode"></app-barcode> -->
         </td>
         <td>{{ prod.unitPrice | currency:'USD':'symbol':'1.2-2' }}</td>
         <td>
@@ -224,4 +226,28 @@
       </p-button>
     </div>
   </form>
+</p-dialog>
+
+<p-dialog  [(visible)]="barcodeModalVisible"
+  [breakpoints]="{
+    '1920px': '35vw',
+    '1440px': '35vw',
+    '1024px': '45vw',
+    '768px': '80vw',
+    '425px': '100vw',
+    '375px': '100vw',
+    '320px': '100vw'
+  }"
+  [modal]="true"
+  [style]="{ 'max-width': '20vw'}"
+  [draggable]="false"
+  [resizable]="false"
+  (onHide)="onDialogHide()">
+   <div class="flex justify-center items-center p-4">
+    @if (selectedBarcodeValue) {
+      <app-barcode [value]="selectedBarcodeValue"></app-barcode>
+    } @else {
+      <p class="text-gray-500">No barcode available for this product.</p>
+    }
+  </div>
 </p-dialog>
