@@ -316,7 +316,9 @@ export class Products implements OnInit {
       { key: 'CurrentStock', value: 'Current Stock' },
       { key: 'ReorderLevel', value: 'Reorder Level' },
       { key: 'CreatedOn', value: 'Created On' },
-      { key: 'CreatedBy', value: 'Created By' }
+      { key: 'CreatedBy', value: 'Created By' },
+      { key: 'UpdatedOn', value: 'Updated On' },
+      { key: 'UpdatedBy', value: 'Updated By' },
     ];
 
     this.productService
