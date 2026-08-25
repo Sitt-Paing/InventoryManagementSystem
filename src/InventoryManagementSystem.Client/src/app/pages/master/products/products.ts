@@ -22,6 +22,7 @@ import { SplitButtonModule } from 'primeng/splitbutton';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { Barcode } from "../../../shared/components/barcode/barcode";
 
 @Component({
   selector: 'app-products',
@@ -42,7 +43,8 @@ import { ToastModule } from 'primeng/toast';
     TableModule,
     ToastModule,
     InputIconModule,
-  ],
+    Barcode
+],
   providers: [DatePipe, CurrencyPipe, ConfirmationService, ExportService, MessageService],
   templateUrl: './products.html',
   styleUrl: './products.scss',
@@ -58,6 +60,8 @@ export class Products implements OnInit {
 
   items!: MenuItem[];
   modalVisible: boolean = false;
+  barcodeModalVisible: boolean = false;
+  selectedBarcodeValue: string | null = null;
   isEdit: boolean = false;
   isLoading: boolean = false;
   isSubmitting: boolean = false;
@@ -299,6 +303,11 @@ export class Products implements OnInit {
         error: () => { this.isSubmitting = false; },
       });
     }
+  }
+
+  ViewBarcode(product: ProductModel): void {
+    this.selectedBarcodeValue = product.barcode || product.sku || product.productCode || null;
+    this.barcodeModalVisible = true;
   }
 
   onDialogHide(): void {
