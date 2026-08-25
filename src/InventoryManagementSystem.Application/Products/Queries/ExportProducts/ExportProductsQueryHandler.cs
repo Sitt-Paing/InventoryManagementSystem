@@ -1,5 +1,6 @@
 using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Application.Common.Models;
+using InventoryManagementSystem.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +19,7 @@ public class ExportProductsQueryHandler : IRequestHandler<ExportProductsQuery, E
 
     public async Task<ExportFileDto> Handle(ExportProductsQuery request, CancellationToken cancellationToken)
     {
-        var query = _context.Products
+        IQueryable<Product> query = _context.Products
             .AsNoTracking()
             .Include(p => p.Category)
             .Where(p => !p.DeletedOn.HasValue);
@@ -57,8 +58,8 @@ public class ExportProductsQueryHandler : IRequestHandler<ExportProductsQuery, E
             { "CreatedBy", "Created By" }
         };
 
-        var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
-        var isCsv = string.Equals(request.Format, "csv", StringComparison.OrdinalIgnoreCase);
+        string timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+        bool isCsv = string.Equals(request.Format, "csv", StringComparison.OrdinalIgnoreCase);
 
         if (isCsv)
         {
@@ -71,8 +72,8 @@ public class ExportProductsQueryHandler : IRequestHandler<ExportProductsQuery, E
             };
         }
 
-        var fontName = string.IsNullOrWhiteSpace(request.FontName) ? "Pyidaungsu" : request.FontName;
-        var excelBytes = _exportService.ExportToExcel(products, columnMappings, "Products", fontName);
+        string fontName = string.IsNullOrWhiteSpace(request.FontName) ? "Pyidaungsu" : request.FontName;
+        byte[] excelBytes = _exportService.ExportToExcel(products, columnMappings, "Products", fontName);
 
         return new ExportFileDto
         {
