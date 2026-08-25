@@ -91,6 +91,9 @@
           <p-tag [value]="getCategoryName(prod.categoryId)" severity="info" [rounded]="true"></p-tag>
         </td>
         <td>{{ prod.sku || '—' }}</td>
+        <td>
+          <app-barcode [value]="prod.barcode"></app-barcode>
+        </td>
         <td>{{ prod.unitPrice | currency:'USD':'symbol':'1.2-2' }}</td>
         <td>
           <span [class.text-rose-600]="prod.currentStock <= prod.reorderLevel" class="font-semibold">
