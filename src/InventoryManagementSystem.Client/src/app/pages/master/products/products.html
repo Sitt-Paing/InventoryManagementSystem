@@ -1,4 +1,4 @@
-﻿<p-toast key="globalMessage"></p-toast>
+<p-toast key="globalMessage"></p-toast>
 <p-confirmDialog key="positionDialog" position="bottom" rejectButtonStyleClass="p-button-outlined"></p-confirmDialog>
 
 <div class="table-card">
@@ -241,7 +241,7 @@
   [modal]="true"
   [draggable]="false"
   [resizable]="false"
-  (onHide)="onDialogHide()">
+  (onHide)="onBarcodeDialogHide()">
    <div class="flex justify-center items-center px-2">
     @if (selectedBarcodeValue) {
       <app-barcode [value]="selectedBarcodeValue"></app-barcode>
