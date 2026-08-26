@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
 import JsBarcode from 'jsbarcode';
 
 @Component({
@@ -7,7 +7,7 @@ import JsBarcode from 'jsbarcode';
   templateUrl: './barcode.html',
   styleUrl: './barcode.scss',
 })
-export class Barcode implements AfterViewInit {
+export class Barcode implements AfterViewInit, OnChanges {
   @Input() value: string | null = null;
   @ViewChild('barcode', { static: true }) barcodeElement!: ElementRef<SVGSVGElement>;
 
@@ -15,15 +15,25 @@ export class Barcode implements AfterViewInit {
     this.generateBarcode();
   }
 
-  generateBarcode(): void {
-    if(!this.value) return;
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['value']) {
+      this.generateBarcode();
+    }
+  }
 
-    JsBarcode(this.barcodeElement.nativeElement, this.value, {
-      format: 'CODE128',
-      lineColor: '#000',
-      width: 2,
-      height: 70,
-      displayValue: true,
-    }); 
+  generateBarcode(): void {
+    if (!this.value || !this.barcodeElement?.nativeElement) return;
+
+    try {
+      JsBarcode(this.barcodeElement.nativeElement, this.value, {
+        format: 'CODE128',
+        lineColor: '#000',
+        width: 2,
+        height: 70,
+        displayValue: true,
+      });
+    } catch (e) {
+      console.error('Barcode rendering error for value:', this.value, e);
+    }
   }
 }
