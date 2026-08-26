@@ -1,4 +1,4 @@
-﻿import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectorRef, Component, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CategoryModel } from '../../../core/models/category.model';
@@ -313,6 +313,11 @@ export class Products implements OnInit {
   onDialogHide(): void {
     this.selectedProduct = null as any;
     this.modalVisible = false;
+  }
+
+  onBarcodeDialogHide(): void {
+    this.selectedBarcodeValue = null;
+    this.barcodeModalVisible = false;
   }
 
   excel(): void {
