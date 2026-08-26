@@ -306,7 +306,7 @@ export class Products implements OnInit {
   }
 
   ViewBarcode(product: ProductModel): void {
-    this.selectedBarcodeValue = product.barcode || product.sku || product.productCode || null;
+    this.selectedBarcodeValue = product.barcode || product.sku || null;
     this.barcodeModalVisible = true;
   }
 
@@ -318,7 +318,7 @@ export class Products implements OnInit {
   excel(): void {
     const exportColumn: ExportColumnModel[] = [
       { key: 'Name', value: 'Product Name' },
-      { key: 'CategoryName', value: 'Category' },
+      { key: 'Category', value: 'Category' },
       { key: 'Sku', value: 'SKU' },
       { key: 'Barcode', value: 'Barcode' },
       { key: 'UnitPrice', value: 'Unit Price' },
