@@ -243,7 +243,7 @@
   [draggable]="false"
   [resizable]="false"
   (onHide)="onDialogHide()">
-   <div class="flex justify-center items-center p-4">
+   <div class="flex justify-center items-center px-2">
     @if (selectedBarcodeValue) {
       <app-barcode [value]="selectedBarcodeValue"></app-barcode>
     } @else {
