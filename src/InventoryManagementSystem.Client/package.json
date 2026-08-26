@@ -32,6 +32,8 @@
     "@angular/router": "^20.3.0",
     "@primeng/themes": "^20.4.0",
     "@tailwindcss/postcss": "^4.3.3",
+    "exceljs": "^4.4.0",
+    "file-saver": "^2.0.5",
     "jsbarcode": "^3.12.3",
     "postcss": "^8.5.26",
     "primeicons": "^7.0.0",
@@ -39,12 +41,14 @@
     "rxjs": "~7.8.0",
     "tailwindcss": "^4.3.3",
     "tslib": "^2.3.0",
+    "xlsx": "^0.18.5",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
     "@angular/build": "^20.3.33",
     "@angular/cli": "^20.3.33",
     "@angular/compiler-cli": "^20.3.0",
+    "@types/file-saver": "^2.0.7",
     "@types/jasmine": "~5.1.0",
     "@types/jsbarcode": "^3.11.4",
     "jasmine-core": "~5.9.0",
