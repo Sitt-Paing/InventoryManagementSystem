@@ -22,7 +22,7 @@ export class Barcode implements AfterViewInit {
       format: 'CODE128',
       lineColor: '#000',
       width: 2,
-      height: 100,
+      height: 70,
       displayValue: true,
     }); 
   }
