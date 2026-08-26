@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { RootModel } from '../models/root.model';
 import { AuthResponseModel, LoginModel } from '../models/auth.model';
@@ -11,7 +11,7 @@ import { AuthResponseModel, LoginModel } from '../models/auth.model';
 })
 export class AuthService {
   private http = inject(HttpClient);
-  
+
   // Storage Keys (Flat keys only in localStorage, no userId, no AUTH_USER object)
   private readonly USERNAME_KEY = 'userName';
   private readonly EMAIL_KEY = 'email';
@@ -22,15 +22,68 @@ export class AuthService {
   public userNameSignal = signal<string>(this.getStoredUserName());
   public userRolesSignal = signal<string[]>(this.getStoredUserRoles());
 
+  initializeAuth(): Observable<boolean> {
+
+    return this.getProfile().pipe(
+
+      switchMap(user => {
+
+        if (user) {
+          return of(true);
+        }
+
+        return this.refreshToken().pipe(
+
+          switchMap(refreshResult => {
+
+            if (!refreshResult.success) {
+              this.authInitializedSubject.next(true);
+              return of(false);
+            }
+
+            return this.getProfile().pipe(
+              map(refreshedUser => {
+
+                this.authInitializedSubject.next(true);
+
+                return refreshedUser !== null;
+              })
+            );
+          })
+        );
+      }),
+
+      catchError(() => {
+
+        this.currentUserSubject.next(null);
+        this.authInitializedSubject.next(true);
+
+        return of(false);
+      })
+    );
+  }
+
   /**
    * Login user and receive HttpOnly cookies + user profile
    */
   login(model: LoginModel): Observable<RootModel> {
+
     const url = `${environment.main_url}/Auth/login`;
-    return this.http.post<RootModel>(url, model, { withCredentials: true }).pipe(
+
+    return this.http.post<RootModel>(
+      url,
+      model,
+      { withCredentials: true }
+    ).pipe(
+
       tap(res => {
+
         if (res.success && res.data) {
-          const dto = res.data as any;
+
+          const dto = res.data as AuthResponseModel;
+
+          this.currentUserSubject.next(dto);
+
           this.storeFlatUserData({
             userName: dto.userName ?? '',
             email: dto.email ?? '',
@@ -87,20 +140,37 @@ export class AuthService {
    */
   getProfile(): Observable<AuthResponseModel | null> {
     const url = `${environment.main_url}/Auth/me`;
-    return this.http.get<RootModel>(url, { withCredentials: true }).pipe(
+
+    return this.http.get<RootModel>(
+      url,
+      { withCredentials: true }
+    ).pipe(
       map(res => {
+
         if (res.success && res.data) {
-          const dto = res.data as any;
+
+          const dto = res.data as AuthResponseModel;
+
+          this.currentUserSubject.next(dto);
+
           this.storeFlatUserData({
             userName: dto.userName ?? '',
             email: dto.email ?? '',
             roles: dto.roles ?? []
           });
-          return dto as AuthResponseModel;
+
+          return dto;
         }
+
+        this.currentUserSubject.next(null);
+
         return null;
       }),
-      catchError(() => of(null))
+
+      catchError(() => {
+        this.currentUserSubject.next(null);
+        return of(null);
+      })
     );
   }
 
@@ -115,8 +185,20 @@ export class AuthService {
     );
   }
 
+  private currentUserSubject =
+    new BehaviorSubject<AuthResponseModel | null>(null);
+
+  public currentUser$ =
+    this.currentUserSubject.asObservable();
+
+  private authInitializedSubject =
+    new BehaviorSubject<boolean>(false);
+
+  public authInitialized$ =
+    this.authInitializedSubject.asObservable();
+
   isAuthenticated(): boolean {
-    return !!this.getUserName() && this.getUserName() !== 'Guest';
+    return this.currentUserSubject.value !== null;
   }
 
   getUserName(): string {
@@ -210,6 +292,8 @@ export class AuthService {
 
     this.userNameSignal.set('Guest');
     this.userRolesSignal.set([]);
+
+    this.currentUserSubject.next(null);
   }
 
   private getStoredUserName(): string {
