@@ -2,6 +2,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { ChangeDetectorRef, Component, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CategoryModel } from '../../../core/models/category.model';
+import { ExportColumnModel } from '../../../core/models/export-column.model';
 import { CategoryService } from '../../../core/services/category.service';
 import { ExportService } from '../../../core/services/export.service';
 import { LoggerService } from '../../../core/services/logger.service';
