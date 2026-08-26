@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { APP_INITIALIZER, ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter, withEnabledBlockingInitialNavigation, withInMemoryScrolling } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { contentTypeInterceptor } from './core/interceptors/content-type.interceptor';
@@ -10,9 +10,21 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 
 import { routes } from './app.routes';
 import { HashLocationStrategy, LocationStrategy } from '@angular/common';
+import { AuthService } from './core/services/auth.service';
+
+export function initializeAuth(authService: AuthService) {
+  return () => authService.initializeAuth();
+}
 
 export const appConfig: ApplicationConfig = {
+
   providers: [
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeAuth,
+      deps: [AuthService],
+      multi: true,
+    },
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(
       routes,
@@ -23,6 +35,7 @@ export const appConfig: ApplicationConfig = {
       withEnabledBlockingInitialNavigation()
     ),
     { provide: LocationStrategy, useClass: HashLocationStrategy },
+
     provideHttpClient(
       withFetch(),
       withInterceptors([contentTypeInterceptor, authInterceptor])
