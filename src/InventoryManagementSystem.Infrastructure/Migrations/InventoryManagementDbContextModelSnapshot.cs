@@ -319,13 +319,13 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
 
                     b.HasIndex("Barcode")
                         .IsUnique()
-                        .HasFilter("[Barcode] IS NOT NULL");
+                        .HasFilter("[Barcode] IS NOT NULL AND [DeletedOn] IS NOT NULL");
 
                     b.HasIndex("CategoryId");
 
                     b.HasIndex(new[] { "Sku" }, "IX_Products_Sku")
                         .IsUnique()
-                        .HasFilter("[SKU] IS NOT NULL");
+                        .HasFilter("[DeletedOn] IS NULL AND [SKU] IS NOT NULL");
 
                     b.ToTable("Products");
                 });
