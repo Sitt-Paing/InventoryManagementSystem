@@ -78,7 +78,7 @@
    GLOBAL BASE
    ═══════════════════════════════════════════════════════════ */
 body, html {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', 'Pyidaungsu', 'Padauk', 'Noto Sans Myanmar', system-ui, -apple-system, sans-serif;
   background-color: var(--bg-page) !important;
   color: var(--text-main) !important;
   margin: 0;
@@ -87,6 +87,11 @@ body, html {
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
+
+html.lang-mm, body.lang-mm {
+  font-family: 'Pyidaungsu', 'Padauk', 'Noto Sans Myanmar', 'Inter', system-ui, -apple-system, sans-serif;
+}
+
 
 main {
   background-color: var(--bg-page) !important;
