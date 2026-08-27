@@ -7,7 +7,7 @@
       <h3 
         *ngIf="!sharedService.sidebarCollapsed()" 
         class="px-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 my-1">
-        {{ group.groupName }}
+        {{ group.transKey ? (group.transKey | translate) : group.groupName }}
       </h3>
 
       <div class="space-y-1">
@@ -21,13 +21,13 @@
           <i [class]="item.icon + ' text-base group-hover:scale-105 transition-transform'"></i>
           
           <span *ngIf="!sharedService.sidebarCollapsed()" class="truncate flex-1">
-            {{ item.label }}
+            {{ item.transKey ? (item.transKey | translate) : item.label }}
           </span>
 
           <span 
-            *ngIf="!sharedService.sidebarCollapsed() && item.badge" 
-            [class]="'text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ' + item.badgeSeverity">
-            {{ item.badge }}
+            *ngIf="!sharedService.sidebarCollapsed() && item.data?.badge" 
+            [class]="'text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ' + item.data?.badgeSeverity">
+            {{ item.data?.badge }}
           </span>
         </a>
       </div>
@@ -51,7 +51,7 @@
         type="button"
         (click)="logout()"
         class="opacity-60 hover:opacity-100 hover:text-rose-500 transition-colors p-1 cursor-pointer"
-        title="Logout">
+        [title]="'HEADER.LOGOUT' | translate">
         <i class="pi pi-power-off text-xs"></i>
       </button>
     </div>
