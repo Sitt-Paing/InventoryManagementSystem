@@ -32,12 +32,29 @@ export function hasAnyMenuRole(
   );
 }
 
-export const NAVIGATION_MENU: Readonly<any[]> = [
+export interface NavigationMenuItem {
+  label: string;
+  transKey?: string;
+  icon: string;
+  routerLink?: string;
+  data?: any;
+  items?: NavigationMenuItem[];
+}
+
+export interface NavigationMenuGroup {
+  label: string;
+  transKey?: string;
+  items: NavigationMenuItem[];
+}
+
+export const NAVIGATION_MENU: Readonly<NavigationMenuGroup[]> = [
   {
     label: 'HOME',
+    transKey: 'NAV.HOME',
     items: [
       {
         label: 'Dashboard',
+        transKey: 'NAV.DASHBOARD',
         icon: 'pi pi-home',
         routerLink: '/dashboard',
         data: { roles: ALL_ROLES },
@@ -46,14 +63,17 @@ export const NAVIGATION_MENU: Readonly<any[]> = [
   },
   {
     label: 'MASTER',
+    transKey: 'NAV.MASTER',
     items: [
       {
         label: 'Categories',
+        transKey: 'NAV.CATEGORIES',
         icon: 'pi pi-tags',
         routerLink: '/master/categories',
       },
       {
         label: 'Products',
+        transKey: 'NAV.PRODUCTS',
         icon: 'pi pi-box',
         routerLink: '/master/products',
       },
@@ -61,14 +81,16 @@ export const NAVIGATION_MENU: Readonly<any[]> = [
   },
   {
     label: 'PROCESS',
+    transKey: 'NAV.PROCESS',
     items: [
       {
         label: 'Stock Transactions',
+        transKey: 'NAV.STOCK_TRANSACTIONS',
         icon: 'pi pi-arrow-right-left',
         routerLink: '/process/stock-transactions',
         data: { roles: MANAGER_PROCESS },
       },
     ],
   },
-  
 ];
+
