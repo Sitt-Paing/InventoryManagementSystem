@@ -3,38 +3,35 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { SharedService } from '../../core/services/shared.service';
 import { AuthService } from '../../core/services/auth.service';
-import { NAVIGATION_MENU, hasAnyMenuRole } from '../../app.menu';
+import { TranslationService } from '../../core/services/translation.service';
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
+import { NAVIGATION_MENU, hasAnyMenuRole, NavigationMenuGroup, NavigationMenuItem } from '../../app.menu';
 
-export interface NavItem {
-  label: string;
-  icon: string;
-  routerLink?: string | string[];
-  badge?: string;
-  badgeSeverity?: string;
-  data?: any;
-  items?: NavItem[];
-}
+export interface NavItem extends NavigationMenuItem {}
 
 export interface NavGroup {
   groupName: string;
+  transKey?: string;
   items: NavItem[];
 }
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TranslatePipe],
   templateUrl: './app-sidebar.html',
   styleUrl: './app-sidebar.scss'
 })
 export class AppSidebar {
   navGroups: NavGroup[] = NAVIGATION_MENU.map(group => ({
     groupName: group.label,
+    transKey: group.transKey,
     items: group.items
   }));
 
   constructor(
     public sharedService: SharedService,
+    public translationService: TranslationService,
     private authService: AuthService,
     private router: Router
   ) {}
