@@ -141,9 +141,9 @@ export class StockTransactionsComponent implements OnInit {
   }
 
   onProductSelect(productId: any): void {
-    const prd = this.products.find(p => String(p.id || p.productId) === String(productId));
+    const prd = this.products.find(p => String(p.id) === String(productId));
     if (prd) {
-      this.txnForm.patchValue({ unitPrice: prd.unitPrice });
+      this.txnForm.patchValue({ unitPrice: prd.sellingPrice ?? 0 });
     }
   }
 
@@ -153,9 +153,9 @@ export class StockTransactionsComponent implements OnInit {
       return;
     }
     const val = this.txnForm.value;
-    const prd = this.products.find(p => p.productId === val.productId);
+    const prd = this.products.find(p => String(p.id) === String(val.productId));
     val.productName = prd ? prd.name : 'Unknown Product';
-    val.productCode = prd ? prd.productCode : 'PRD-000';
+    val.productCode = prd ? (prd.sku || 'PRD-000') : 'PRD-000';
 
     this.transactionService.save(val).subscribe(() => {
       this.formModalVisible = false;
