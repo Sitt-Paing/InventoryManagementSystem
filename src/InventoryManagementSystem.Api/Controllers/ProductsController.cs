@@ -60,7 +60,10 @@ namespace InventoryManagementSystem.Api.Controllers
                 products = products.Where(p =>
                     p.Name.Contains(q, StringComparison.OrdinalIgnoreCase) ||
                     (p.Sku != null && p.Sku.Contains(q, StringComparison.OrdinalIgnoreCase)) ||
-                    (p.Barcode != null && p.Barcode.Contains(q, StringComparison.OrdinalIgnoreCase))
+                    (p.Barcode != null && p.Barcode.Contains(q, StringComparison.OrdinalIgnoreCase)) ||
+                    (p.Brand != null && p.Brand.Contains(q, StringComparison.OrdinalIgnoreCase)) ||
+                    (p.Unit != null && p.Unit.Contains(q, StringComparison.OrdinalIgnoreCase)) ||
+                    (p.Description != null && p.Description.Contains(q, StringComparison.OrdinalIgnoreCase))
                 ).ToList();
             }
 
