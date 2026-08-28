@@ -192,18 +192,18 @@ export class Products implements OnInit {
     this.productForm.reset();
 
     if (this.selectedProduct != null) {
-      const prodId = this.selectedProduct.id ? String(this.selectedProduct.id) : (this.selectedProduct.productId ? String(this.selectedProduct.productId) : null);
+      const prodId = this.selectedProduct.id ? String(this.selectedProduct.id) : null;
       this.productForm.patchValue({
         id: prodId,
         name: this.selectedProduct.name,
         categoryId: Number(this.selectedProduct.categoryId),
-        sku: this.selectedProduct.sku || this.selectedProduct.productCode || '',
+        sku: this.selectedProduct.sku || '',
         barcode: this.selectedProduct.barcode || '',
         brand: this.selectedProduct.brand || '',
-        unit: this.selectedProduct.unit || this.selectedProduct.unitOfMeasure || '',
+        unit: this.selectedProduct.unit || '',
         costPrice: this.selectedProduct.costPrice ?? 0,
-        sellingPrice: this.selectedProduct.sellingPrice ?? this.selectedProduct.unitPrice ?? 0,
-        currentStock: this.selectedProduct.currentStock ?? this.selectedProduct.quantityInStock ?? 0,
+        sellingPrice: this.selectedProduct.sellingPrice ?? 0,
+        currentStock: this.selectedProduct.currentStock ?? 0,
         reorderLevel: this.selectedProduct.reorderLevel ?? 0,
         reorderQuantity: this.selectedProduct.reorderQuantity ?? 0,
         tax: this.selectedProduct.tax ?? 0,
@@ -224,7 +224,7 @@ export class Products implements OnInit {
 
   delete(): void {
     if (this.selectedProduct != null) {
-      const prodId = this.selectedProduct.id ? String(this.selectedProduct.id) : (this.selectedProduct.productId ? String(this.selectedProduct.productId) : '');
+      const prodId = this.selectedProduct.id ? String(this.selectedProduct.id) : '';
       this.confirmationService.confirm({
         message: 'Are you sure you want to delete this product?',
         header: 'Delete Confirmation',
@@ -278,7 +278,6 @@ export class Products implements OnInit {
       unit: formVal.unit,
       costPrice: formVal.costPrice,
       sellingPrice: formVal.sellingPrice,
-      unitPrice: formVal.sellingPrice,
       currentStock: formVal.currentStock,
       reorderLevel: formVal.reorderLevel,
       reorderQuantity: formVal.reorderQuantity,
