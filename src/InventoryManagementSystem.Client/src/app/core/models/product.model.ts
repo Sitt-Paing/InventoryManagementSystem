@@ -1,4 +1,4 @@
-﻿export interface ProductModel {
+export interface ProductModel {
   id?: string;
   productId?: string | number;
   name: string;
@@ -7,17 +7,25 @@
   barcode?: string;
   categoryId: number;
   categoryName?: string;
-  unitPrice: number;
+  brand?: string;
+  unit?: string;
+  unitOfMeasure?: string;
   costPrice?: number;
+  sellingPrice?: number;
+  unitPrice?: number;
   currentStock: number;
   quantityInStock?: number;
   reorderLevel: number;
-  unitOfMeasure?: string;
-  status?: string;
+  reorderQuantity?: number;
+  tax?: number;
+  status?: boolean;
+  description?: string;
   createdOn?: Date | string;
   createdAt?: Date | string;
   createdBy?: string;
   updatedOn?: Date | string;
   updatedAt?: Date | string;
   updatedBy?: string;
+  deletedOn?: Date | string;
+  deletedBy?: string;
 }
