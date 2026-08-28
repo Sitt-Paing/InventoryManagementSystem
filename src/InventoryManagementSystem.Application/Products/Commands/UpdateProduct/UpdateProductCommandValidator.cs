@@ -19,7 +19,7 @@ public class UpdateProductCommandValidator : AbstractValidator<UpdateProductComm
             .NotEmpty().WithMessage("Product Name is required.")
             .MaximumLength(250).WithMessage("Product Name must not exceed 250 characters.");
         RuleFor(v => v.SellingPrice)
-            .GreaterThanOrEqualTo(0).When(x => x.UnitPrice == null).WithMessage("Selling Price must be greater than or equal to 0.");
+            .GreaterThanOrEqualTo(0).WithMessage("Selling Price must be greater than or equal to 0.");
         RuleFor(v => v.CostPrice)
             .GreaterThanOrEqualTo(0).WithMessage("Cost Price must be greater than or equal to 0.");
         RuleFor(v => v.Barcode)
