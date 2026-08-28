@@ -6,4 +6,19 @@ using System.Text;
 
 namespace InventoryManagementSystem.Application.Products.Commands.CreateProduct;
 
-public record CreateProductCommand(string Name, long categoryId, decimal UnitPrice, string? Sku, int CurrentStock, int ReorderLevel, string? Barcode = null) : IRequest<ProductDto>;
+public record CreateProductCommand(
+    string Name,
+    long CategoryId,
+    decimal SellingPrice = 0,
+    string? Sku = null,
+    int CurrentStock = 0,
+    int ReorderLevel = 0,
+    string? Barcode = null,
+    string? Brand = null,
+    string? Unit = null,
+    decimal CostPrice = 0,
+    int ReorderQuantity = 0,
+    decimal Tax = 0,
+    bool Status = true,
+    string? Description = null,
+    decimal? UnitPrice = null) : IRequest<ProductDto>;
