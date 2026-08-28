@@ -6,4 +6,20 @@ using System.Text;
 
 namespace InventoryManagementSystem.Application.Products.Commands.UpdateProduct;
 
-public record UpdateProductCommand(Guid Id, string Name, long CategoryId, string Sku, decimal UnitPrice, int CurrentStock, int ReorderLevel, string? Barcode = null) : IRequest<ProductDto?>;
+public record UpdateProductCommand(
+    Guid Id,
+    string Name,
+    long CategoryId,
+    string? Sku = null,
+    decimal SellingPrice = 0,
+    int CurrentStock = 0,
+    int ReorderLevel = 0,
+    string? Barcode = null,
+    string? Brand = null,
+    string? Unit = null,
+    decimal CostPrice = 0,
+    int ReorderQuantity = 0,
+    decimal Tax = 0,
+    bool Status = true,
+    string? Description = null,
+    decimal? UnitPrice = null) : IRequest<ProductDto?>;
