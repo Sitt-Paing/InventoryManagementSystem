@@ -22,6 +22,8 @@ import { SplitButtonModule } from 'primeng/splitbutton';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { TextareaModule } from 'primeng/textarea';
 import { Barcode } from "../../../shared/components/barcode/barcode";
 
 @Component({
@@ -43,8 +45,10 @@ import { Barcode } from "../../../shared/components/barcode/barcode";
     TableModule,
     ToastModule,
     InputIconModule,
+    ToggleSwitchModule,
+    TextareaModule,
     Barcode
-],
+  ],
   providers: [DatePipe, CurrencyPipe, ConfirmationService, ExportService, MessageService],
   templateUrl: './products.html',
   styleUrl: './products.scss',
@@ -76,9 +80,16 @@ export class Products implements OnInit {
     categoryId: [null as number | null, Validators.required],
     sku: [''],
     barcode: [''],
-    unitPrice: [0, [Validators.required, Validators.min(0)]],
+    brand: [''],
+    unit: [''],
+    costPrice: [0, [Validators.required, Validators.min(0)]],
+    sellingPrice: [0, [Validators.required, Validators.min(0)]],
     currentStock: [0, [Validators.required, Validators.min(0)]],
-    reorderLevel: [10, [Validators.required, Validators.min(1)]],
+    reorderLevel: [10, [Validators.required, Validators.min(0)]],
+    reorderQuantity: [0, [Validators.required, Validators.min(0)]],
+    tax: [0, [Validators.required, Validators.min(0)]],
+    status: [true],
+    description: [''],
   });
 
   constructor(
@@ -158,10 +169,20 @@ export class Products implements OnInit {
     this.errorMessage.set([]);
     this.productForm.patchValue({
       id: null,
-      unitPrice: 0,
+      name: '',
+      categoryId: this.selectedCategoryId && this.selectedCategoryId > 0 ? this.selectedCategoryId : null,
+      sku: '',
+      barcode: '',
+      brand: '',
+      unit: '',
+      costPrice: 0,
+      sellingPrice: 0,
       currentStock: 0,
       reorderLevel: 10,
-      categoryId: this.selectedCategoryId && this.selectedCategoryId > 0 ? this.selectedCategoryId : null
+      reorderQuantity: 0,
+      tax: 0,
+      status: true,
+      description: '',
     });
     this.modalVisible = true;
   }
@@ -178,9 +199,16 @@ export class Products implements OnInit {
         categoryId: Number(this.selectedProduct.categoryId),
         sku: this.selectedProduct.sku || this.selectedProduct.productCode || '',
         barcode: this.selectedProduct.barcode || '',
-        unitPrice: this.selectedProduct.unitPrice,
+        brand: this.selectedProduct.brand || '',
+        unit: this.selectedProduct.unit || this.selectedProduct.unitOfMeasure || '',
+        costPrice: this.selectedProduct.costPrice ?? 0,
+        sellingPrice: this.selectedProduct.sellingPrice ?? this.selectedProduct.unitPrice ?? 0,
         currentStock: this.selectedProduct.currentStock ?? this.selectedProduct.quantityInStock ?? 0,
-        reorderLevel: this.selectedProduct.reorderLevel,
+        reorderLevel: this.selectedProduct.reorderLevel ?? 0,
+        reorderQuantity: this.selectedProduct.reorderQuantity ?? 0,
+        tax: this.selectedProduct.tax ?? 0,
+        status: this.selectedProduct.status !== undefined ? Boolean(this.selectedProduct.status) : true,
+        description: this.selectedProduct.description || '',
       });
       this.modalVisible = true;
       this.errorMessage.set([]);
@@ -241,20 +269,25 @@ export class Products implements OnInit {
 
     this.isSubmitting = true;
     const formVal = this.productForm.value;
+    const payload = {
+      name: formVal.name,
+      categoryId: formVal.categoryId,
+      sku: formVal.sku,
+      barcode: formVal.barcode,
+      brand: formVal.brand,
+      unit: formVal.unit,
+      costPrice: formVal.costPrice,
+      sellingPrice: formVal.sellingPrice,
+      unitPrice: formVal.sellingPrice,
+      currentStock: formVal.currentStock,
+      reorderLevel: formVal.reorderLevel,
+      reorderQuantity: formVal.reorderQuantity,
+      tax: formVal.tax,
+      status: formVal.status ?? true,
+      description: formVal.description,
+    };
 
     if (!this.isEdit) {
-      const payload = {
-        name: formVal.name,
-        categoryId: formVal.categoryId,
-        sku: formVal.sku,
-        barcode: formVal.barcode,
-        unitPrice: formVal.unitPrice,
-        currentStock: formVal.currentStock,
-        reorderLevel: formVal.reorderLevel,
-      };
-
-
-
       this.productService.create(payload).subscribe({
         next: res => {
           if (res.success) {
@@ -273,18 +306,12 @@ export class Products implements OnInit {
         error: () => { this.isSubmitting = false; },
       });
     } else {
-      const payload = {
+      const updatePayload = {
+        ...payload,
         id: formVal.id,
-        name: formVal.name,
-        categoryId: formVal.categoryId,
-        sku: formVal.sku,
-        barcode: formVal.barcode,
-        unitPrice: formVal.unitPrice,
-        currentStock: formVal.currentStock,
-        reorderLevel: formVal.reorderLevel,
       };
 
-      this.productService.update(payload).subscribe({
+      this.productService.update(updatePayload).subscribe({
         next: res => {
           if (res.success) {
             this.modalVisible = false;
@@ -322,13 +349,20 @@ export class Products implements OnInit {
 
   excel(): void {
     const exportColumn: ExportColumnModel[] = [
+      { key: 'Sku', value: 'SKU' },
       { key: 'Name', value: 'Product Name' },
       { key: 'Category', value: 'Category' },
-      { key: 'Sku', value: 'SKU' },
+      { key: 'Brand', value: 'Brand' },
+      { key: 'Unit', value: 'Unit' },
       { key: 'Barcode', value: 'Barcode' },
-      { key: 'UnitPrice', value: 'Unit Price' },
+      { key: 'CostPrice', value: 'Cost Price' },
+      { key: 'SellingPrice', value: 'Selling Price' },
       { key: 'CurrentStock', value: 'Current Stock' },
       { key: 'ReorderLevel', value: 'Reorder Level' },
+      { key: 'ReorderQuantity', value: 'Reorder Quantity' },
+      { key: 'Tax', value: 'Tax' },
+      { key: 'Status', value: 'Status' },
+      { key: 'Description', value: 'Description' },
       { key: 'CreatedOn', value: 'Created On' },
       { key: 'CreatedBy', value: 'Created By' },
       { key: 'UpdatedOn', value: 'Updated On' },
@@ -356,3 +390,4 @@ export class Products implements OnInit {
     return this.categories.find(c => Number(c.id) === Number(categoryId))?.name ?? '—';
   }
 }
+
