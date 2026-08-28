@@ -33,13 +33,20 @@ public class ExportProductsQueryHandler : IRequestHandler<ExportProductsQuery, E
             .OrderBy(p => p.Name)
             .Select(p => new
             {
+                Sku = p.Sku ?? "-",
                 Name = p.Name,
                 CategoryName = p.Category != null ? p.Category.Name : "N/A",
-                Sku = p.Sku ?? "-",
+                Brand = p.Brand ?? "-",
+                Unit = p.Unit ?? "-",
                 Barcode = p.Barcode ?? "-",
-                UnitPrice = p.UnitPrice,
+                CostPrice = p.CostPrice,
+                SellingPrice = p.SellingPrice,
                 CurrentStock = p.CurrentStock,
                 ReorderLevel = p.ReorderLevel,
+                ReorderQuantity = p.ReorderQuantity,
+                Tax = p.Tax,
+                Status = p.Status ? "Active" : "Inactive",
+                Description = p.Description ?? "-",
                 CreatedOn = p.CreatedOn,
                 CreatedBy = p.CreatedBy ?? "-"
             })
@@ -47,13 +54,20 @@ public class ExportProductsQueryHandler : IRequestHandler<ExportProductsQuery, E
 
         var columnMappings = new Dictionary<string, string>
         {
+            { "Sku", "SKU" },
             { "Name", "Product Name" },
             { "CategoryName", "Category" },
-            { "Sku", "SKU" },
+            { "Brand", "Brand" },
+            { "Unit", "Unit" },
             { "Barcode", "Barcode" },
-            { "UnitPrice", "Unit Price" },
+            { "CostPrice", "Cost Price" },
+            { "SellingPrice", "Selling Price" },
             { "CurrentStock", "Current Stock" },
             { "ReorderLevel", "Reorder Level" },
+            { "ReorderQuantity", "Reorder Quantity" },
+            { "Tax", "Tax" },
+            { "Status", "Status" },
+            { "Description", "Description" },
             { "CreatedOn", "Created Date" },
             { "CreatedBy", "Created By" }
         };
