@@ -271,8 +271,15 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("Brand")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<long>("CategoryId")
                         .HasColumnType("bigint");
+
+                    b.Property<decimal>("CostPrice")
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(256)
@@ -291,6 +298,10 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Property<DateTime?>("DeletedOn")
                         .HasColumnType("datetime");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(250)
@@ -299,14 +310,32 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Property<int>("ReorderLevel")
                         .HasColumnType("int");
 
+                    b.Property<int>("ReorderQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("SellingPrice")
+                        .HasColumnType("decimal(18, 2)");
+
                     b.Property<string>("Sku")
                         .HasMaxLength(50)
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)")
                         .HasColumnName("SKU");
 
-                    b.Property<decimal>("UnitPrice")
+                    b.Property<bool>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<decimal>("Tax")
                         .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("Unit")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(256)
@@ -319,7 +348,7 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
 
                     b.HasIndex("Barcode")
                         .IsUnique()
-                        .HasFilter("[Barcode] IS NOT NULL AND [DeletedOn] IS NOT NULL");
+                        .HasFilter("[Barcode] IS NOT NULL AND [DeletedOn] IS NULL");
 
                     b.HasIndex("CategoryId");
 
