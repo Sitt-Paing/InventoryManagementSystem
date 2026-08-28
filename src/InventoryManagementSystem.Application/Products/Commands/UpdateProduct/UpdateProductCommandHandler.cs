@@ -24,13 +24,22 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
 
         if (entity == null) return null;
 
+        decimal effectiveSellingPrice = request.SellingPrice > 0 ? request.SellingPrice : (request.UnitPrice ?? entity.SellingPrice);
+
         entity.Name = request.Name;
         entity.CategoryId = request.CategoryId;
         entity.Sku = request.Sku;
+        entity.Brand = request.Brand;
+        entity.Unit = request.Unit;
         entity.Barcode = request.Barcode;
+        entity.CostPrice = request.CostPrice;
+        entity.SellingPrice = effectiveSellingPrice;
         entity.CurrentStock = request.CurrentStock;
-        entity.UnitPrice = request.UnitPrice;
         entity.ReorderLevel = request.ReorderLevel;
+        entity.ReorderQuantity = request.ReorderQuantity;
+        entity.Tax = request.Tax;
+        entity.Status = request.Status;
+        entity.Description = request.Description;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -39,11 +48,18 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             Id = entity.Id,
             Name = entity.Name,
             CategoryId = entity.CategoryId,
+            Brand = entity.Brand,
+            Unit = entity.Unit,
             Sku = entity.Sku,
             Barcode = entity.Barcode,
+            CostPrice = entity.CostPrice,
+            SellingPrice = entity.SellingPrice,
             CurrentStock = entity.CurrentStock,
             ReorderLevel = entity.ReorderLevel,
-            UnitPrice = entity.UnitPrice,
+            ReorderQuantity = entity.ReorderQuantity,
+            Tax = entity.Tax,
+            Status = entity.Status,
+            Description = entity.Description,
             CreatedOn = entity.CreatedOn,
             CreatedBy = entity.CreatedBy,
             UpdatedOn = entity.UpdatedOn,
