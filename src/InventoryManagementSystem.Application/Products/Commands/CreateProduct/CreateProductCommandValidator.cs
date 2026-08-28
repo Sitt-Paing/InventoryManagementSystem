@@ -11,7 +11,7 @@ public class CreateProductCommandValidator : AbstractValidator<CreateProductComm
     {
         RuleFor(x => x.Name).NotEmpty().WithMessage("Product Name is required.").MaximumLength(250).WithMessage("Product Name must not exceed 250 characters.");
         RuleFor(x => x.CategoryId).GreaterThan(0).WithMessage("Category is required.");
-        RuleFor(x => x.SellingPrice).GreaterThanOrEqualTo(0).When(x => x.UnitPrice == null).WithMessage("Selling Price must be greater than or equal to 0.");
+        RuleFor(x => x.SellingPrice).GreaterThanOrEqualTo(0).WithMessage("Selling Price must be greater than or equal to 0.");
         RuleFor(x => x.CostPrice).GreaterThanOrEqualTo(0).WithMessage("Cost Price must be greater than or equal to 0.");
         RuleFor(x => x.Barcode).MaximumLength(100).When(x => !string.IsNullOrWhiteSpace(x.Barcode)).WithMessage("Barcode must not exceed 100 characters.");
         RuleFor(x => x.Sku).MaximumLength(50).When(x => !string.IsNullOrWhiteSpace(x.Sku)).WithMessage("SKU must not exceed 50 characters.");
