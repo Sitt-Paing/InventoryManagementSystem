@@ -60,20 +60,27 @@
     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
     [loading]="isLoading"
     stripedRows="true"
-    [globalFilterFields]="['name', 'sku', 'barcode', 'createdBy']"
-    [tableStyle]="{ 'min-width': '50rem' }">
+    [globalFilterFields]="['name', 'sku', 'barcode', 'brand', 'unit', 'description', 'createdBy']"
+    [tableStyle]="{ 'min-width': '65rem' }">
 
     <!-- Table Header -->
     <ng-template #header>
       <tr style="white-space:nowrap">
         <th pFrozenColumn [style]="{ width: '10px' }">#</th>
+        <th pSortableColumn="sku">SKU <p-sortIcon field="sku"></p-sortIcon></th>
         <th pSortableColumn="name">Product Name <p-sortIcon field="name"></p-sortIcon></th>
         <th>Category</th>
-        <th pSortableColumn="sku">SKU <p-sortIcon field="sku"></p-sortIcon></th>
+        <th pSortableColumn="brand">Brand <p-sortIcon field="brand"></p-sortIcon></th>
+        <th pSortableColumn="unit">Unit <p-sortIcon field="unit"></p-sortIcon></th>
         <th>Barcode</th>
-        <th pSortableColumn="unitPrice">Unit Price <p-sortIcon field="unitPrice"></p-sortIcon></th>
+        <th pSortableColumn="costPrice">Cost Price <p-sortIcon field="costPrice"></p-sortIcon></th>
+        <th pSortableColumn="sellingPrice">Selling Price <p-sortIcon field="sellingPrice"></p-sortIcon></th>
         <th pSortableColumn="currentStock">Stock <p-sortIcon field="currentStock"></p-sortIcon></th>
         <th pSortableColumn="reorderLevel">Reorder Level <p-sortIcon field="reorderLevel"></p-sortIcon></th>
+        <th pSortableColumn="reorderQuantity">Reorder Qty <p-sortIcon field="reorderQuantity"></p-sortIcon></th>
+        <th pSortableColumn="tax">Tax (%) <p-sortIcon field="tax"></p-sortIcon></th>
+        <th pSortableColumn="status">Status <p-sortIcon field="status"></p-sortIcon></th>
+        <th pSortableColumn="description">Description <p-sortIcon field="description"></p-sortIcon></th>
         <th pSortableColumn="createdOn">Created On <p-sortIcon field="createdOn"></p-sortIcon></th>
         <th pSortableColumn="createdBy">Created By <p-sortIcon field="createdBy"></p-sortIcon></th>
         <th pSortableColumn="updatedOn">Updated On <p-sortIcon field="updatedOn"></p-sortIcon></th>
@@ -87,22 +94,33 @@
         <td>
           <span class="pi pi-circle" [class.pi-check-circle]="selectedProduct === prod" [style.color]="selectedProduct === prod ? 'var(--accent-color)' : 'var(--text-faint)'"></span>
         </td>
+        <td>{{ prod.sku || '—' }}</td>
         <td class="font-medium">{{ prod.name }}</td>
         <td>
           <p-tag [value]="getCategoryName(prod.categoryId)" severity="info" [rounded]="true"></p-tag>
         </td>
-        <td>{{ prod.sku || '—' }}</td>
+        <td>{{ prod.brand || '—' }}</td>
+        <td>{{ prod.unit || '—' }}</td>
         <td>
           <p-button label="Barcode" icon="pi pi-eye" size="small" (click)="ViewBarcode(prod)"></p-button>
-          <!-- <app-barcode [value]="prod.barcode"></app-barcode> -->
         </td>
-        <td>{{ prod.unitPrice | currency:'USD':'symbol':'1.2-2' }}</td>
+        <td>{{ prod.costPrice | currency:'USD':'symbol':'1.2-2' }}</td>
+        <td>{{ (prod.sellingPrice ?? prod.unitPrice) | currency:'USD':'symbol':'1.2-2' }}</td>
         <td>
           <span [class.text-rose-600]="prod.currentStock <= prod.reorderLevel" class="font-semibold">
             {{ prod.currentStock }}
           </span>
         </td>
         <td>{{ prod.reorderLevel }}</td>
+        <td>{{ prod.reorderQuantity ?? 0 }}</td>
+        <td>{{ prod.tax ? (prod.tax + '%') : '0%' }}</td>
+        <td>
+          <p-tag [value]="prod.status ? 'Active' : 'Inactive'"
+                 [severity]="prod.status ? 'success' : 'info'"
+                 icon="{{ prod.status ? 'pi pi-check' : 'pi pi-minus-circle' }}"
+                 [rounded]="true"></p-tag>
+        </td>
+        <td>{{ prod.description || '—' }}</td>
         <td>
           {{ prod.createdOn ? (prod.createdOn | date:'dd/MMM/yyyy hh:mm:ss a') : 'N/A' }}
         </td>
@@ -116,7 +134,7 @@
 
     <ng-template #emptymessage>
       <tr>
-        <td colspan="9" class="text-center py-8 text-sm font-semibold text-slate-500">
+        <td colspan="19" class="text-center py-8 text-sm font-semibold text-slate-500">
           No products found.
         </td>
       </tr>
@@ -129,16 +147,16 @@
   [header]="isEdit ? 'Edit Product' : 'Create Product'"
   [(visible)]="modalVisible"
   [breakpoints]="{
-    '1920px': '35vw',
-    '1440px': '35vw',
-    '1024px': '45vw',
-    '768px': '80vw',
+    '1920px': '40vw',
+    '1440px': '45vw',
+    '1024px': '55vw',
+    '768px': '85vw',
     '425px': '100vw',
     '375px': '100vw',
     '320px': '100vw'
   }"
   [modal]="true"
-  [style]="{ 'min-width': '35vw' }"
+  [style]="{ 'min-width': '40vw' }"
   [draggable]="false"
   [resizable]="false"
   (onHide)="onDialogHide()">
@@ -150,9 +168,9 @@
       </p-message>
     }
 
-    <div class="grid grid-cols-12 gap-4 mt-2">
+    <div class="grid grid-cols-12 gap-3.5 mt-2">
       <!-- Product Name -->
-      <div class="col-span-12 flex flex-col gap-1.5">
+      <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5">
         <label for="name" class="text-xs font-bold">Product Name *</label>
         <input id="name" formControlName="name" pInputText placeholder="Enter Product name..." required />
         @if(productForm.controls['name'].invalid && productForm.get('name')?.dirty){
@@ -161,7 +179,7 @@
       </div>
 
       <!-- Category Select -->
-      <div class="col-span-12 flex flex-col gap-1.5">
+      <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5">
         <label for="categoryId" class="text-xs font-bold">Category *</label>
         <p-select
           id="categoryId"
@@ -178,33 +196,75 @@
       </div>
 
       <!-- SKU -->
-      <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5">
+      <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
         <label for="sku" class="text-xs font-bold">SKU</label>
         <input id="sku" formControlName="sku" pInputText placeholder="e.g. PRD-001" />
       </div>
 
       <!-- Barcode -->
-      <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5">
+      <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
         <label for="barcode" class="text-xs font-bold">Barcode</label>
         <input id="barcode" formControlName="barcode" pInputText placeholder="e.g. 123456789" />
       </div>
 
-      <!-- Unit Price -->
+      <!-- Brand -->
       <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
-        <label for="unitPrice" class="text-xs font-bold">Unit Price *</label>
-        <input id="unitPrice" formControlName="unitPrice" type="number" pInputText min="0" step="0.01" />
+        <label for="brand" class="text-xs font-bold">Brand</label>
+        <input id="brand" formControlName="brand" pInputText placeholder="Enter Brand..." />
+      </div>
+
+      <!-- Unit -->
+      <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
+        <label for="unit" class="text-xs font-bold">Unit</label>
+        <input id="unit" formControlName="unit" pInputText placeholder="e.g. Pcs, Box, Kg..." />
+      </div>
+
+      <!-- Cost Price -->
+      <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
+        <label for="costPrice" class="text-xs font-bold">Cost Price *</label>
+        <input id="costPrice" formControlName="costPrice" type="number" pInputText min="0" step="0.01" />
+      </div>
+
+      <!-- Selling Price -->
+      <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
+        <label for="sellingPrice" class="text-xs font-bold">Selling Price *</label>
+        <input id="sellingPrice" formControlName="sellingPrice" type="number" pInputText min="0" step="0.01" />
       </div>
 
       <!-- Current Stock -->
-      <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
+      <div class="col-span-12 sm:col-span-3 flex flex-col gap-1.5">
         <label for="currentStock" class="text-xs font-bold">Current Stock *</label>
         <input id="currentStock" formControlName="currentStock" type="number" pInputText min="0" />
       </div>
 
       <!-- Reorder Level -->
-      <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
+      <div class="col-span-12 sm:col-span-3 flex flex-col gap-1.5">
         <label for="reorderLevel" class="text-xs font-bold">Reorder Level *</label>
-        <input id="reorderLevel" formControlName="reorderLevel" type="number" pInputText min="1" />
+        <input id="reorderLevel" formControlName="reorderLevel" type="number" pInputText min="0" />
+      </div>
+
+      <!-- Reorder Quantity -->
+      <div class="col-span-12 sm:col-span-3 flex flex-col gap-1.5">
+        <label for="reorderQuantity" class="text-xs font-bold">Reorder Quantity *</label>
+        <input id="reorderQuantity" formControlName="reorderQuantity" type="number" pInputText min="0" />
+      </div>
+
+      <!-- Tax -->
+      <div class="col-span-12 sm:col-span-3 flex flex-col gap-1.5">
+        <label for="tax" class="text-xs font-bold">Tax (%)</label>
+        <input id="tax" formControlName="tax" type="number" pInputText min="0" step="0.01" />
+      </div>
+
+      <!-- Status -->
+      <div class="col-span-12 flex items-center gap-2">
+        <p-toggleSwitch formControlName="status"></p-toggleSwitch>
+        <span class="text-xs font-bold">Status (Active / Inactive)</span>
+      </div>
+
+      <!-- Description -->
+      <div class="col-span-12 flex flex-col gap-1.5">
+        <label for="description" class="text-xs font-bold">Description</label>
+        <textarea id="description" formControlName="description" pInputText placeholder="Enter Description..." rows="2"></textarea>
       </div>
     </div>
 
