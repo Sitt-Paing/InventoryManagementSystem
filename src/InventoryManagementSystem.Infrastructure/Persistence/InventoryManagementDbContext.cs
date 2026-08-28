@@ -178,8 +178,14 @@ public partial class InventoryManagementDbContext : DbContext, IApplicationDbCon
                 .HasColumnName("SKU");
             entity.HasIndex(e => e.Sku, "IX_Products_Sku").IsUnique().HasFilter("[DeletedOn] IS NULL AND [SKU] IS NOT NULL");
             entity.Property(e => e.Barcode).HasMaxLength(100);
-            entity.HasIndex(x => x.Barcode).IsUnique().HasFilter("[Barcode] IS NOT NULL AND [DeletedOn] IS NOT NULL");
-            entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 2)");
+            entity.HasIndex(x => x.Barcode).IsUnique().HasFilter("[Barcode] IS NOT NULL AND [DeletedOn] IS NULL");
+            entity.Property(e => e.Brand).HasMaxLength(100);
+            entity.Property(e => e.Unit).HasMaxLength(50);
+            entity.Property(e => e.CostPrice).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.SellingPrice).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Tax).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Status).HasDefaultValue(true);
+            entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.UpdatedBy).HasMaxLength(256);
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
 
