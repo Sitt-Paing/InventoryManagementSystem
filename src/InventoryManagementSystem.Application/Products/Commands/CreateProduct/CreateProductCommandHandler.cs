@@ -25,8 +25,6 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             sku = await GenerateSkuAsync(request.Name, cancellationToken);
         }
 
-        decimal effectiveSellingPrice = request.SellingPrice > 0 ? request.SellingPrice : (request.UnitPrice ?? 0);
-
         var entity = new Product
         {
             Id = Guid.NewGuid(),
@@ -36,7 +34,7 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             Unit = request.Unit,
             Barcode = request.Barcode,
             CostPrice = request.CostPrice,
-            SellingPrice = effectiveSellingPrice,
+            SellingPrice = request.SellingPrice,
             CurrentStock = request.CurrentStock,
             ReorderLevel = request.ReorderLevel,
             ReorderQuantity = request.ReorderQuantity,
