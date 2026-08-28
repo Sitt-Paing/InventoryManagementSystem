@@ -24,8 +24,6 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
 
         if (entity == null) return null;
 
-        decimal effectiveSellingPrice = request.SellingPrice > 0 ? request.SellingPrice : (request.UnitPrice ?? entity.SellingPrice);
-
         entity.Name = request.Name;
         entity.CategoryId = request.CategoryId;
         entity.Sku = request.Sku;
@@ -33,7 +31,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         entity.Unit = request.Unit;
         entity.Barcode = request.Barcode;
         entity.CostPrice = request.CostPrice;
-        entity.SellingPrice = effectiveSellingPrice;
+        entity.SellingPrice = request.SellingPrice;
         entity.CurrentStock = request.CurrentStock;
         entity.ReorderLevel = request.ReorderLevel;
         entity.ReorderQuantity = request.ReorderQuantity;
