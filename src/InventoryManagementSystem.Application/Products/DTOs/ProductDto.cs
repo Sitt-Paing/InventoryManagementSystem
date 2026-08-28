@@ -11,11 +11,6 @@ public record ProductDto
     public string? Unit { get; set; }
     public decimal CostPrice { get; set; }
     public decimal SellingPrice { get; set; }
-    public decimal UnitPrice
-    {
-        get => SellingPrice;
-        set => SellingPrice = value;
-    }
     public int CurrentStock { get; set; }
     public int ReorderLevel { get; set; }
     public int ReorderQuantity { get; set; }
