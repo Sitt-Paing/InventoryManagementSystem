@@ -25,16 +25,25 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             sku = await GenerateSkuAsync(request.Name, cancellationToken);
         }
 
+        decimal effectiveSellingPrice = request.SellingPrice > 0 ? request.SellingPrice : (request.UnitPrice ?? 0);
+
         var entity = new Product
         {
             Id = Guid.NewGuid(),
             Name = request.Name,
-            CategoryId = request.categoryId,
-            UnitPrice = request.UnitPrice,
-            Sku = sku,
+            CategoryId = request.CategoryId,
+            Brand = request.Brand,
+            Unit = request.Unit,
             Barcode = request.Barcode,
+            CostPrice = request.CostPrice,
+            SellingPrice = effectiveSellingPrice,
             CurrentStock = request.CurrentStock,
-            ReorderLevel = request.ReorderLevel
+            ReorderLevel = request.ReorderLevel,
+            ReorderQuantity = request.ReorderQuantity,
+            Tax = request.Tax,
+            Status = request.Status,
+            Description = request.Description,
+            Sku = sku
         };
 
         _context.Products.Add(entity);
@@ -45,11 +54,18 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             Id = entity.Id,
             Name = entity.Name,
             CategoryId = entity.CategoryId,
-            UnitPrice = entity.UnitPrice,
-            Sku = entity.Sku,
+            Brand = entity.Brand,
+            Unit = entity.Unit,
             Barcode = entity.Barcode,
+            CostPrice = entity.CostPrice,
+            SellingPrice = entity.SellingPrice,
             CurrentStock = entity.CurrentStock,
             ReorderLevel = entity.ReorderLevel,
+            ReorderQuantity = entity.ReorderQuantity,
+            Tax = entity.Tax,
+            Status = entity.Status,
+            Description = entity.Description,
+            Sku = entity.Sku,
             CreatedOn = entity.CreatedOn,
             CreatedBy = entity.CreatedBy,
         };
