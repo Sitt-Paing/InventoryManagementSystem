@@ -30,7 +30,7 @@ export class ProductService {
   }
 
   update(model: any): Observable<RootModel> {
-    const id = model.id || model.productId;
+    const id = model.id;
     const url = `${environment.main_url}/products/${id}`;
     return this.http.put<RootModel>(url, model);
   }
@@ -41,7 +41,7 @@ export class ProductService {
   }
 
   save(model: Partial<ProductModel>): Observable<RootModel> {
-    const id = model.id || model.productId;
+    const id = model.id;
     const isEdit = id && id !== '0';
     return isEdit ? this.update(model) : this.create(model);
   }
