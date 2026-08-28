@@ -23,14 +23,6 @@ public partial class Product : BaseAuditableEntity<Guid>
 
     public decimal SellingPrice { get; set; }
 
-    [JsonIgnore]
-    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
-    public decimal UnitPrice
-    {
-        get => SellingPrice;
-        set => SellingPrice = value;
-    }
-
     public int CurrentStock { get; set; }
 
     public int ReorderLevel { get; set; }
