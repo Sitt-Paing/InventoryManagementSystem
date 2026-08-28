@@ -105,7 +105,7 @@
           <p-button label="Barcode" icon="pi pi-eye" size="small" (click)="ViewBarcode(prod)"></p-button>
         </td>
         <td>{{ prod.costPrice | currency:'USD':'symbol':'1.2-2' }}</td>
-        <td>{{ (prod.sellingPrice ?? prod.unitPrice) | currency:'USD':'symbol':'1.2-2' }}</td>
+        <td>{{ prod.sellingPrice | currency:'USD':'symbol':'1.2-2' }}</td>
         <td>
           <span [class.text-rose-600]="prod.currentStock <= prod.reorderLevel" class="font-semibold">
             {{ prod.currentStock }}
