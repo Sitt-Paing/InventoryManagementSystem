@@ -1,4 +1,4 @@
-﻿using InventoryManagementSystem.Application.Common.Interfaces;
+using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Application.Products.DTOs;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -29,10 +29,18 @@ public class DeleteProductCommandHandler : IRequestHandler<DeleteProductCommand,
             Id = entity.Id,
             Name = entity.Name,
             CategoryId = entity.CategoryId,
+            Brand = entity.Brand,
+            Unit = entity.Unit,
             Sku = entity.Sku,
+            Barcode = entity.Barcode,
+            CostPrice = entity.CostPrice,
+            SellingPrice = entity.SellingPrice,
             CurrentStock = entity.CurrentStock,
             ReorderLevel = entity.ReorderLevel,
-            UnitPrice = entity.UnitPrice,
+            ReorderQuantity = entity.ReorderQuantity,
+            Tax = entity.Tax,
+            Status = entity.Status,
+            Description = entity.Description,
             CreatedOn = entity.CreatedOn,
             CreatedBy = entity.CreatedBy,
             UpdatedOn = entity.UpdatedOn,
