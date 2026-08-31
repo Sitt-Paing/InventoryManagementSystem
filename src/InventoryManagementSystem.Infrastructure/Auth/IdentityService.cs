@@ -1,6 +1,8 @@
 using InventoryManagementSystem.Application.Auth.Models;
 using InventoryManagementSystem.Application.Common.Interfaces;
+using InventoryManagementSystem.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -20,6 +22,7 @@ public class IdentityService : IIdentityService
     private readonly UserManager<IdentityUser> _userManager;
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly ApplicationDbContext _context;
     private readonly IConfiguration _configuration;
     private readonly ILogger<IdentityService> _logger;
 
@@ -27,12 +30,14 @@ public class IdentityService : IIdentityService
         UserManager<IdentityUser> userManager,
         SignInManager<IdentityUser> signInManager,
         RoleManager<IdentityRole> roleManager,
+        ApplicationDbContext context,
         IConfiguration configuration,
         ILogger<IdentityService> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _roleManager = roleManager;
+        _context = context;
         _configuration = configuration;
         _logger = logger;
     }
@@ -126,33 +131,51 @@ public class IdentityService : IIdentityService
 
     public async Task<AuthResultDto> RefreshTokenAsync(RefreshTokenRequest request)
     {
-        ClaimsPrincipal? principal = GetPrincipalFromExpiredToken(request.AccessToken);
-        if (principal == null)
+        if (string.IsNullOrEmpty(request.RefreshToken))
         {
             return new AuthResultDto
             {
                 Succeeded = false,
-                Message = "Invalid access token."
+                Message = "Missing refresh token."
             };
         }
 
-        string? userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId))
+        IdentityUser? user = null;
+
+        // 1. Try to extract userId from expired access token if provided
+        if (!string.IsNullOrEmpty(request.AccessToken))
         {
-            return new AuthResultDto
+            ClaimsPrincipal? principal = GetPrincipalFromExpiredToken(request.AccessToken);
+            if (principal != null)
             {
-                Succeeded = false,
-                Message = "Invalid token claims."
-            };
+                string? userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    user = await _userManager.FindByIdAsync(userId);
+                }
+            }
         }
 
-        IdentityUser? user = await _userManager.FindByIdAsync(userId);
+        // 2. Fallback: Find user directly from UserTokens table using the RefreshToken
+        if (user == null)
+        {
+            var tokenRecord = await _context.UserTokens
+                .FirstOrDefaultAsync(t => t.LoginProvider == "InventoryManagementSystem" &&
+                                          t.Name == "RefreshToken" &&
+                                          t.Value == request.RefreshToken);
+
+            if (tokenRecord != null)
+            {
+                user = await _userManager.FindByIdAsync(tokenRecord.UserId);
+            }
+        }
+
         if (user == null)
         {
             return new AuthResultDto
             {
                 Succeeded = false,
-                Message = "User not found."
+                Message = "Invalid session or user not found."
             };
         }
 
@@ -294,30 +317,37 @@ public class IdentityService : IIdentityService
 
     private ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
     {
-        string? secretKey = _configuration["JwtSettings:SecretKey"] ?? "SuperSecretKeyForInventoryManagementSystem_JwtToken_2026!#";
-        string? issuer = _configuration["JwtSettings:Issuer"] ?? "InventoryManagementSystem";
-        string? audience = _configuration["JwtSettings:Audience"] ?? "InventoryManagementSystemClient";
-
-        TokenValidationParameters tokenValidationParameters = new TokenValidationParameters
+        try
         {
-            ValidateAudience = true,
-            ValidAudience = audience,
-            ValidateIssuer = true,
-            ValidIssuer = issuer,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
-            ValidateLifetime = false
-        };
+            string? secretKey = _configuration["JwtSettings:SecretKey"] ?? "SuperSecretKeyForInventoryManagementSystem_JwtToken_2026!#";
+            string? issuer = _configuration["JwtSettings:Issuer"] ?? "InventoryManagementSystem";
+            string? audience = _configuration["JwtSettings:Audience"] ?? "InventoryManagementSystemClient";
 
-        JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-        ClaimsPrincipal principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
+            TokenValidationParameters tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateAudience = true,
+                ValidAudience = audience,
+                ValidateIssuer = true,
+                ValidIssuer = issuer,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+                ValidateLifetime = false
+            };
 
-        if (securityToken is not JwtSecurityToken jwtSecurityToken ||
-            !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            ClaimsPrincipal principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
+
+            if (securityToken is not JwtSecurityToken jwtSecurityToken ||
+                !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return null;
+            }
+
+            return principal;
+        }
+        catch
         {
             return null;
         }
-
-        return principal;
     }
 }
