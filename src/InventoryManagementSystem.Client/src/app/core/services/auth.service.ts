@@ -112,6 +112,9 @@ export class AuthService {
         if (res.success && res.data) {
           const dto = res.data as any;
           if (dto.userName) {
+
+            this.currentUserSubject.next(dto);
+
             this.storeFlatUserData({
               userName: dto.userName,
               email: dto.email ?? this.getEmail() ?? '',
