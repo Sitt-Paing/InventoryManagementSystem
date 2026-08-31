@@ -37,33 +37,40 @@
 
   <!-- Right Section: Global Search, Language, Theme Toggle & User -->
   <div class="flex items-center gap-2 sm:gap-3 ml-auto">
-    <!-- Language Selector Pill & Dropdown (Transparent Background) -->
+    <!-- Language Selector Pill & Dropdown -->
     <div class="relative">
       <button
         type="button"
         (click)="toggleLangDropdown($event)"
-        class="h-8 px-2.5 flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-xs font-semibold text-slate-700 dark:text-slate-200 hover:border-emerald-500 dark:hover:border-emerald-400 transition-colors cursor-pointer"
+        class="h-8 px-2.5 flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/80 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-emerald-500 dark:hover:border-emerald-500 transition-all cursor-pointer"
         [title]="'HEADER.SELECT_LANGUAGE' | translate">
-        <i class="pi pi-globe text-emerald-600 dark:text-emerald-400 text-xs"></i>
-        <span class="font-bold tracking-wide text-slate-600 text-xs">{{ translationService.currentLanguage() === 'en' ? 'EN' : 'MM' }}</span>
-        <i class="pi pi-chevron-down text-[9px]  transition-transform duration-200" [class.rotate-180]="isLangDropdownOpen"></i>
+        @if (translationService.currentLanguage() === 'en') {
+          <img src="flags/en.svg" alt="English" class="w-4 h-4 rounded-full object-cover shadow-2xs ring-1 ring-slate-200 dark:ring-slate-700 shrink-0" />
+          <span class="font-bold text-xs tracking-wide text-slate-800 dark:text-slate-100">EN</span>
+        } @else {
+          <img src="flags/mm.svg" alt="Myanmar" class="w-4 h-4 rounded-full object-cover shadow-2xs ring-1 ring-slate-200 dark:ring-slate-700 shrink-0" />
+          <span class="font-bold text-xs tracking-wide text-slate-800 dark:text-slate-100">MM</span>
+        }
+        <i class="pi pi-chevron-down text-[9px] text-slate-400 dark:text-slate-400 transition-transform duration-200" [class.rotate-180]="isLangDropdownOpen"></i>
       </button>
 
       <!-- Language Dropdown Popup Menu -->
       @if (isLangDropdownOpen) {
         <div
-          class="absolute right-0 mt-1.5 w-44 rounded-xl bg-white dark:bg-[#12201a] border border-slate-200 dark:border-slate-700 shadow-xl py-1 z-50 animate-in fade-in duration-100"
+          class="absolute right-0 mt-1.5 w-52 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl p-1.5 z-50 animate-in fade-in duration-100 flex flex-col gap-1"
           (click)="$event.stopPropagation()">
           
           <!-- English Option -->
           <button
             type="button"
             (click)="selectLanguage('en')"
-            class="w-full px-3 py-2 text-left flex items-center justify-between text-xs transition-colors cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/60"
-            [ngClass]="translationService.currentLanguage() === 'en' ? 'font-bold text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'">
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">EN</span>
-              <span>English</span>
+            class="w-full px-3 py-2 text-left flex items-center justify-between text-xs rounded-lg transition-colors cursor-pointer"
+            [ngClass]="translationService.currentLanguage() === 'en' 
+              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold border border-emerald-200/80 dark:border-emerald-800/50' 
+              : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60 font-medium border border-transparent'">
+            <div class="flex items-center gap-2.5">
+              <img src="flags/en.svg" alt="English" class="w-5 h-5 rounded-full object-cover shadow-2xs ring-1 ring-slate-200 dark:ring-slate-700 shrink-0" />
+              <span class="text-xs font-semibold">English</span>
             </div>
             @if (translationService.currentLanguage() === 'en') {
               <i class="pi pi-check text-xs text-emerald-600 dark:text-emerald-400 font-bold"></i>
@@ -74,11 +81,13 @@
           <button
             type="button"
             (click)="selectLanguage('mm')"
-            class="w-full px-3 py-2 text-left flex items-center justify-between text-xs transition-colors cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/60"
-            [ngClass]="translationService.currentLanguage() === 'mm' ? 'font-bold text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'">
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300">MM</span>
-              <span class="font-sans">မြန်မာ (Myanmar)</span>
+            class="w-full px-3 py-2 text-left flex items-center justify-between text-xs rounded-lg transition-colors cursor-pointer"
+            [ngClass]="translationService.currentLanguage() === 'mm' 
+              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold border border-emerald-200/80 dark:border-emerald-800/50' 
+              : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60 font-medium border border-transparent'">
+            <div class="flex items-center gap-2.5">
+              <img src="flags/mm.svg" alt="Myanmar" class="w-5 h-5 rounded-full object-cover shadow-2xs ring-1 ring-slate-200 dark:ring-slate-700 shrink-0" />
+              <span class="text-xs font-semibold font-sans">မြန်မာ (Myanmar)</span>
             </div>
             @if (translationService.currentLanguage() === 'mm') {
               <i class="pi pi-check text-xs text-emerald-600 dark:text-emerald-400 font-bold"></i>
