@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { catchError, finalize, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { RootModel } from '../models/root.model';
 import { AuthResponseModel, LoginModel } from '../models/auth.model';
@@ -21,6 +21,8 @@ export class AuthService {
 
   public userNameSignal = signal<string>(this.getStoredUserName());
   public userRolesSignal = signal<string[]>(this.getStoredUserRoles());
+
+  private refreshToken$: Observable<RootModel> | null = null;
 
   initializeAuth(): Observable<boolean> {
 
@@ -97,11 +99,15 @@ export class AuthService {
   }
 
   /**
-   * Refresh session using HttpOnly refresh token cookie
+   * Refresh session using HttpOnly refresh token cookie (deduplicated across concurrent 401s)
    */
   refreshToken(): Observable<RootModel> {
+    if (this.refreshToken$) {
+      return this.refreshToken$;
+    }
+
     const url = `${environment.main_url}/Auth/refresh-token`;
-    return this.http.post<RootModel>(url, {}, { withCredentials: true }).pipe(
+    this.refreshToken$ = this.http.post<RootModel>(url, {}, { withCredentials: true }).pipe(
       tap(res => {
         if (res.success && res.data) {
           const dto = res.data as any;
@@ -117,8 +123,14 @@ export class AuthService {
       catchError(err => {
         this.clearLocalUser();
         return of({ success: false, message: 'Session expired.' } as RootModel);
-      })
+      }),
+      finalize(() => {
+        this.refreshToken$ = null;
+      }),
+      shareReplay(1)
     );
+
+    return this.refreshToken$;
   }
 
   /**
