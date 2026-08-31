@@ -118,17 +118,17 @@ public class AuthController : ApiControllerBase
     }
 
     /// <summary>
-    /// Refresh access token using HttpOnly refresh token cookie (or body payload).
+    /// Refresh access token using HttpOnly refresh token cookie (or optional body payload).
     /// </summary>
     [HttpPost("refresh-token")]
     [EndpointSummary("Create refresh token")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(DefaultResponseModel), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> RefreshToken(RefreshTokenCommand? command)
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto? request = null)
     {
-        string? accessToken = command?.AccessToken;
-        string? refreshToken = command?.RefreshToken;
+        string? accessToken = request?.AccessToken;
+        string? refreshToken = request?.RefreshToken;
 
         if (string.IsNullOrEmpty(refreshToken))
         {
@@ -140,18 +140,18 @@ public class AuthController : ApiControllerBase
             accessToken = _cookieService.GetAccessToken();
         }
 
-        if (string.IsNullOrEmpty(refreshToken) || string.IsNullOrEmpty(accessToken))
+        if (string.IsNullOrEmpty(refreshToken))
         {
             return BadRequest(new DefaultResponseModel
             {
                 StatusCode = StatusCodes.Status400BadRequest,
                 Success = false,
-                Message = "Missing access token or refresh token.",
+                Message = "Missing refresh token.",
                 Data = null
             });
         }
 
-        var result = await Mediator.Send(new RefreshTokenCommand
+        AuthResultDto result = await Mediator.Send(new RefreshTokenCommand
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken
@@ -360,4 +360,10 @@ public class AuthController : ApiControllerBase
             Data = null
         });
     }
+}
+
+public class RefreshTokenRequestDto
+{
+    public string? AccessToken { get; set; }
+    public string? RefreshToken { get; set; }
 }
