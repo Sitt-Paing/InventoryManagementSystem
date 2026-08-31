@@ -9,7 +9,7 @@ namespace InventoryManagementSystem.Application.Auth.Commands.RefreshToken;
 
 public record RefreshTokenCommand : IRequest<AuthResultDto>
 {
-    public string AccessToken { get; init; } = null!;
+    public string? AccessToken { get; init; }
     public string RefreshToken { get; init; } = null!;
 }
 
@@ -17,9 +17,6 @@ public class RefreshTokenCommandValidator : AbstractValidator<RefreshTokenComman
 {
     public RefreshTokenCommandValidator()
     {
-        RuleFor(v => v.AccessToken)
-            .NotEmpty().WithMessage("AccessToken is required.");
-
         RuleFor(v => v.RefreshToken)
             .NotEmpty().WithMessage("RefreshToken is required.");
     }
