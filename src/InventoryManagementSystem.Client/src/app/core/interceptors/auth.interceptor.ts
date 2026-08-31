@@ -40,7 +40,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             switchMap(res => {
               if (res.success) {
                 // Retry failed request with new credentials
-                return next(req.clone({ withCredentials: true, headers }));
+                return next(authReq);
               }
               authService.logout();
               router.navigate(['/auth/login']);
