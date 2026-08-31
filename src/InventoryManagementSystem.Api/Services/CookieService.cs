@@ -25,12 +25,14 @@ public class CookieService : ICookieService
         bool isHttps = Context.Request.IsHttps;
 
         // Access Token Cookie (HttpOnly)
+        // Set cookie lifetime to match refresh token lifetime so the expired JWT is retained
+        // and passed to /api/Auth/refresh-token to extract user identity.
         CookieOptions accessCookieOptions = new CookieOptions
         {
             HttpOnly = true,
             Secure = isHttps,
             SameSite = isHttps ? SameSiteMode.None : SameSiteMode.Lax,
-            Expires = accessTokenExpiry,
+            Expires = rememberMe ? refreshTokenExpiry : null,
             Path = "/"
         };
         Context.Response.Cookies.Append(AccessTokenCookieName, accessToken, accessCookieOptions);
