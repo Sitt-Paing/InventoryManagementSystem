@@ -6,6 +6,7 @@ export interface LanguageOption {
   nativeLabel: string;
   shortLabel: string;
   flag: string;
+  flagIcon: string;
 }
 
 export const AVAILABLE_LANGUAGES: LanguageOption[] = [
@@ -13,15 +14,17 @@ export const AVAILABLE_LANGUAGES: LanguageOption[] = [
     code: 'en',
     label: 'English',
     nativeLabel: 'English',
-    shortLabel: 'EN',
-    flag: '🇺🇸'
+    shortLabel: 'English',
+    flag: '🇺🇸',
+    flagIcon: 'flags/en.svg'
   },
   {
     code: 'mm',
     label: 'Myanmar',
-    nativeLabel: 'မြန်မာ',
-    shortLabel: 'MM',
-    flag: '🇲🇲'
+    nativeLabel: 'မြန်မာ (Myanmar)',
+    shortLabel: 'မြန်မာ',
+    flag: '🇲🇲',
+    flagIcon: 'flags/mm.svg'
   }
 ];
 
