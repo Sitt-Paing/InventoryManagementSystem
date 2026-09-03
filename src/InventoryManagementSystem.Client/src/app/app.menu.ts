@@ -79,18 +79,18 @@ export const NAVIGATION_MENU: Readonly<NavigationMenuGroup[]> = [
       },
     ],
   },
-  {
-    label: 'PROCESS',
-    transKey: 'NAV.PROCESS',
-    items: [
-      {
-        label: 'Stock Transactions',
-        transKey: 'NAV.STOCK_TRANSACTIONS',
-        icon: 'pi pi-arrow-right-left',
-        routerLink: '/process/stock-transactions',
-        data: { roles: MANAGER_PROCESS },
-      },
-    ],
-  },
+  // {
+  //   label: 'PROCESS',
+  //   transKey: 'NAV.PROCESS',
+  //   items: [
+  //     {
+  //       label: 'Stock Transactions',
+  //       transKey: 'NAV.STOCK_TRANSACTIONS',
+  //       icon: 'pi pi-arrow-right-left',
+  //       routerLink: '/process/stock-transactions',
+  //       data: { roles: MANAGER_PROCESS },
+  //     },
+  //   ],
+  // },
 ];
 
