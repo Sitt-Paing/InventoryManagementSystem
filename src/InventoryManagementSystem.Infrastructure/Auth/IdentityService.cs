@@ -100,7 +100,7 @@ public class IdentityService : IIdentityService
             return new AuthResultDto
             {
                 Succeeded = false,
-                Message = "Invalid credentials.",
+                Message = "Invalid credentials. Please check your username and password.",
                 Errors = new List<string> { "User not found." }
             };
         }
@@ -120,7 +120,7 @@ public class IdentityService : IIdentityService
             return new AuthResultDto
             {
                 Succeeded = false,
-                Message = "Invalid credentials.",
+                Message = "Invalid credentials. Please check your username and password.",
                 Errors = new List<string> { "Incorrect password." }
             };
         }
