@@ -1,65 +1,15 @@
-using InventoryManagementSystem.Application.Common.Interfaces;
-using InventoryManagementSystem.Domain.Common;
+﻿using System;
+using System.Collections.Generic;
 using InventoryManagementSystem.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryManagementSystem.Infrastructure.Persistence;
 
-public partial class InventoryManagementDbContext : DbContext, IApplicationDbContext
+public partial class InventoryManagementDbContext : DbContext
 {
-    private readonly ICurrentUserService? _currentUserService;
-
-    public InventoryManagementDbContext(
-        DbContextOptions<InventoryManagementDbContext> options,
-        ICurrentUserService? currentUserService = null)
+    public InventoryManagementDbContext(DbContextOptions<InventoryManagementDbContext> options)
         : base(options)
     {
-        _currentUserService = currentUserService;
-    }
-
-    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        var currentUserId = _currentUserService?.UserName ?? _currentUserService?.UserId ?? "System";
-
-        foreach (var entry in ChangeTracker.Entries())
-        {
-            if (entry.Entity is BaseAuditableEntity<long> auditableLong)
-            {
-                ApplyAuditValues(entry, auditableLong, currentUserId);
-            }
-            else if (entry.Entity is BaseAuditableEntity<string> auditableString)
-            {
-                ApplyAuditValues(entry, auditableString, currentUserId);
-            }
-            else if (entry.Entity is BaseAuditableEntity<Guid> auditableGuid)
-            {
-                ApplyAuditValues(entry, auditableGuid, currentUserId);
-            }
-        }
-
-        return await base.SaveChangesAsync(cancellationToken);
-    }
-
-    private static void ApplyAuditValues<TId>(Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry, BaseAuditableEntity<TId> entity, string currentUserId)
-    {
-        switch (entry.State)
-        {
-            case EntityState.Added:
-                entity.CreatedOn = DateTime.Now;
-                entity.CreatedBy = currentUserId;
-                break;
-
-            case EntityState.Modified:
-                entity.UpdatedOn = DateTime.Now;
-                entity.UpdatedBy = currentUserId;
-                break;
-
-            case EntityState.Deleted:
-                entry.State = EntityState.Modified;
-                entity.DeletedOn = DateTime.Now;
-                entity.DeletedBy = currentUserId;
-                break;
-        }
     }
 
     public virtual DbSet<AspNetRole> AspNetRoles { get; set; }
@@ -79,6 +29,12 @@ public partial class InventoryManagementDbContext : DbContext, IApplicationDbCon
     public virtual DbSet<Product> Products { get; set; }
 
     public virtual DbSet<StockTransaction> StockTransactions { get; set; }
+
+    public virtual DbSet<Supplier> Suppliers { get; set; }
+
+    public virtual DbSet<Warehouse> Warehouses { get; set; }
+
+    public virtual DbSet<WarehouseLocation> WarehouseLocations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -162,30 +118,30 @@ public partial class InventoryManagementDbContext : DbContext, IApplicationDbCon
 
         modelBuilder.Entity<Product>(entity =>
         {
-            entity.Property(e => e.Id)
-                .HasConversion(
-                    v => v.ToString(),
-                    v => ParseGuidOrDefault(v)
-                );
+            entity.HasIndex(e => e.Barcode, "IX_Products_Barcode")
+                .IsUnique()
+                .HasFilter("([Barcode] IS NOT NULL AND [DeletedOn] IS NULL)");
+
+            entity.HasIndex(e => e.Sku, "IX_Products_Sku").IsUnique();
+
+            entity.Property(e => e.Id).HasMaxLength(50);
+            entity.Property(e => e.Barcode).HasMaxLength(100);
+            entity.Property(e => e.Brand).HasMaxLength(100);
+            entity.Property(e => e.CostPrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.CreatedBy).HasMaxLength(256);
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.DeletedBy).HasMaxLength(256);
             entity.Property(e => e.DeletedOn).HasColumnType("datetime");
+            entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.Name).HasMaxLength(250);
+            entity.Property(e => e.SellingPrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Sku)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("SKU");
-            entity.HasIndex(e => e.Sku, "IX_Products_Sku").IsUnique().HasFilter("[DeletedOn] IS NULL AND [SKU] IS NOT NULL");
-            entity.Property(e => e.Barcode).HasMaxLength(100);
-            entity.HasIndex(x => x.Barcode).IsUnique().HasFilter("[Barcode] IS NOT NULL AND [DeletedOn] IS NULL");
-            entity.Property(e => e.Brand).HasMaxLength(100);
-            entity.Property(e => e.Unit).HasMaxLength(50);
-            entity.Property(e => e.CostPrice).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.SellingPrice).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.Tax).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Status).HasDefaultValue(true);
-            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.Tax).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Unit).HasMaxLength(50);
             entity.Property(e => e.UpdatedBy).HasMaxLength(256);
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
 
@@ -203,11 +159,7 @@ public partial class InventoryManagementDbContext : DbContext, IApplicationDbCon
             entity.Property(e => e.DeletedBy).HasMaxLength(256);
             entity.Property(e => e.DeletedOn).HasColumnType("datetime");
             entity.Property(e => e.Note).HasMaxLength(250);
-            entity.Property(e => e.ProductId)
-                .HasConversion(
-                    v => v.ToString(),
-                    v => ParseGuidOrEmpty(v)
-                );
+            entity.Property(e => e.ProductId).HasMaxLength(50);
             entity.Property(e => e.TransactionDate).HasColumnType("datetime");
             entity.Property(e => e.TransactionType)
                 .HasMaxLength(30)
@@ -222,19 +174,69 @@ public partial class InventoryManagementDbContext : DbContext, IApplicationDbCon
                 .HasConstraintName("FK_StockTransactions_Products");
         });
 
+        modelBuilder.Entity<Supplier>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_Supplier");
+
+            entity.HasIndex(e => e.SupplierCode, "UQ_Supplier_SupplierCode").IsUnique();
+
+            entity.Property(e => e.Address).HasMaxLength(200);
+            entity.Property(e => e.CompanyName).HasMaxLength(200);
+            entity.Property(e => e.ContactPerson).HasMaxLength(100);
+            entity.Property(e => e.CreatedBy).HasMaxLength(50);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.CreditLimit).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.DeletedBy).HasMaxLength(50);
+            entity.Property(e => e.DeletedOn).HasColumnType("datetime");
+            entity.Property(e => e.Email).HasMaxLength(250);
+            entity.Property(e => e.PaymentTerms).HasMaxLength(50);
+            entity.Property(e => e.Phone).HasMaxLength(50);
+            entity.Property(e => e.SupplierCode).HasMaxLength(50);
+            entity.Property(e => e.UpdatedBy).HasMaxLength(50);
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<Warehouse>(entity =>
+        {
+            entity.Property(e => e.Address).HasMaxLength(250);
+            entity.Property(e => e.Capacity).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ContactPerson).HasMaxLength(100);
+            entity.Property(e => e.CreatedBy).HasMaxLength(50);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.DeletedBy).HasMaxLength(50);
+            entity.Property(e => e.DeletedOn).HasColumnType("datetime");
+            entity.Property(e => e.Email).HasMaxLength(100);
+            entity.Property(e => e.Name).HasMaxLength(150);
+            entity.Property(e => e.Phone).HasMaxLength(50);
+            entity.Property(e => e.UpdatedBy).HasMaxLength(50);
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+            entity.Property(e => e.WarehouseCode).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<WarehouseLocation>(entity =>
+        {
+            entity.ToTable("Warehouse_Locations");
+
+            entity.Property(e => e.Barcode).HasMaxLength(100);
+            entity.Property(e => e.Bin).HasMaxLength(50);
+            entity.Property(e => e.Capacity).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.CreatedBy).HasMaxLength(50);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.DeletedBy).HasMaxLength(50);
+            entity.Property(e => e.DeletedOn).HasColumnType("datetime");
+            entity.Property(e => e.LocationCode).HasMaxLength(50);
+            entity.Property(e => e.Rack).HasMaxLength(50);
+            entity.Property(e => e.UpdatedBy).HasMaxLength(50);
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+            entity.Property(e => e.Zone).HasMaxLength(50);
+
+            entity.HasOne(d => d.Warehouse).WithMany(p => p.WarehouseLocations)
+                .HasForeignKey(d => d.WarehouseId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Warehouse_Locations_Warehouses");
+        });
+
         OnModelCreatingPartial(modelBuilder);
-    }
-
-    private static Guid ParseGuidOrDefault(string v)
-    {
-        Guid g;
-        return Guid.TryParse(v, out g) ? g : Guid.NewGuid();
-    }
-
-    private static Guid ParseGuidOrEmpty(string v)
-    {
-        Guid g;
-        return Guid.TryParse(v, out g) ? g : Guid.Empty;
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
