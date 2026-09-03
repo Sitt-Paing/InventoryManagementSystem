@@ -2,8 +2,8 @@ export const environment = {
   production: false,
   docker: false,
 
-  main_url: 'https://localhost:7152/api',
-  web_url: 'https://localhost:7152/images',
+  main_url: '/core/api',
+  web_url: '/images',
 
   debug: true,
 
