@@ -56,9 +56,9 @@ export class DashboardComponent implements OnInit {
     //   this.totalValuation = this.products.reduce((acc, p) => acc + (p.unitPrice * p.quantityInStock), 0);
     // });
 
-    this.transactionService.getByCB().subscribe(res => {
-      this.recentTransactions = res.data.slice(0, 5);
-    });
+    // this.transactionService.getByCB().subscribe(res => {
+    //   this.recentTransactions = res.data.slice(0, 5);
+    // });
   }
 
   getTxnSeverity(type: string): 'success' | 'danger' | 'warn' {
