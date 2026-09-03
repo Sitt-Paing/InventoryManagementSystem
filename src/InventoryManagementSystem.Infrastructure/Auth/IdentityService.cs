@@ -101,7 +101,7 @@ public class IdentityService : IIdentityService
             {
                 Succeeded = false,
                 Message = "Invalid credentials. Please check your username and password.",
-                Errors = new List<string> { "User not found." }
+                Errors = new List<string>()
             };
         }
 
@@ -121,7 +121,7 @@ public class IdentityService : IIdentityService
             {
                 Succeeded = false,
                 Message = "Invalid credentials. Please check your username and password.",
-                Errors = new List<string> { "Incorrect password." }
+                Errors = new List<string>()
             };
         }
 
