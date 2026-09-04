@@ -6,4 +6,4 @@ using System.Text;
 
 namespace InventoryManagementSystem.Application.Suppliers.Commands.UpdateSupplier;
 
-public record UpdateSupplierCommand(int supplierId, string supplierCode, string companyName, string? contactPerson, string? phone, string? email, string? address, string paymentTerms, decimal? creditLimit, bool status) : IRequest<SupplierDto>;
+public record UpdateSupplierCommand(int id, string supplierCode, string companyName, string? contactPerson, string? phone, string? email, string? address, string paymentTerms, decimal? creditLimit, bool status) : IRequest<SupplierDto>;
