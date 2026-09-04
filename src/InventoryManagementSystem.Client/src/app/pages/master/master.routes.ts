@@ -8,5 +8,9 @@ export default [
   {
     path: 'products',
     loadComponent: () => import('./products/products').then(m => m.Products)
+  },
+  {
+    path: 'suppliers',
+    loadComponent: () => import('./suppliers/suppliers').then(m => m.Suppliers)
   }
 ] as Routes;
