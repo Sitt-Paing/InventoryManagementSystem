@@ -10,6 +10,7 @@ export const EN_DICTIONARY: Record<string, any> = {
     MASTER: 'Master',
     CATEGORIES: 'Categories',
     PRODUCTS: 'Products',
+    SUPPLIERS: 'Suppliers',
     PROCESS: 'Process',
     STOCK_TRANSACTIONS: 'Stock Transactions',
     SETTINGS: 'Settings',
