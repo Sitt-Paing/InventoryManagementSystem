@@ -10,6 +10,7 @@ export const MM_DICTIONARY: Record<string, any> = {
     MASTER: 'အခြေခံအချက်အလက်',
     CATEGORIES: 'အမျိုးအစားများ',
     PRODUCTS: 'ကုန်ပစ္စည်းများ',
+    SUPPLIERS: 'ပေးသွင်းသူများ',
     PROCESS: 'လုပ်ငန်းစဉ်',
     STOCK_TRANSACTIONS: 'စတော့ လှုပ်ရှားမှုများ',
     SETTINGS: 'ဆက်တင်များ',
