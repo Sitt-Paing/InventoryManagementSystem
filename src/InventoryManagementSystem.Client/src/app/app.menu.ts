@@ -77,6 +77,12 @@ export const NAVIGATION_MENU: Readonly<NavigationMenuGroup[]> = [
         icon: 'pi pi-box',
         routerLink: '/master/products',
       },
+      {
+        label: 'Suppliers',
+        transKey: 'NAV.SUPPLIERS',
+        icon: 'pi pi-users',
+        routerLink: '/master/suppliers',
+      }
     ],
   },
   // {
