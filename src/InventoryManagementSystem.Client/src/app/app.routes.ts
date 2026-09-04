@@ -28,6 +28,7 @@ export const routes: Routes = [
       // Backward compatibility redirects
       { path: 'products', redirectTo: 'master/products', pathMatch: 'full' },
       { path: 'categories', redirectTo: 'master/categories', pathMatch: 'full' },
+      { path: 'suppliers', redirectTo: 'master/suppliers', pathMatch: 'full' },
       { path: 'stock-transactions', redirectTo: 'process/stock-transactions', pathMatch: 'full' }
     ]
   },
