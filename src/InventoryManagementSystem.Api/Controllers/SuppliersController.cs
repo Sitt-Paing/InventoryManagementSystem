@@ -3,12 +3,15 @@ using InventoryManagementSystem.Application.Suppliers.Commands.CreateSupplier;
 using InventoryManagementSystem.Application.Suppliers.Commands.DeleteSupplier;
 using InventoryManagementSystem.Application.Suppliers.Commands.UpdateSupplier;
 using InventoryManagementSystem.Application.Suppliers.DTOs;
+using InventoryManagementSystem.Application.Suppliers.Queries.GetSupplierById;
 using InventoryManagementSystem.Application.Suppliers.Queries.GetSuppliers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryManagementSystem.Api.Controllers
 {
+    [Authorize]
     [Route("api/suppliers")]
     [ApiController]
     public class SuppliersController : ApiControllerBase
@@ -24,6 +27,21 @@ namespace InventoryManagementSystem.Api.Controllers
                 Success = true,
                 Message = "Suppliers retrieved successfully.",
                 Data = suppliers
+            });
+        }
+
+        [HttpGet("{id}")]
+        [EndpointSummary("Get a supplier by ID")]
+        public async Task<IActionResult> GetSupplierById(int id)
+        {
+            SupplierDto? supplier = await Mediator.Send(new GetSupplierByIdQuery(id));
+            if (supplier == null) return NotFound();
+            return Ok(new DefaultResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Success = true,
+                Message = "Supplier retrieved successfully.",
+                Data = supplier
             });
         }
 
