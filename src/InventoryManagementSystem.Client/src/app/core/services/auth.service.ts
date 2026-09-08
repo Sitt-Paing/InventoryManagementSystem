@@ -31,6 +31,7 @@ export class AuthService {
       switchMap(user => {
 
         if (user) {
+          this.authInitializedSubject.next(true);
           return of(true);
         }
 
