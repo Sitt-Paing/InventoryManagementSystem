@@ -2,6 +2,7 @@ using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Domain.Common;
 using InventoryManagementSystem.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,13 +39,17 @@ public partial class InventoryManagementDbContext : IApplicationDbContext
             {
                 ApplyAuditValues(entry, auditableGuid, currentUserId);
             }
+            else if (entry.Entity is BaseAuditableEntity<int> auditableInt)
+            {
+                ApplyAuditValues(entry, auditableInt, currentUserId);
+            }
         }
 
         return await base.SaveChangesAsync(cancellationToken);
     }
 
     private static void ApplyAuditValues<TId>(
-        Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry,
+        EntityEntry entry,
         BaseAuditableEntity<TId> entity,
         string currentUserId)
     {
