@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Text;
 
 namespace InventoryManagementSystem.Application.Suppliers.Commands.CreateSupplier;
@@ -26,6 +27,13 @@ public class CreateSupplierCommandHandler : IRequestHandler<CreateSupplierComman
             code = await GenerateSupplierCodeAsync(request.companyName, cancellationToken);
         }
 
+        bool existingCode = await context.Suppliers.AnyAsync(x => !x.DeletedOn.HasValue && x.SupplierCode == request.supplierCode, cancellationToken);
+
+        if(existingCode)
+        {
+            throw new InvalidOperationException($"Supplier Code is already existed");
+        }
+  
         Supplier entity = new Supplier
         {
             SupplierCode = code,
@@ -51,7 +59,9 @@ public class CreateSupplierCommandHandler : IRequestHandler<CreateSupplierComman
             Address = entity.Address,
             PaymentTerms = entity.PaymentTerms,
             CreditLimit = entity.CreditLimit,
-            Status = entity.Status
+            Status = entity.Status,
+            CreatedOn = entity.CreatedOn,
+            CreatedBy = entity.CreatedBy
         };
     }
 
