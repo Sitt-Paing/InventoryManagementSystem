@@ -34,7 +34,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
         // If not already on login or refresh-token endpoint, try refresh or navigate to login
-        const isAuthEndpoint = req.url.includes('/Auth/login') || req.url.includes('/Auth/refresh-token');
+        const isAuthEndpoint = req.url.includes('/Auth/login') ||
+          req.url.includes('/Auth/refresh-token') ||
+          req.url.includes('/Auth/me');
         if (!isAuthEndpoint) {
           return authService.refreshToken().pipe(
             switchMap(res => {
