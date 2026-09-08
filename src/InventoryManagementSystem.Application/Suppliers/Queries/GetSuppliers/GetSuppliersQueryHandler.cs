@@ -18,7 +18,7 @@ public class GetSuppliersQueryHandler : IRequestHandler<GetSuppliersQuery, List<
 
     public async Task<List<SupplierDto>> Handle(GetSuppliersQuery request, CancellationToken cancellationToken)
     {
-        var suppliers = await context.Suppliers.AsNoTracking().ToListAsync(cancellationToken);
+        var suppliers = await context.Suppliers.AsNoTracking().Where(x => !x.DeletedOn.HasValue).ToListAsync(cancellationToken);
         return suppliers.Select(s => new SupplierDto
         {
             Id = s.Id,
@@ -30,7 +30,11 @@ public class GetSuppliersQueryHandler : IRequestHandler<GetSuppliersQuery, List<
             Address = s.Address,
             PaymentTerms = s.PaymentTerms,
             CreditLimit = s.CreditLimit,
-            Status = s.Status
+            Status = s.Status,
+            CreatedOn = s.CreatedOn,
+            CreatedBy = s.CreatedBy,
+            UpdatedOn = s.UpdatedOn,
+            UpdatedBy = s.UpdatedBy,
         }).ToList();
     }
 }
