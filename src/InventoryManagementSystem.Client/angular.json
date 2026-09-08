@@ -64,7 +64,8 @@
               "buildTarget": "InventoryManagementSystem.Client:build:production"
             },
             "development": {
-              "buildTarget": "InventoryManagementSystem.Client:build:development"
+              "buildTarget": "InventoryManagementSystem.Client:build:development",
+              "proxyConfig": "src/proxy.config.js"
             }
           },
           "defaultConfiguration": "development"
