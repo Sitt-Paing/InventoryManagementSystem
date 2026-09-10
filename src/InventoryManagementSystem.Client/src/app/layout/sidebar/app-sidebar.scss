@@ -1,3 +1,68 @@
 :host {
   display: block;
 }
+
+/* Group header toggle buttons */
+button.group\/hdr {
+  color: #475569; /* slate-600 */
+
+  &:hover {
+    color: #1e293b; /* slate-800 */
+  }
+
+  i {
+    font-size: 9px !important;
+  }
+}
+
+:host-context(.dark) button.group\/hdr {
+  color: #cbd5e1; /* slate-300 */
+
+  &:hover {
+    color: #f8fafc; /* slate-50 */
+  }
+}
+
+/* Sidebar navigation links */
+a:not(.active-nav-item) {
+  color: #475569; /* slate-600 */
+
+  i {
+    font-size: 0.875rem !important; /* small icon 14px */
+    color: #64748b; /* slate-500 */
+  }
+
+  &:hover {
+    color: #0f172a; /* slate-900 */
+
+    i {
+      color: #334155; /* slate-700 */
+    }
+  }
+}
+
+:host-context(.dark) a:not(.active-nav-item) {
+  color: #cbd5e1; /* slate-300 */
+
+  i {
+    color: #94a3b8; /* slate-400 */
+  }
+
+  &:hover {
+    color: #ffffff;
+
+    i {
+      color: #f1f5f9;
+    }
+  }
+}
+
+/* Active navigation item */
+a.active-nav-item {
+  color: #ffffff !important;
+
+  i {
+    font-size: 0.875rem !important;
+    color: #ffffff !important;
+  }
+}
