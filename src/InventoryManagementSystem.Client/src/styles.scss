@@ -128,7 +128,7 @@ main {
 .app-sidebar {
   background-color: var(--bg-sidebar) !important;
   border-right: 1px solid var(--border-color) !important;
-  color: var(--text-main) !important;
+  color: var(--text-main);
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
