@@ -16,7 +16,7 @@ public class CreateSupplierCommandHandler : IRequestHandler<CreateSupplierComman
 
     public CreateSupplierCommandHandler(IApplicationDbContext _context)
     {
-        this.context = _context;
+        context = _context;
     }
 
     public async Task<SupplierDto> Handle(CreateSupplierCommand request, CancellationToken cancellationToken)
