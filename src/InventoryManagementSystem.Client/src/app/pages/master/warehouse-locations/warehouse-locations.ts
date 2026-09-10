@@ -59,6 +59,25 @@ export class WarehouseLocations implements OnInit {
   isSubmitting: boolean = false;
   barcodeModalVisible: boolean = false;
   selectedBarcodeValue: string | null = null;
+  selectedLocationForBarcode: WarehouseLocationModel | null = null;
+
+  // Dynamic Sticker Size (mm)
+  stickerWidthMm: number = 70;
+  stickerHeightMm: number = 40;
+  stickerPresets = [
+    { label: '70mm × 40mm (Location Standard)', width: 70, height: 40 },
+    { label: '50mm × 30mm (Compact Bin)', width: 50, height: 30 },
+    { label: '60mm × 40mm (Rack/Shelf)', width: 60, height: 40 },
+    { label: '80mm × 50mm (Aisle/Pallet)', width: 80, height: 50 },
+    { label: '100mm × 50mm (Large Rack/Zone)', width: 100, height: 50 },
+  ];
+
+  onStickerPresetChange(preset: { label: string; width: number; height: number }): void {
+    if (preset) {
+      this.stickerWidthMm = preset.width;
+      this.stickerHeightMm = preset.height;
+    }
+  }
 
   private formBuilder = inject(FormBuilder);
   public locationForm = this.formBuilder.group({
@@ -308,13 +327,120 @@ export class WarehouseLocations implements OnInit {
   }
 
   viewBarcode(location: WarehouseLocationModel): void {
+    this.selectedLocationForBarcode = location;
     this.selectedBarcodeValue = location.barcode || location.locationCode || null;
     this.barcodeModalVisible = true;
   }
 
   onBarcodeDialogHide(): void {
     this.selectedBarcodeValue = null;
+    this.selectedLocationForBarcode = null;
     this.barcodeModalVisible = false;
+  }
+
+  printSticker(): void {
+    const stickerEl = document.getElementById('location-barcode-sticker');
+    if (!stickerEl) return;
+
+    const printWindow = window.open('', '_blank', 'width=500,height=400');
+    if (!printWindow) {
+      window.print();
+      return;
+    }
+
+    const wMm = this.stickerWidthMm || 70;
+    const hMm = this.stickerHeightMm || 40;
+
+    printWindow.document.open();
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Print Location Sticker - ${this.selectedLocationForBarcode?.locationCode || 'Location'}</title>
+          <style>
+            @page {
+              size: ${wMm}mm ${hMm}mm;
+              margin: 0mm;
+            }
+            * {
+              box-sizing: border-box;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              width: ${wMm}mm;
+              height: ${hMm}mm;
+              font-family: system-ui, -apple-system, sans-serif;
+              background: #fff;
+              overflow: hidden;
+            }
+            .sticker-card {
+              width: ${wMm}mm;
+              height: ${hMm}mm;
+              padding: 1.5mm 2.5mm;
+              margin: 0;
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+              overflow: hidden;
+              background: #fff;
+            }
+            .top-left-info {
+              text-align: left;
+              border-bottom: 0.8px solid #333;
+              padding-bottom: 1mm;
+              margin-bottom: 1mm;
+            }
+            .title {
+              font-size: 9.5pt;
+              font-weight: 900;
+              text-transform: uppercase;
+              color: #000;
+              line-height: 1.1;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+            .subtitle {
+              font-size: 10.5pt;
+              font-weight: 900;
+              color: #059669;
+              line-height: 1.1;
+            }
+            .barcode-svg-wrapper {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              flex: 1;
+              width: 100%;
+              min-height: 0;
+              overflow: hidden;
+            }
+            svg {
+              width: 100% !important;
+              height: 100% !important;
+              max-height: 100%;
+              display: block;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="sticker-card">
+            ${stickerEl.innerHTML}
+          </div>
+          <script>
+            window.onload = function() {
+              window.focus();
+              window.print();
+              window.onafterprint = function() { window.close(); };
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   }
 
   excel(): void {
