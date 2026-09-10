@@ -21,7 +21,7 @@
 
     <p-table #tblSuppliers [value]="suppliers" [(selection)]="selectedSupplier" dataKey="id" selectionMode="single"
         stripedRows="true" sortField="createdOn" [sortOrder]="-1" [paginator]="true" 
-        [tableStyle]="{ 'min-width': '50rem' }" [rows]="20" [rowsPerPageOptions]="[20, 50, 100]"
+        [tableStyle]="{ 'min-width': '50rem', 'white-space': 'nowrap' }" [rows]="20" [rowsPerPageOptions]="[20, 50, 100]"
         [showCurrentPageReport]="true" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
         [loading]="isLoading"
         [globalFilterFields]="['name', 'address', 'contactPerson', 'contactNumber', 'email', 'createdBy', 'updatedBy']">
