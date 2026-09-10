@@ -4,13 +4,21 @@
   
   <div class="py-4 px-3 space-y-5">
     <div *ngFor="let group of navGroups" class="space-y-1">
-      <h3 
+      <button 
         *ngIf="!sharedService.sidebarCollapsed()" 
-        class="px-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 my-1">
-        {{ group.transKey ? (group.transKey | translate) : group.groupName }}
-      </h3>
+        type="button"
+        (click)="toggleGroup(group.groupName)"
+        class="w-full flex items-center justify-between px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer select-none group/hdr rounded-md hover:bg-slate-100 dark:hover:bg-slate-800/50">
+        <span>{{ group.transKey ? (group.transKey | translate) : group.groupName }}</span>
+        <i 
+          class="pi pi-chevron-down text-[10px] text-slate-400 group-hover/hdr:text-slate-600 dark:group-hover/hdr:text-slate-200 transition-transform duration-200"
+          [class.-rotate-90]="!isGroupExpanded(group.groupName)">
+        </i>
+      </button>
 
-      <div class="space-y-1">
+      <div 
+        *ngIf="isGroupExpanded(group.groupName) || sharedService.sidebarCollapsed()"
+        class="space-y-1">
         <a 
           *ngFor="let item of group.items"
           [routerLink]="item.routerLink"
