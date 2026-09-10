@@ -1,4 +1,4 @@
-<p-toast key="globalMessage"></p-toast>
+﻿<p-toast key="globalMessage"></p-toast>
 <p-confirmDialog key="positionDialog" position="bottom" rejectButtonStyleClass="p-button-outlined"></p-confirmDialog>
 
 <div class="table-card">
@@ -288,7 +288,8 @@
   </form>
 </p-dialog>
 
-<p-dialog  [(visible)]="barcodeModalVisible"
+<p-dialog [(visible)]="barcodeModalVisible"
+  header="Product Barcode Sticker"
   [breakpoints]="{
     '1920px': '35vw',
     '1440px': '35vw',
@@ -302,11 +303,122 @@
   [draggable]="false"
   [resizable]="false"
   (onHide)="onBarcodeDialogHide()">
-   <div class="flex justify-center items-center px-2">
-    @if (selectedBarcodeValue) {
-      <app-barcode [value]="selectedBarcodeValue"></app-barcode>
-    } @else {
-      <p class="text-gray-500">No barcode available for this product.</p>
-    }
+  <div class="flex flex-col items-center gap-3 py-1">
+    <!-- Sticker Size Controller (Dynamic mm) -->
+    <div class="w-full bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+        <span class="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+          <i class="pi pi-cog text-emerald-600"></i> Sticker Size:
+        </span>
+        <!-- Preset Dropdown -->
+        <div class="flex items-center gap-1">
+          @for (preset of stickerPresets; track preset.label) {
+            <button
+              type="button"
+              class="px-2 py-1 rounded text-[11px] font-medium transition-colors"
+              [class.bg-emerald-600]="stickerWidthMm === preset.width && stickerHeightMm === preset.height"
+              [class.text-white]="stickerWidthMm === preset.width && stickerHeightMm === preset.height"
+              [class.bg-white]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
+              [class.dark:bg-slate-700]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
+              [class.text-slate-700]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
+              [class.dark:text-slate-200]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
+              [class.border]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
+              [class.border-slate-200]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
+              [class.dark:border-slate-600]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
+              (click)="onStickerPresetChange(preset)">
+              {{ preset.width }}×{{ preset.height }}mm
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Custom mm Inputs -->
+      <div class="flex items-center gap-3 pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+        <label class="flex items-center gap-1 text-slate-600 dark:text-slate-300">
+          Width:
+          <input
+            type="number"
+            [(ngModel)]="stickerWidthMm"
+            min="20"
+            max="150"
+            class="w-14 px-1.5 py-0.5 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-900 text-center font-mono font-bold text-emerald-600" />
+          mm
+        </label>
+        <label class="flex items-center gap-1 text-slate-600 dark:text-slate-300">
+          Height:
+          <input
+            type="number"
+            [(ngModel)]="stickerHeightMm"
+            min="15"
+            max="150"
+            class="w-14 px-1.5 py-0.5 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-900 text-center font-mono font-bold text-emerald-600" />
+          mm
+        </label>
+        <span class="text-[11px] text-slate-400 ml-auto">
+          Thermal / Sticker Label Printer
+        </span>
+      </div>
+    </div>
+
+    <!-- Printable Sticker Box with Dynamic mm Preview -->
+    <div
+      id="product-barcode-sticker"
+      class="bg-white border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-slate-800 shadow-xs flex flex-col justify-between"
+      [style.width.mm]="stickerWidthMm"
+      [style.min-height.mm]="stickerHeightMm"
+      style="box-sizing: border-box;">
+      <!-- Top Left Info Header (Clean: Name, SKU, Price only) -->
+      <div class="top-left-info text-left border-b border-slate-200 pb-1 mb-1">
+        <div class="flex justify-between items-baseline gap-2">
+          <div class="truncate max-w-[70%]">
+            <p class="title text-[13px] font-extrabold text-slate-900 leading-tight truncate">
+              {{ selectedProductForBarcode?.name }}
+            </p>
+            <p class="subtitle text-[11px] font-bold text-emerald-600 leading-tight mt-0.5">
+              SKU: {{ selectedProductForBarcode?.sku || 'N/A' }}
+            </p>
+          </div>
+          @if (selectedProductForBarcode?.sellingPrice) {
+            <span class="text-xs font-mono font-extrabold px-1.5 py-0.5 bg-emerald-50 text-emerald-700 rounded shrink-0">
+              {{ selectedProductForBarcode?.sellingPrice | currency:'USD':'symbol':'1.2-2' }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <!-- Large Barcode Graphic (Dominant Area) -->
+      <div class="barcode-svg-wrapper flex-1 flex justify-center items-center py-1 w-full overflow-hidden">
+        @if (selectedBarcodeValue) {
+          <app-barcode
+            [value]="selectedBarcodeValue"
+            [height]="stickerHeightMm >= 40 ? 65 : 45"
+            [width]="stickerWidthMm >= 60 ? 2.1 : 1.7"
+            [fontSize]="stickerHeightMm >= 40 ? 14 : 12">
+          </app-barcode>
+        } @else {
+          <p class="text-xs text-slate-400">No barcode available</p>
+        }
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex items-center gap-2 mt-1">
+      <p-button
+        label="Print {{ stickerWidthMm }}×{{ stickerHeightMm }}mm Sticker"
+        icon="pi pi-print"
+        severity="success"
+        size="small"
+        [disabled]="!selectedBarcodeValue"
+        (onClick)="printSticker()">
+      </p-button>
+      <p-button
+        label="Close"
+        icon="pi pi-times"
+        severity="secondary"
+        size="small"
+        [outlined]="true"
+        (onClick)="onBarcodeDialogHide()">
+      </p-button>
+    </div>
   </div>
 </p-dialog>
