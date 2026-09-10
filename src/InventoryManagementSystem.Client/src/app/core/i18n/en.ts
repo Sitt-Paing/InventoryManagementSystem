@@ -11,6 +11,8 @@ export const EN_DICTIONARY: Record<string, any> = {
     CATEGORIES: 'Categories',
     PRODUCTS: 'Products',
     SUPPLIERS: 'Suppliers',
+    WAREHOUSES: 'Warehouses',
+    WAREHOUSE_LOCATIONS: 'Warehouse Locations',
     PROCESS: 'Process',
     STOCK_TRANSACTIONS: 'Stock Transactions',
     SETTINGS: 'Settings',
