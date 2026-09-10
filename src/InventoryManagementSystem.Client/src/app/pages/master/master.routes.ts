@@ -12,5 +12,13 @@ export default [
   {
     path: 'suppliers',
     loadComponent: () => import('./suppliers/suppliers').then(m => m.Suppliers)
+  },
+  {
+    path: 'warehouses',
+    loadComponent: () => import('./warehouses/warehouses').then(m => m.Warehouses)
+  },
+  {
+    path: 'warehouse-locations',
+    loadComponent: () => import('./warehouse-locations/warehouse-locations').then(m => m.WarehouseLocations)
   }
 ] as Routes;
