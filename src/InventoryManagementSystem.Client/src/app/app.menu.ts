@@ -82,6 +82,18 @@ export const NAVIGATION_MENU: Readonly<NavigationMenuGroup[]> = [
         transKey: 'NAV.SUPPLIERS',
         icon: 'pi pi-users',
         routerLink: '/master/suppliers',
+      },
+      {
+        label: 'Warehouses',
+        transKey: 'NAV.WAREHOUSES',
+        icon: 'pi pi-warehouse',
+        routerLink: '/master/warehouses',
+      },
+      {
+        label: 'Warehouse Locations',
+        transKey: 'NAV.WAREHOUSE_LOCATIONS',
+        icon: 'pi pi-map-marker',
+        routerLink: '/master/warehouse-locations',
       }
     ],
   },
