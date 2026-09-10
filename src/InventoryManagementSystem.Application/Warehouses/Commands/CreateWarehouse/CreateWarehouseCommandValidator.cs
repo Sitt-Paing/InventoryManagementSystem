@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using InventoryManagementSystem.Application.Warehouses.DTOs;
 using System;
 using System.Collections.Generic;
@@ -20,8 +20,9 @@ public class CreateWarehouseCommandValidator : AbstractValidator<CreateWarehouse
             .MaximumLength(20).WithMessage("Phone number cannot exceed 20 characters.");
         RuleFor(x => x.Email)
             .EmailAddress().WithMessage("Invalid email address format.")
-            .MaximumLength(100).WithMessage("Email address cannot exceed 100 characters.");
+            .MaximumLength(100).WithMessage("Email address cannot exceed 100 characters.")
+            .When(x => !string.IsNullOrWhiteSpace(x.Email));
         RuleFor(x => x.Address)
-            .MaximumLength(200).WithMessage("Address cannot exceed 200 characters.");
+            .MaximumLength(250).WithMessage("Address cannot exceed 250 characters.");
     }
 }
