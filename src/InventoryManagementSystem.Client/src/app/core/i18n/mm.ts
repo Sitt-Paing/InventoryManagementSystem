@@ -11,6 +11,8 @@ export const MM_DICTIONARY: Record<string, any> = {
     CATEGORIES: 'အမျိုးအစားများ',
     PRODUCTS: 'ကုန်ပစ္စည်းများ',
     SUPPLIERS: 'ပေးသွင်းသူများ',
+    WAREHOUSES: 'ဂိုဒေါင်များ',
+    WAREHOUSE_LOCATIONS: 'ဂိုဒေါင် တည်နေရာများ',
     PROCESS: 'လုပ်ငန်းစဉ်',
     STOCK_TRANSACTIONS: 'စတော့ လှုပ်ရှားမှုများ',
     SETTINGS: 'ဆက်တင်များ',
