@@ -1,0 +1,266 @@
+<p-toast key="globalMessage" position="top-right"></p-toast>
+<p-confirmDialog key="positionDialog" position="bottom" rejectButtonStyleClass="p-button-outlined"></p-confirmDialog>
+
+<div class="table-card p-4 space-y-2">
+  <!-- Top Toolbar: Create Button, Warehouse Filter & Global Search -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+    <div>
+      <p-splitbutton
+        label="Create"
+        icon="pi pi-plus"
+        [model]="items"
+        (onClick)="create()"
+        size="small">
+      </p-splitbutton>
+    </div>
+
+    <div class="flex flex-wrap gap-3 ml-auto">
+      <!-- Warehouse Filter Select Box -->
+      <p-select
+        [options]="warehouses"
+        [(ngModel)]="selectedWarehouseFilter"
+        (onChange)="onWarehouseFilterChange()"
+        [showClear]="true"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="All Warehouses">
+      </p-select>
+
+      <!-- Global Search -->
+      <p-iconfield iconPosition="left" class="w-full sm:w-60">
+        <p-inputicon>
+          <i class="pi pi-search"></i>
+        </p-inputicon>
+        <input
+          #search
+          pInputText
+          type="text"
+          (input)="tblLocations.filterGlobal(search.value, 'contains')"
+          placeholder="Search keyword"
+          class="w-full text-xs" />
+      </p-iconfield>
+    </div>
+  </div>
+
+  <!-- PrimeNG Data Table -->
+  <p-table
+    #tblLocations
+    [value]="locations"
+    [(selection)]="selectedLocation"
+    dataKey="id"
+    selectionMode="single"
+    stripedRows="true"
+    sortField="createdOn"
+    [sortOrder]="-1"
+    [paginator]="true"
+    [tableStyle]="{ 'min-width': '70rem', 'white-space': 'nowrap' }"
+    [rows]="20"
+    [rowsPerPageOptions]="[20, 50, 100]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    [loading]="isLoading"
+    [globalFilterFields]="['locationCode', 'warehouseName', 'zone', 'rack', 'bin', 'barcode', 'createdBy', 'updatedBy']">
+
+    <ng-template #header let-location>
+      <tr style="white-space:nowrap" class="whitespace-nowrap" [pSelectableRow]="location">
+        <th pFrozenColumn [style]="{ width: '10px' }">#</th>
+        <th pSortableColumn="warehouseName">Warehouse <p-sortIcon field="warehouseName"></p-sortIcon></th>
+        <th pSortableColumn="locationCode">Location Code <p-sortIcon field="locationCode"></p-sortIcon></th>
+        <th pSortableColumn="zone">Zone <p-sortIcon field="zone"></p-sortIcon></th>
+        <th pSortableColumn="rack">Rack <p-sortIcon field="rack"></p-sortIcon></th>
+        <th pSortableColumn="bin">Bin <p-sortIcon field="bin"></p-sortIcon></th>
+        <th pSortableColumn="barcode">Barcode <p-sortIcon field="barcode"></p-sortIcon></th>
+        <th pSortableColumn="capacity">Capacity <p-sortIcon field="capacity"></p-sortIcon></th>
+        <th pSortableColumn="status">Status <p-sortIcon field="status"></p-sortIcon></th>
+        <th pSortableColumn="createdOn">Created On <p-sortIcon field="createdOn"></p-sortIcon></th>
+        <th pSortableColumn="createdBy">Created By <p-sortIcon field="createdBy"></p-sortIcon></th>
+        <th pSortableColumn="updatedOn">Updated On <p-sortIcon field="updatedOn"></p-sortIcon></th>
+        <th pSortableColumn="updatedBy">Updated By <p-sortIcon field="updatedBy"></p-sortIcon></th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-location>
+      <tr [pSelectableRow]="location" style="white-space:nowrap" class="whitespace-nowrap">
+        <td>
+          <span class="pi pi-circle" [class.pi-check-circle]="selectedLocation === location"></span>
+        </td>
+        <td>{{ location.warehouseName || 'N/A' }}</td>
+        <td>{{ location.locationCode }}</td>
+        <td>{{ location.zone || 'N/A' }}</td>
+        <td>{{ location.rack || 'N/A' }}</td>
+        <td>{{ location.bin || 'N/A' }}</td>
+        <td>
+          @if (location.barcode) {
+            <p-button label="Barcode" icon="pi pi-eye" size="small" (click)="viewBarcode(location)"></p-button>
+          } @else {
+            <span class="text-gray-400">N/A</span>
+          }
+        </td>
+        <td>{{ location.capacity != null ? (location.capacity | number:'1.0-2') : 'N/A' }}</td>
+        <td>
+          <p-tag
+            [value]="location.status ? 'Active' : 'InActive'"
+            size="small"
+            icon="{{ location.status ? 'pi pi-check' : 'pi pi-minus-circle' }}"
+            [severity]="location.status ? 'success' : 'danger'">
+          </p-tag>
+        </td>
+        <td>{{ location.createdOn | date:'dd/MMM/yyyy hh:mm:ss a' }}</td>
+        <td>{{ location.createdBy }}</td>
+        <td>{{ location.updatedOn | date:'dd/MMM/yyyy hh:mm:ss a' }}</td>
+        <td>{{ location.updatedBy }}</td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <!-- Create / Edit Modal Dialog -->
+  <p-dialog
+    [header]="isEdit ? 'Edit Warehouse Location' : 'Create Warehouse Location'"
+    [(visible)]="modalVisible"
+    [breakpoints]="{
+      '1920px': '40vw',
+      '1440px': '45vw',
+      '1024px': '55vw',
+      '768px': '85vw',
+      '425px': '100vw',
+      '375px': '100vw',
+      '320px': '100vw'
+    }"
+    [modal]="true"
+    [style]="{ 'min-width': '40vw' }"
+    [draggable]="false"
+    [resizable]="false"
+    (onHide)="onDialogHide()">
+    <form [formGroup]="locationForm" (ngSubmit)="onSubmit()">
+      <div class="grid grid-cols-12 gap-3">
+        <!-- Warehouse Select -->
+        <div class="col-span-12 lg:col-span-6 flex flex-col gap-2">
+          <label for="warehouseId">Warehouse</label>
+          <p-select
+            id="warehouseId"
+            formControlName="warehouseId"
+            [options]="warehouses"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="Select Warehouse">
+          </p-select>
+          @if (locationForm.controls['warehouseId'].invalid && locationForm.get('warehouseId')?.dirty) {
+            <small class="text-xs text-red-500">Warehouse is required.</small>
+          }
+        </div>
+
+        <!-- Location Code -->
+        <div class="col-span-12 lg:col-span-6 flex flex-col gap-2">
+          <label for="locationCode">Location Code</label>
+          <input
+            type="text"
+            id="locationCode"
+            formControlName="locationCode"
+            pInputText
+            placeholder="Location Code"
+            required />
+          @if (locationForm.controls['locationCode'].invalid && locationForm.get('locationCode')?.dirty) {
+            <small class="text-xs text-red-500">Location code is required.</small>
+          }
+        </div>
+
+        <!-- Zone -->
+        <div class="col-span-12 lg:col-span-6 flex flex-col gap-2">
+          <label for="zone">Zone</label>
+          <input
+            type="text"
+            id="zone"
+            formControlName="zone"
+            pInputText
+            placeholder="Zone (e.g. Zone A)" />
+        </div>
+
+        <!-- Rack -->
+        <div class="col-span-12 lg:col-span-6 flex flex-col gap-2">
+          <label for="rack">Rack</label>
+          <input
+            type="text"
+            id="rack"
+            formControlName="rack"
+            pInputText
+            placeholder="Rack (e.g. Rack 1)" />
+        </div>
+
+        <!-- Bin -->
+        <div class="col-span-12 lg:col-span-6 flex flex-col gap-2">
+          <label for="bin">Bin</label>
+          <input
+            type="text"
+            id="bin"
+            formControlName="bin"
+            pInputText
+            placeholder="Bin (e.g. Bin 01)" />
+        </div>
+
+        <!-- Barcode -->
+        <div class="col-span-12 lg:col-span-6 flex flex-col gap-2">
+          <label for="barcode">Barcode</label>
+          <input
+            type="text"
+            id="barcode"
+            formControlName="barcode"
+            pInputText
+            placeholder="Barcode" />
+        </div>
+
+        <!-- Capacity -->
+        <div class="col-span-12 lg:col-span-6 flex flex-col gap-2">
+          <label for="capacity">Capacity</label>
+          <input
+            type="number"
+            id="capacity"
+            formControlName="capacity"
+            pInputText
+            placeholder="Capacity" />
+        </div>
+
+        <!-- Status -->
+        <div class="col-span-12 lg:col-span-6 flex gap-2 items-center">
+          <label for="status">Status</label>
+          <p-toggleSwitch id="status" formControlName="status"></p-toggleSwitch>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="col-span-12 mt-3 ml-auto">
+          <p-button
+            icon="pi pi-check"
+            label="{{ isEdit ? 'Update' : 'Save' }}"
+            type="submit"
+            [severity]="isEdit ? 'info' : 'success'"
+            [loading]="isSubmitting">
+          </p-button>
+        </div>
+      </div>
+    </form>
+  </p-dialog>
+
+  <!-- Barcode Modal Dialog -->
+  <p-dialog
+    [(visible)]="barcodeModalVisible"
+    [breakpoints]="{
+      '1920px': '35vw',
+      '1440px': '35vw',
+      '1024px': '45vw',
+      '768px': '80vw',
+      '425px': '100vw',
+      '375px': '100vw',
+      '320px': '100vw'
+    }"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    (onHide)="onBarcodeDialogHide()">
+    <div class="flex justify-center items-center px-2 py-4">
+      @if (selectedBarcodeValue) {
+        <app-barcode [value]="selectedBarcodeValue"></app-barcode>
+      } @else {
+        <p class="text-gray-500">No barcode available for this location.</p>
+      }
+    </div>
+  </p-dialog>
+</div>
