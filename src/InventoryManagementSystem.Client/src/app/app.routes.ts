@@ -29,6 +29,8 @@ export const routes: Routes = [
       { path: 'products', redirectTo: 'master/products', pathMatch: 'full' },
       { path: 'categories', redirectTo: 'master/categories', pathMatch: 'full' },
       { path: 'suppliers', redirectTo: 'master/suppliers', pathMatch: 'full' },
+      { path: 'warehouses', redirectTo: 'master/warehouses', pathMatch: 'full' },
+      { path: 'warehouse-locations', redirectTo: 'master/warehouse-locations', pathMatch: 'full' },
       { path: 'stock-transactions', redirectTo: 'process/stock-transactions', pathMatch: 'full' }
     ]
   },
