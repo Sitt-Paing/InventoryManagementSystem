@@ -66,12 +66,32 @@ export class Products implements OnInit {
   modalVisible: boolean = false;
   barcodeModalVisible: boolean = false;
   selectedBarcodeValue: string | null = null;
+  selectedProductForBarcode: ProductModel | null = null;
   isEdit: boolean = false;
   isLoading: boolean = false;
   isSubmitting: boolean = false;
 
   // Category filter select box state
   selectedCategoryId: number | null = null;
+
+  // Dynamic Sticker Size (mm)
+  stickerWidthMm: number = 50;
+  stickerHeightMm: number = 30;
+  stickerPresets = [
+    { label: '50mm × 30mm (Standard)', width: 50, height: 30 },
+    { label: '40mm × 30mm (Small)', width: 40, height: 30 },
+    { label: '60mm × 40mm (Medium)', width: 60, height: 40 },
+    { label: '70mm × 50mm (Large)', width: 70, height: 50 },
+    { label: '80mm × 50mm (Shelf/Bin)', width: 80, height: 50 },
+    { label: '100mm × 50mm (Shipping/Box)', width: 100, height: 50 },
+  ];
+
+  onStickerPresetChange(preset: { label: string; width: number; height: number }): void {
+    if (preset) {
+      this.stickerWidthMm = preset.width;
+      this.stickerHeightMm = preset.height;
+    }
+  }
 
   private formBuilder = inject(FormBuilder);
   public productForm = this.formBuilder.group({
@@ -332,6 +352,7 @@ export class Products implements OnInit {
   }
 
   ViewBarcode(product: ProductModel): void {
+    this.selectedProductForBarcode = product;
     this.selectedBarcodeValue = product.barcode || product.sku || null;
     this.barcodeModalVisible = true;
   }
@@ -343,7 +364,112 @@ export class Products implements OnInit {
 
   onBarcodeDialogHide(): void {
     this.selectedBarcodeValue = null;
+    this.selectedProductForBarcode = null;
     this.barcodeModalVisible = false;
+  }
+
+  printSticker(): void {
+    const stickerEl = document.getElementById('product-barcode-sticker');
+    if (!stickerEl) return;
+
+    const printWindow = window.open('', '_blank', 'width=500,height=400');
+    if (!printWindow) {
+      window.print();
+      return;
+    }
+
+    const wMm = this.stickerWidthMm || 50;
+    const hMm = this.stickerHeightMm || 30;
+
+    printWindow.document.open();
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Print Product Sticker - ${this.selectedProductForBarcode?.name || 'Product'}</title>
+          <style>
+            @page {
+              size: ${wMm}mm ${hMm}mm;
+              margin: 0mm;
+            }
+            * {
+              box-sizing: border-box;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              width: ${wMm}mm;
+              height: ${hMm}mm;
+              font-family: system-ui, -apple-system, sans-serif;
+              background: #fff;
+              overflow: hidden;
+            }
+            .sticker-card {
+              width: ${wMm}mm;
+              height: ${hMm}mm;
+              padding: 1.5mm 2mm;
+              margin: 0;
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+              overflow: hidden;
+              background: #fff;
+            }
+            .top-left-info {
+              text-align: left;
+              border-bottom: 0.8px solid #333;
+              padding-bottom: 1mm;
+              margin-bottom: 1mm;
+            }
+            .title {
+              font-size: 10pt;
+              font-weight: 900;
+              color: #000;
+              line-height: 1.1;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+            .subtitle {
+              font-size: 8.5pt;
+              font-weight: 800;
+              color: #059669;
+              line-height: 1.1;
+            }
+            .barcode-svg-wrapper {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              flex: 1;
+              width: 100%;
+              min-height: 0;
+              overflow: hidden;
+            }
+            svg {
+              width: 100% !important;
+              height: 100% !important;
+              max-height: 100%;
+              display: block;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="sticker-card">
+            ${stickerEl.innerHTML}
+          </div>
+          <script>
+            window.onload = function() {
+              window.focus();
+              window.print();
+              window.onafterprint = function() { window.close(); };
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   }
 
   excel(): void {
