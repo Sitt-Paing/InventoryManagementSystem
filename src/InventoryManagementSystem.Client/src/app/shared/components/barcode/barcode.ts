@@ -1,36 +1,54 @@
-import { AfterViewInit, Component, ElementRef, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  Input,
+  OnChanges,
+  ViewChild
+} from '@angular/core';
 import JsBarcode from 'jsbarcode';
 
 @Component({
   selector: 'app-barcode',
-  imports: [],
   templateUrl: './barcode.html',
   styleUrl: './barcode.scss',
 })
 export class Barcode implements AfterViewInit, OnChanges {
   @Input() value: string | null = null;
-  @Input() width: number = 2.0;
+  @Input() format: string = 'EAN13';
+  @Input() width: number = 2;
   @Input() height: number = 55;
   @Input() fontSize: number = 14;
   @Input() displayValue: boolean = true;
-  @ViewChild('barcode', { static: true }) barcodeElement!: ElementRef<SVGSVGElement>;
+
+  @ViewChild('barcode', { static: true })
+  barcodeElement!: ElementRef<SVGSVGElement>;
 
   ngAfterViewInit(): void {
-    this.generateBarcode();
+    this.render();
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['value'] || changes['width'] || changes['height'] || changes['fontSize'] || changes['displayValue']) {
-      this.generateBarcode();
+  ngOnChanges(): void {
+    this.render();
+  }
+
+  private render(): void {
+    const el = this.barcodeElement?.nativeElement;
+    if (!el || !this.value) {
+      if (el) el.innerHTML = '';
+      return;
     }
-  }
 
-  generateBarcode(): void {
-    if (!this.value || !this.barcodeElement?.nativeElement) return;
+    const text = this.value.trim();
+    if (!text) {
+      el.innerHTML = '';
+      return;
+    }
 
     try {
-      JsBarcode(this.barcodeElement.nativeElement, this.value, {
-        format: 'CODE128',
+      el.innerHTML = '';
+      JsBarcode(el, text, {
+        format: this.format,
         lineColor: '#000',
         width: this.width,
         height: this.height,
@@ -38,8 +56,21 @@ export class Barcode implements AfterViewInit, OnChanges {
         displayValue: this.displayValue,
         margin: 4,
       });
-    } catch (e) {
-      console.error('Barcode rendering error for value:', this.value, e);
+    } catch (err) {
+      // If EAN13 fails (e.g. alphanumeric SKU like PRD-001), fallback to CODE128
+      try {
+        JsBarcode(el, text, {
+          format: 'CODE128',
+          lineColor: '#000',
+          width: this.width,
+          height: this.height,
+          fontSize: this.fontSize,
+          displayValue: this.displayValue,
+          margin: 4,
+        });
+      } catch (_) {
+        el.innerHTML = '';
+      }
     }
   }
 }
