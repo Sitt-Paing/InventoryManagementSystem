@@ -39,4 +39,12 @@ export class WarehouseLocationService {
     const url = `${environment.main_url}/warehouse-locations/${id}`;
     return this.http.delete<RootModel>(url);
   }
+
+  getBarcodePreview(id: number, widthMm?: number, heightMm?: number): Observable<Blob> {
+    let params = new HttpParams();
+    if (widthMm) params = params.set('widthMm', widthMm.toString());
+    if (heightMm) params = params.set('heightMm', heightMm.toString());
+    const url = `${environment.main_url}/warehouse-locations/${id}/barcode-preview`;
+    return this.http.get(url, { params, responseType: 'blob' });
+  }
 }
