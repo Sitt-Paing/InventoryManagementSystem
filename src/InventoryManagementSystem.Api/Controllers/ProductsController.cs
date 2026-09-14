@@ -181,5 +181,27 @@ namespace InventoryManagementSystem.Api.Controllers
                 Data = null
             });
         }
+
+        [HttpGet("{id:guid}/barcode-preview")]
+        [EndpointSummary("Generate server-rendered SVG barcode preview for product")]
+        public async Task<IActionResult> GetBarcodePreview(Guid id, [FromQuery] string format = "EAN13")
+        {
+            var product = await Mediator.Send(new GetProductByIdQuery(id));
+            if (product == null)
+            {
+                return NotFound(new DefaultResponseModel
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Success = false,
+                    Message = $"Product with ID {id} not found.",
+                    Data = null
+                });
+            }
+
+            var barcodeValue = !string.IsNullOrWhiteSpace(product.Barcode) ? product.Barcode : (product.Sku ?? string.Empty);
+            var svg = BarcodeGenerationService.GenerateBarcodeSvg(barcodeValue, format);
+
+            return Content(svg, "image/svg+xml; charset=utf-8");
+        }
     }
 }
