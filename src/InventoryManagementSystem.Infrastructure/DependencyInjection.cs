@@ -41,6 +41,7 @@ public static class DependencyInjection
 
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddTransient<IExportService, ExportService>();
+        services.AddTransient<IBarcodeGenerationService, BarcodeGenerationService>();
 
 
         var secretKey = configuration["JwtSettings:SecretKey"] ?? "SuperSecretKeyForInventoryManagementSystem_JwtToken_2026!#";
