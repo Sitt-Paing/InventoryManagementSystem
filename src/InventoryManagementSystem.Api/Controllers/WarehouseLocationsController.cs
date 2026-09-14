@@ -141,4 +141,26 @@ public class WarehouseLocationsController : ApiControllerBase
             Data = result
         });
     }
+
+    [HttpGet("{id:int}/barcode-preview")]
+    [EndpointSummary("Generate server-rendered SVG barcode preview for warehouse location")]
+    public async Task<IActionResult> GetBarcodePreview(int id, [FromQuery] double widthMm = 70, [FromQuery] double heightMm = 40)
+    {
+        var location = await Mediator.Send(new GetWarehouseLocationByIdQuery(id));
+        if (location == null)
+        {
+            return NotFound(new DefaultResponseModel
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Success = false,
+                Message = $"Warehouse location with ID {id} not found.",
+                Data = null
+            });
+        }
+
+        var barcodeVal = !string.IsNullOrWhiteSpace(location.Barcode) ? location.Barcode : location.LocationCode;
+        var svg = BarcodeGenerationService.GenerateBarcodeSvg(barcodeVal, "CODE128");
+
+        return Content(svg, "image/svg+xml; charset=utf-8");
+    }
 }
