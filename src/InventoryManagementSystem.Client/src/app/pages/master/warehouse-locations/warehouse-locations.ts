@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { SplitButtonModule } from 'primeng/splitbutton';
@@ -19,7 +19,6 @@ import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { ExportService } from '../../../core/services/export.service';
-import { Barcode } from '../../../shared/components/barcode/barcode';
 
 @Component({
   selector: 'app-warehouse-locations',
@@ -40,13 +39,12 @@ import { Barcode } from '../../../shared/components/barcode/barcode';
     ToggleSwitchModule,
     ButtonModule,
     SelectModule,
-    Barcode,
   ],
   providers: [ConfirmationService, MessageService, DatePipe, DecimalPipe, ExportService],
   templateUrl: './warehouse-locations.html',
   styleUrl: './warehouse-locations.scss',
 })
-export class WarehouseLocations implements OnInit {
+export class WarehouseLocations implements OnInit, OnDestroy {
   @ViewChild(Table) tblLocations!: Table;
   items: MenuItem[] = [];
   isLoading: boolean = false;
@@ -60,6 +58,10 @@ export class WarehouseLocations implements OnInit {
   barcodeModalVisible: boolean = false;
   selectedBarcodeValue: string | null = null;
   selectedLocationForBarcode: WarehouseLocationModel | null = null;
+
+  // Server-Rendered Preview State
+  serverPreviewBlobUrl: string | null = null;
+  isLoadingPreview: boolean = false;
 
   // Dynamic Sticker Size (mm)
   stickerWidthMm: number = 70;
@@ -76,7 +78,12 @@ export class WarehouseLocations implements OnInit {
     if (preset) {
       this.stickerWidthMm = preset.width;
       this.stickerHeightMm = preset.height;
+      this.loadBarcodePreview();
     }
+  }
+
+  onStickerSizeInput(): void {
+    this.loadBarcodePreview();
   }
 
   private formBuilder = inject(FormBuilder);
@@ -330,9 +337,47 @@ export class WarehouseLocations implements OnInit {
     this.selectedLocationForBarcode = location;
     this.selectedBarcodeValue = location.barcode || location.locationCode || null;
     this.barcodeModalVisible = true;
+    this.loadBarcodePreview();
+  }
+
+  loadBarcodePreview(): void {
+    if (!this.selectedLocationForBarcode) return;
+    this.isLoadingPreview = true;
+    if (this.serverPreviewBlobUrl) {
+      URL.revokeObjectURL(this.serverPreviewBlobUrl);
+      this.serverPreviewBlobUrl = null;
+    }
+
+    this.locationService
+      .getBarcodePreview(
+        this.selectedLocationForBarcode.id,
+        this.stickerWidthMm,
+        this.stickerHeightMm
+      )
+      .subscribe({
+        next: (blob) => {
+          this.serverPreviewBlobUrl = URL.createObjectURL(blob);
+          this.isLoadingPreview = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.isLoadingPreview = false;
+          this.messageService.add({
+            key: 'globalMessage',
+            severity: 'error',
+            summary: 'Preview Error',
+            detail: 'Failed to generate server barcode preview.',
+          });
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   onBarcodeDialogHide(): void {
+    if (this.serverPreviewBlobUrl) {
+      URL.revokeObjectURL(this.serverPreviewBlobUrl);
+      this.serverPreviewBlobUrl = null;
+    }
     this.selectedBarcodeValue = null;
     this.selectedLocationForBarcode = null;
     this.barcodeModalVisible = false;
@@ -418,10 +463,11 @@ export class WarehouseLocations implements OnInit {
               min-height: 0;
               overflow: hidden;
             }
-            svg {
+            svg, img {
               width: 100% !important;
               height: 100% !important;
               max-height: 100%;
+              object-fit: contain;
               display: block;
             }
           </style>
@@ -445,5 +491,12 @@ export class WarehouseLocations implements OnInit {
 
   excel(): void {
     this.exportService.excelAll('WarehouseLocations', this.tblLocations);
+  }
+
+  ngOnDestroy(): void {
+    if (this.serverPreviewBlobUrl) {
+      URL.revokeObjectURL(this.serverPreviewBlobUrl);
+      this.serverPreviewBlobUrl = null;
+    }
   }
 }
