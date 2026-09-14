@@ -258,9 +258,9 @@
     (onHide)="onBarcodeDialogHide()">
     <div class="flex flex-col items-center gap-3 py-1">
       <!-- Sticker Size Controller (Dynamic mm) -->
-      <div class="w-full bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs">
+      <div class="w-full bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-xs">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-          <span class="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+          <span class="font-bold text-slate-800 flex items-center gap-1.5">
             <i class="pi pi-cog text-emerald-600"></i> Sticker Size:
           </span>
           <!-- Preset Buttons -->
@@ -268,16 +268,15 @@
             @for (preset of stickerPresets; track preset.label) {
               <button
                 type="button"
-                class="px-2 py-1 rounded text-[11px] font-medium transition-colors"
+                class="px-2 py-1 rounded text-[11px] font-semibold transition-all cursor-pointer"
                 [class.bg-emerald-600]="stickerWidthMm === preset.width && stickerHeightMm === preset.height"
                 [class.text-white]="stickerWidthMm === preset.width && stickerHeightMm === preset.height"
+                [class.shadow-xs]="stickerWidthMm === preset.width && stickerHeightMm === preset.height"
                 [class.bg-white]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
-                [class.dark:bg-slate-700]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
                 [class.text-slate-700]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
-                [class.dark:text-slate-200]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
                 [class.border]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
-                [class.border-slate-200]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
-                [class.dark:border-slate-600]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
+                [class.border-slate-300]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
+                [class.hover:bg-slate-100]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
                 (click)="onStickerPresetChange(preset)">
                 {{ preset.width }}×{{ preset.height }}mm
               </button>
@@ -286,80 +285,72 @@
         </div>
 
         <!-- Custom mm Inputs -->
-        <div class="flex items-center gap-3 pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
-          <label class="flex items-center gap-1 text-slate-600 dark:text-slate-300">
+        <div class="flex items-center gap-3 pt-1.5 border-t border-slate-200">
+          <label class="flex items-center gap-1.5 font-medium text-slate-700">
             Width:
             <input
               type="number"
               [(ngModel)]="stickerWidthMm"
+              (ngModelChange)="onStickerSizeInput()"
               min="20"
               max="150"
-              class="w-14 px-1.5 py-0.5 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-900 text-center font-mono font-bold text-emerald-600" />
-            mm
+              class="w-14 px-1.5 py-0.5 border border-slate-300 rounded bg-white text-center font-mono font-bold text-slate-900 focus:outline-emerald-500" />
+            <span class="text-slate-500 font-normal">mm</span>
           </label>
-          <label class="flex items-center gap-1 text-slate-600 dark:text-slate-300">
+          <label class="flex items-center gap-1.5 font-medium text-slate-700">
             Height:
             <input
               type="number"
               [(ngModel)]="stickerHeightMm"
+              (ngModelChange)="onStickerSizeInput()"
               min="15"
               max="150"
-              class="w-14 px-1.5 py-0.5 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-900 text-center font-mono font-bold text-emerald-600" />
-            mm
+              class="w-14 px-1.5 py-0.5 border border-slate-300 rounded bg-white text-center font-mono font-bold text-slate-900 focus:outline-emerald-500" />
+            <span class="text-slate-500 font-normal">mm</span>
           </label>
-          <span class="text-[11px] text-slate-400 ml-auto">
+          <span class="text-[11px] text-slate-500 font-medium ml-auto">
             Location Label / Shelf Tag
           </span>
         </div>
       </div>
 
-      <!-- Printable Sticker Box with Dynamic mm Preview -->
+      <!-- Server-Rendered Printable Sticker Box -->
       <div
-        id="location-barcode-sticker"
-        class="bg-white border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-slate-800 shadow-xs flex flex-col justify-between"
-        [style.width.mm]="stickerWidthMm"
-        [style.min-height.mm]="stickerHeightMm"
-        style="box-sizing: border-box;">
-        <!-- Top Left Info Header (Clean: Warehouse, Location Code) -->
-        <div class="top-left-info text-left border-b border-slate-200 pb-1 mb-1">
-          <div class="flex justify-between items-baseline gap-2">
-            <div class="truncate max-w-[75%]">
-              <p class="title text-[11px] font-extrabold uppercase tracking-wider text-slate-900 leading-tight truncate">
-                {{ selectedLocationForBarcode?.warehouseName || 'Warehouse' }}
-              </p>
-              <p class="subtitle text-sm font-black text-emerald-600 leading-tight mt-0.5">
-                {{ selectedLocationForBarcode?.locationCode }}
-              </p>
-            </div>
-            <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 shrink-0">
-              LOC
-            </span>
+        class="w-full bg-slate-100 rounded-xl p-3.5 border border-slate-200 flex flex-col items-center justify-center min-h-[190px]">
+        @if (isLoadingPreview) {
+          <div class="flex flex-col items-center gap-2 py-8 text-slate-600">
+            <i class="pi pi-spin pi-spinner text-2xl text-emerald-600"></i>
+            <span class="text-xs font-semibold">Generating server preview...</span>
           </div>
-        </div>
-
-        <!-- Large Barcode Graphic (Dominant Area) -->
-        <div class="barcode-svg-wrapper flex-1 flex justify-center items-center py-1 w-full overflow-hidden">
-          @if (selectedBarcodeValue) {
-            <app-barcode
-              [value]="selectedBarcodeValue"
-              [height]="stickerHeightMm >= 40 ? 65 : 45"
-              [width]="stickerWidthMm >= 65 ? 2.2 : 1.8"
-              [fontSize]="stickerHeightMm >= 40 ? 14 : 12">
-            </app-barcode>
-          } @else {
-            <p class="text-xs text-slate-400">No barcode available</p>
-          }
-        </div>
+        } @else if (serverPreviewBlobUrl) {
+          <div
+            id="location-barcode-sticker"
+            class="bg-white rounded-lg p-2 shadow-sm border border-slate-300 flex justify-center items-center overflow-hidden max-w-full"
+            [style.max-width.px]="480">
+            <img
+              [src]="serverPreviewBlobUrl"
+              alt="Server Barcode Label Preview"
+              class="w-full h-auto object-contain block rounded" />
+          </div>
+          <p class="text-xs text-slate-600 font-medium mt-2 flex items-center gap-1.5">
+            <i class="pi pi-check-circle text-emerald-600 font-bold"></i> Server-rendered Code 128 preview (WYSIWYG)
+          </p>
+        } @else {
+          <div class="flex flex-col items-center gap-1 py-8 text-slate-600 text-xs font-medium">
+            <i class="pi pi-exclamation-triangle text-amber-500 text-xl mb-1"></i>
+            <span>Unable to load server preview</span>
+          </div>
+        }
       </div>
 
       <!-- Action Buttons -->
-      <div class="flex items-center gap-2 mt-1">
+      <div class="flex items-center justify-end gap-2 mt-2 w-full pt-2 border-t border-slate-200">
         <p-button
-          label="Print {{ stickerWidthMm }}×{{ stickerHeightMm }}mm Sticker"
+          label="Print Sticker"
           icon="pi pi-print"
           severity="success"
           size="small"
-          [disabled]="!selectedBarcodeValue"
+          [disabled]="!selectedLocationForBarcode || isLoadingPreview"
           (onClick)="printSticker()">
         </p-button>
         <p-button
