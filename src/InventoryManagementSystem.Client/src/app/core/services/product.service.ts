@@ -79,4 +79,9 @@ export class ProductService {
 
     return this.http.post(url, columns, { responseType: 'blob' });
   }
+
+  getBarcodePreview(id: string, format: string = 'EAN13'): Observable<Blob> {
+    const url = `${environment.main_url}/products/${id}/barcode-preview?format=${encodeURIComponent(format)}`;
+    return this.http.get(url, { responseType: 'blob' });
+  }
 }
