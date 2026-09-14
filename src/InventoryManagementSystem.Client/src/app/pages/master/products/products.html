@@ -1,4 +1,4 @@
-﻿<p-toast key="globalMessage"></p-toast>
+<p-toast key="globalMessage"></p-toast>
 <p-confirmDialog key="positionDialog" position="bottom" rejectButtonStyleClass="p-button-outlined"></p-confirmDialog>
 
 <div class="table-card">
@@ -204,7 +204,7 @@
       <!-- Barcode -->
       <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
         <label for="barcode" class="text-xs font-bold">Barcode</label>
-        <input id="barcode" formControlName="barcode" pInputText placeholder="e.g. 123456789" />
+        <input id="barcode" formControlName="barcode" pInputText placeholder="e.g. 8901234567890" />
       </div>
 
       <!-- Brand -->
@@ -391,6 +391,7 @@
         @if (selectedBarcodeValue) {
           <app-barcode
             [value]="selectedBarcodeValue"
+            format="EAN13"
             [height]="stickerHeightMm >= 40 ? 65 : 45"
             [width]="stickerWidthMm >= 60 ? 2.1 : 1.7"
             [fontSize]="stickerHeightMm >= 40 ? 14 : 12">
