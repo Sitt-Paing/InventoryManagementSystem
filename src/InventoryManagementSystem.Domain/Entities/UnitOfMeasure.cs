@@ -1,13 +1,11 @@
-﻿using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using InventoryManagementSystem.Domain.Common;
 
 namespace InventoryManagementSystem.Domain.Entities;
 
-public partial class UnitOfMeasure
+public partial class UnitOfMeasure : BaseAuditableEntity<long>
 {
-    public long Id { get; set; }
-
     public long CategoryId { get; set; }
 
     public string Code { get; set; } = null!;
@@ -18,19 +16,7 @@ public partial class UnitOfMeasure
 
     public int DecimalPlaces { get; set; }
 
-    public bool IsActive { get; set; }
-
-    public DateTime? CreatedOn { get; set; }
-
-    public string? CreatedBy { get; set; }
-
-    public DateTime? UpdatedOn { get; set; }
-
-    public string? UpdatedBy { get; set; }
-
-    public DateTime? DeletedOn { get; set; }
-
-    public string? DeletedBy { get; set; }
+    public bool IsActive { get; set; } = true;
 
     [JsonIgnore]
     public virtual UomCategory Category { get; set; } = null!;
