@@ -1,0 +1,218 @@
+<p-toast key="globalMessage"></p-toast>
+<p-confirmDialog key="positionDialog"></p-confirmDialog>
+
+<div class="table-card p-4 space-y-3">
+  <!-- Header Toolbar -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div class="flex flex-wrap items-center gap-2">
+      <p-splitbutton
+        label="Create"
+        icon="pi pi-plus"
+        [model]="items"
+        size="small"
+        (onClick)="create()"
+      />
+
+      <p-button
+        label="Manage Categories"
+        icon="pi pi-folder"
+        severity="secondary"
+        variant="outlined"
+        size="small"
+        (onClick)="openCategoryManager()"
+      />
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3 ml-auto">
+      <!-- Category Filter -->
+      <p-select
+        [options]="categories"
+        [(ngModel)]="selectedCategoryFilter"
+        (onChange)="onCategoryFilterChange()"
+        [showClear]="true"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="All Categories"
+        size="small"
+        class="w-48"
+      />
+
+      <!-- Global Search -->
+      <p-iconfield iconPosition="left">
+        <p-inputicon>
+          <i class="pi pi-search"></i>
+        </p-inputicon>
+        <input
+          #search
+          pInputText
+          type="text"
+          (input)="tblUom.filterGlobal(search.value, 'contains')"
+          placeholder="Search keyword"
+          size="small"
+          class="w-full sm:w-56"
+        />
+      </p-iconfield>
+    </div>
+  </div>
+
+  <!-- UOM Table -->
+  <p-table
+    #tblUom
+    [value]="unitOfMeasures"
+    [(selection)]="selectedUom"
+    dataKey="id"
+    selectionMode="single"
+    stripedRows="true"
+    sortField="createdOn"
+    [sortOrder]="-1"
+    [paginator]="true"
+    [tableStyle]="{ 'min-width': '50rem' }"
+    [rows]="20"
+    [rowsPerPageOptions]="[20, 50, 100]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    [loading]="isLoading"
+    [globalFilterFields]="['code', 'name', 'symbol', 'categoryName', 'createdBy']"
+  >
+    <ng-template #header>
+      <tr style="white-space: nowrap">
+        <th [style]="{ width: '40px' }">#</th>
+        <th pSortableColumn="code">Code <p-sortIcon field="code"></p-sortIcon></th>
+        <th pSortableColumn="name">Name <p-sortIcon field="name"></p-sortIcon></th>
+        <th pSortableColumn="symbol">Symbol <p-sortIcon field="symbol"></p-sortIcon></th>
+        <th pSortableColumn="categoryName">Category <p-sortIcon field="categoryName"></p-sortIcon></th>
+        <th pSortableColumn="decimalPlaces">Precision <p-sortIcon field="decimalPlaces"></p-sortIcon></th>
+        <th pSortableColumn="isActive">Status <p-sortIcon field="isActive"></p-sortIcon></th>
+        <th pSortableColumn="createdOn">Created On <p-sortIcon field="createdOn"></p-sortIcon></th>
+        <th pSortableColumn="createdBy">Created By <p-sortIcon field="createdBy"></p-sortIcon></th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-uom>
+      <tr [pSelectableRow]="uom" style="white-space: nowrap">
+        <td>
+          <span class="pi pi-circle" [class.pi-check-circle]="selectedUom === uom"></span>
+        </td>
+        <td>
+          <span class="font-bold text-primary">{{ uom.code }}</span>
+        </td>
+        <td>{{ uom.name }}</td>
+        <td>{{ uom.symbol || '—' }}</td>
+        <td>
+          <p-tag [value]="uom.categoryName || 'General'" severity="info" />
+        </td>
+        <td>
+          <span class="text-xs text-muted-color">{{ uom.decimalPlaces }} decimals</span>
+        </td>
+        <td>
+          <p-tag
+            [value]="uom.isActive ? 'Active' : 'Inactive'"
+            [severity]="uom.isActive ? 'success' : 'danger'"
+          />
+        </td>
+        <td>{{ uom.createdOn | date: 'dd/MM/yyyy HH:mm' }}</td>
+        <td>{{ uom.createdBy || '—' }}</td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="9" class="text-center p-6 text-muted-color">
+          No units of measure found. Click "Create" to add one.
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Create / Edit UOM Dialog -->
+<p-dialog
+  [(visible)]="modalVisible"
+  [header]="isEdit ? 'Edit Unit of Measure' : 'Create Unit of Measure'"
+  [modal]="true"
+  [style]="{ width: '480px' }"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <form [formGroup]="uomForm" class="space-y-4 pt-2">
+    <!-- Category -->
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-semibold">Category <span class="text-red-500">*</span></label>
+      <p-select
+        formControlName="categoryId"
+        [options]="categories"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="Select Category"
+        class="w-full"
+        appendTo="body"
+      />
+      @if (uomForm.get('categoryId')?.invalid && (uomForm.get('categoryId')?.dirty || uomForm.get('categoryId')?.touched)) {
+        <small class="text-red-500 text-xs">Category is required.</small>
+      }
+    </div>
+
+    <!-- Code & Name -->
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-semibold">Code <span class="text-red-500">*</span></label>
+        <input pInputText formControlName="code" placeholder="e.g. PCS, BOX, KG" class="w-full" />
+        @if (uomForm.get('code')?.invalid && (uomForm.get('code')?.dirty || uomForm.get('code')?.touched)) {
+          <small class="text-red-500 text-xs">Code is required.</small>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-semibold">Symbol</label>
+        <input pInputText formControlName="symbol" placeholder="e.g. pc, bx, kg" class="w-full" />
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-semibold">Name <span class="text-red-500">*</span></label>
+      <input pInputText formControlName="name" placeholder="e.g. Pieces, Box, Kilogram" class="w-full" />
+      @if (uomForm.get('name')?.invalid && (uomForm.get('name')?.dirty || uomForm.get('name')?.touched)) {
+        <small class="text-red-500 text-xs">Name is required.</small>
+      }
+    </div>
+
+    <!-- Decimal Precision -->
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-semibold">Decimal Precision</label>
+      <p-select
+        formControlName="decimalPlaces"
+        [options]="decimalOptions"
+        optionLabel="label"
+        optionValue="value"
+        class="w-full"
+        appendTo="body"
+      />
+    </div>
+
+    <!-- Active Switch -->
+    <div class="flex items-center gap-2">
+      <span class="text-xs font-semibold">Status</span>
+      <p-toggleswitch formControlName="isActive" />
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2">
+      <p-button label="Cancel" severity="secondary" variant="text" (onClick)="modalVisible = false" />
+      <p-button
+        [label]="isEdit ? 'Update' : 'Save'"
+        icon="pi pi-check"
+        [loading]="isSubmitting"
+        (onClick)="save()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Manage Categories Dialog -->
+<app-uom-category-dialog
+  [(visible)]="categoryModalVisible"
+  [categories]="categories"
+  (categoriesChanged)="loadCategories()">
+</app-uom-category-dialog>
+
