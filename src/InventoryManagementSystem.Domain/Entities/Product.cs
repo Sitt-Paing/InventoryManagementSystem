@@ -40,4 +40,8 @@ public partial class Product : BaseAuditableEntity<Guid>
 
     [JsonIgnore]
     public virtual ICollection<StockTransaction> StockTransactions { get; set; } = new List<StockTransaction>();
+
+    [JsonIgnore]
+    public virtual ICollection<ProductUomConversion> ProductUomConversions { get; set; } = new List<ProductUomConversion>();
 }
+
