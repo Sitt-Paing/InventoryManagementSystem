@@ -85,6 +85,8 @@
         <th pSortableColumn="isActive">Status <p-sortIcon field="isActive"></p-sortIcon></th>
         <th pSortableColumn="createdOn">Created On <p-sortIcon field="createdOn"></p-sortIcon></th>
         <th pSortableColumn="createdBy">Created By <p-sortIcon field="createdBy"></p-sortIcon></th>
+        <th pSortableColumn="updatedOn">Updated On <p-sortIcon field="UpdatedOn"></p-sortIcon></th>
+        <th pSortableColumn="updatedBy">Updated By <p-sortIcon field="UpdatedBy"></p-sortIcon></th>
       </tr>
     </ng-template>
 
@@ -110,8 +112,10 @@
             [severity]="uom.isActive ? 'success' : 'danger'"
           />
         </td>
-        <td>{{ uom.createdOn | date: 'dd/MM/yyyy HH:mm' }}</td>
-        <td>{{ uom.createdBy || '—' }}</td>
+        <td>{{ (uom.createdOn | date: 'dd/MM/yyyy HH:mm')}}</td>
+        <td>{{ uom.createdBy }}</td>
+        <td>{{ (uom.updatedOn | date: 'dd/MM/yyyy HH:mm')}}</td>
+        <td>{{ uom.updatedBy }}</td>
       </tr>
     </ng-template>
 
