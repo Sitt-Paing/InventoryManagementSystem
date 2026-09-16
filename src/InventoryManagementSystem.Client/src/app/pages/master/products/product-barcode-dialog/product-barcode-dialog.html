@@ -1,0 +1,86 @@
+<p-dialog
+  header="Print Barcode Sticker"
+  [(visible)]="visible"
+  [modal]="true"
+  [style]="{ width: '480px' }"
+  [draggable]="false"
+  [resizable]="false"
+  (onHide)="close()">
+
+  <div class="flex flex-col gap-3 pt-2">
+    <!-- Sticker Size Presets -->
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-bold text-slate-700">Sticker Size</label>
+      <p-select
+        [options]="stickerPresets"
+        optionLabel="label"
+        [(ngModel)]="selectedPreset"
+        (onChange)="onStickerPresetChange($event.value)"
+        placeholder="Select Size"
+        class="w-full">
+      </p-select>
+    </div>
+
+    <!-- Live Preview Card -->
+    <div
+      id="product-barcode-sticker"
+      class="border-2 border-dashed border-slate-300 rounded-lg p-3 bg-white flex flex-col justify-between shadow-xs mx-auto w-full transition-all"
+      [style.minHeight.px]="stickerHeightMm * 4.5">
+
+      <!-- Header: Name + Price -->
+      <div class="flex flex-col gap-0.5 border-b border-slate-100 pb-1.5 mb-1">
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-bold text-slate-800 truncate leading-tight">
+              {{ product?.name || 'Product Name' }}
+            </p>
+            <p class="text-[11px] text-slate-600 truncate leading-tight">
+              {{ product?.sku ? ('SKU: ' + product?.sku) : '' }}
+              {{ product?.brand ? (' | ' + product?.brand) : '' }}
+            </p>
+          </div>
+          @if (product?.sellingPrice) {
+            <span class="text-xs font-mono font-extrabold px-1.5 py-0.5 bg-emerald-50 text-emerald-700 rounded shrink-0">
+              {{ product?.sellingPrice | currency:'USD':'symbol':'1.2-2' }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <!-- Large Barcode Graphic -->
+      <div class="barcode-svg-wrapper flex-1 flex justify-center items-center py-1 w-full overflow-hidden">
+        @if (barcodeValue) {
+          <app-barcode
+            [value]="barcodeValue"
+            format="EAN13"
+            [height]="stickerHeightMm >= 40 ? 65 : 45"
+            [width]="stickerWidthMm >= 60 ? 2.1 : 1.7"
+            [fontSize]="stickerHeightMm >= 40 ? 14 : 12">
+          </app-barcode>
+        } @else {
+          <p class="text-xs text-slate-400">No barcode available</p>
+        }
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-2 mt-1">
+      <p-button
+        label="Print {{ stickerWidthMm }}×{{ stickerHeightMm }}mm Sticker"
+        icon="pi pi-print"
+        severity="success"
+        size="small"
+        [disabled]="!barcodeValue"
+        (onClick)="printSticker()">
+      </p-button>
+      <p-button
+        label="Close"
+        icon="pi pi-times"
+        severity="secondary"
+        size="small"
+        [outlined]="true"
+        (onClick)="close()">
+      </p-button>
+    </div>
+  </div>
+</p-dialog>
