@@ -80,7 +80,7 @@ public class ApplicationDbContextInitializer
         var administrator = new IdentityUser { UserName = "devadmin", Email = "devadmin@gmail.com" };
         if (_userManager.Users.All(u => u.UserName != administrator.UserName))
         {
-            var result = await _userManager.CreateAsync(administrator, "Devadmin@123");
+            var result = await _userManager.CreateAsync(administrator, "Password@12345");
             if (result.Succeeded && administratorRole.Name != null)
             {
                 await _userManager.AddToRolesAsync(administrator, new[] { administratorRole.Name });
