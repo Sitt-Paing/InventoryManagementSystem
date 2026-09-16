@@ -157,7 +157,7 @@ export class UnitOfMeasures implements OnInit {
     this.isEdit = false;
     this.uomForm.reset({
       id: 0,
-      categoryId: this.categories.length > 0 ? this.categories[0].id : (null as any),
+      categoryId: null,
       code: '',
       name: '',
       symbol: '',
