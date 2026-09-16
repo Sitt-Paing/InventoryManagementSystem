@@ -1,0 +1,251 @@
+<!-- Packaging & UOM Conversions Modal -->
+<p-dialog
+  [(visible)]="visible"
+  [header]="'Packaging Units & Barcodes — ' + (product?.name || '')"
+  [modal]="true"
+  [style]="{ width: '850px' }"
+  [draggable]="false"
+  [resizable]="false"
+  (onHide)="close()"
+>
+  <div class="space-y-4 pt-2">
+    <!-- Subheader with product info -->
+    <div class="flex flex-wrap items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+      <div>
+        <p class="text-xs text-muted-color">Item SKU / Primary Barcode</p>
+        <p class="font-mono text-sm font-bold text-slate-800">
+          {{ product?.sku || '—' }} | {{ product?.barcode || 'No Barcode' }}
+        </p>
+      </div>
+      <p-button
+        label="Add Packaging Unit"
+        icon="pi pi-plus"
+        size="small"
+        (onClick)="createPackaging()"
+      />
+    </div>
+
+    <!-- Packaging List Table -->
+    <p-table
+      [value]="conversions"
+      [loading]="isLoading"
+      [tableStyle]="{ 'min-width': '45rem' }"
+      size="small"
+    >
+      <ng-template #header>
+        <tr>
+          <th>Packaging Unit</th>
+          <th>Conversion Ratio</th>
+          <th style="min-width: 170px">Barcode</th>
+          <th>Defaults</th>
+          <th>Status</th>
+          <th class="w-32 text-right">Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-conv>
+        <tr>
+          <td>
+            <span class="font-bold text-primary">{{ conv.fromUomCode || 'Unit' }}</span>
+            <small class="text-muted-color block">{{ conv.fromUomName }}</small>
+          </td>
+          <td>
+            <span class="font-mono text-xs">
+              1 {{ conv.fromUomCode }} = <b>{{ conv.conversionFactor }}</b> {{ conv.toUomCode }}
+            </span>
+          </td>
+          <td>
+            @if (conv.barcode) {
+              <div class="space-y-1">
+                <span class="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded border border-slate-300 font-bold block w-fit">
+                  {{ conv.barcode }}
+                </span>
+                <app-barcode
+                  [value]="conv.barcode"
+                  [width]="1.2"
+                  [height]="28"
+                  [fontSize]="10"
+                />
+              </div>
+            } @else {
+              <span class="text-xs text-slate-400 italic">No barcode</span>
+            }
+          </td>
+          <td>
+            <div class="flex flex-col gap-1">
+              @if (conv.isDefaultPurchase) {
+                <p-tag value="Default PO" severity="warn" />
+              }
+              @if (conv.isDefaultSale) {
+                <p-tag value="Default POS" severity="success" />
+              }
+              @if (!conv.isDefaultPurchase && !conv.isDefaultSale) {
+                <span class="text-xs text-muted-color">—</span>
+              }
+            </div>
+          </td>
+          <td>
+            <p-tag
+              [value]="conv.isActive ? 'Active' : 'Inactive'"
+              [severity]="conv.isActive ? 'success' : 'danger'"
+            />
+          </td>
+          <td class="text-right space-x-1">
+            <p-button
+              icon="pi pi-print"
+              variant="text"
+              severity="success"
+              size="small"
+              [disabled]="!conv.barcode"
+              (onClick)="onPrintBarcode(conv)"
+            />
+            <p-button
+              icon="pi pi-pencil"
+              variant="text"
+              severity="secondary"
+              size="small"
+              (onClick)="editPackaging(conv)"
+            />
+            <p-button
+              icon="pi pi-trash"
+              variant="text"
+              severity="danger"
+              size="small"
+              (onClick)="deletePackaging(conv)"
+            />
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="6" class="text-center p-6 text-muted-color">
+            No packaging units configured for this product. Click "Add Packaging Unit" to create.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <ng-template #footer>
+    <p-button label="Close" severity="secondary" variant="text" (onClick)="close()" />
+  </ng-template>
+</p-dialog>
+
+<!-- Add / Edit Packaging Sub-Modal -->
+<p-dialog
+  [(visible)]="editModalVisible"
+  [header]="isEdit ? 'Edit Packaging Unit' : 'New Packaging Unit'"
+  [modal]="true"
+  [style]="{ width: '460px' }"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <form [formGroup]="packagingForm" class="space-y-4 pt-2">
+    <!-- From UOM & To UOM -->
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-semibold">Packaging Unit</label>
+        <p-select
+          formControlName="fromUomId"
+          [options]="availableUoms"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="e.g. Box, Carton"
+          class="w-full"
+          appendTo="body"
+          [ngClass]="{'ng-invalid ng-dirty': packagingForm.get('fromUomId')?.invalid && (packagingForm.get('fromUomId')?.dirty || packagingForm.get('fromUomId')?.touched)}"
+        />
+        @if(packagingForm.get('fromUomId')?.invalid && (packagingForm.get('fromUomId')?.dirty || packagingForm.get('fromUomId')?.touched)){
+          <small class="text-xs text-red-500">Packaging Unit is required.</small>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-semibold">Base Unit</label>
+        <p-select
+          formControlName="toUomId"
+          [options]="availableUoms"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="e.g. Pieces"
+          class="w-full"
+          appendTo="body"
+          [ngClass]="{'ng-invalid ng-dirty': packagingForm.get('toUomId')?.invalid && (packagingForm.get('toUomId')?.dirty || packagingForm.get('toUomId')?.touched)}"
+        />
+        @if(packagingForm.get('toUomId')?.invalid && (packagingForm.get('toUomId')?.dirty || packagingForm.get('toUomId')?.touched)){
+          <small class="text-xs text-red-500">Base Unit is required.</small>
+        }
+      </div>
+    </div>
+
+    <!-- Conversion Factor -->
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-semibold">
+        Conversion Factor (How many base units in 1 packaging unit?)
+      </label>
+      <input
+        pInputText
+        type="number"
+        formControlName="conversionFactor"
+        placeholder="e.g. 12, 24, 50"
+        class="w-full"
+        min="0.0001"
+        step="1"
+      />
+      @if(packagingForm.get('conversionFactor')?.invalid && (packagingForm.get('conversionFactor')?.dirty || packagingForm.get('conversionFactor')?.touched)){
+        <small class="text-xs text-red-500">Conversion Factor is required.</small>
+      }
+    </div>
+
+    <!-- Barcode -->
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-semibold">Package / Carton Barcode</label>
+      <p-iconfield iconPosition="left">
+        <p-inputicon>
+          <i class="pi pi-barcode"></i>
+        </p-inputicon>
+        <input
+          pInputText
+          formControlName="barcode"
+          placeholder="e.g. 8881234567890 (Outer package barcode)"
+          class="w-full font-mono text-sm"
+        />
+      </p-iconfield>
+      <small class="text-slate-400 text-xs">
+        Barcode printed on outer packaging box/carton. Can be scanned directly during receiving or wholesale sales.
+      </small>
+    </div>
+
+    <!-- Defaults -->
+    <div class="grid grid-cols-2 gap-3 pt-2">
+      <div class="flex items-center justify-between p-2 bg-slate-50 rounded border border-slate-200">
+        <span class="text-xs font-medium">Default for PO</span>
+        <p-toggleswitch formControlName="isDefaultPurchase" />
+      </div>
+
+      <div class="flex items-center justify-between p-2 bg-slate-50 rounded border border-slate-200">
+        <span class="text-xs font-medium">Default for POS</span>
+        <p-toggleswitch formControlName="isDefaultSale" />
+      </div>
+    </div>
+
+    <!-- Active Switch -->
+    <div class="flex items-center justify-between pt-1">
+      <span class="text-xs font-semibold">Active Status</span>
+      <p-toggleswitch formControlName="isActive" />
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2">
+      <p-button label="Cancel" severity="secondary" variant="text" (onClick)="editModalVisible = false" />
+      <p-button
+        [label]="isEdit ? 'Update' : 'Save'"
+        icon="pi pi-check"
+        [loading]="isSubmitting"
+        (onClick)="savePackaging()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>
