@@ -20,5 +20,10 @@ export default [
   {
     path: 'warehouse-locations',
     loadComponent: () => import('./warehouse-locations/warehouse-locations').then(m => m.WarehouseLocations)
+  },
+  {
+    path: 'unit-of-measures',
+    loadComponent: () => import('./unit-of-measures/unit-of-measures').then(m => m.UnitOfMeasures)
   }
 ] as Routes;
+
