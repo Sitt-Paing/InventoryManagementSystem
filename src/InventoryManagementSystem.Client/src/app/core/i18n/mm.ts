@@ -13,6 +13,7 @@ export const MM_DICTIONARY: Record<string, any> = {
     SUPPLIERS: 'ပေးသွင်းသူများ',
     WAREHOUSES: 'ဂိုဒေါင်များ',
     WAREHOUSE_LOCATIONS: 'ဂိုဒေါင် တည်နေရာများ',
+    UNIT_OF_MEASURES: 'ယူနစ်များ (UOM)',
     PROCESS: 'လုပ်ငန်းစဉ်',
     STOCK_TRANSACTIONS: 'စတော့ လှုပ်ရှားမှုများ',
     SETTINGS: 'ဆက်တင်များ',
