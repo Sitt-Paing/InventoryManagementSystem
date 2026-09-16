@@ -11,6 +11,9 @@ public interface IApplicationDbContext
     DbSet<Supplier> Suppliers { get; }
     DbSet<Warehouse> Warehouses { get; }
     DbSet<WarehouseLocation> WarehouseLocations { get; }
+    DbSet<UomCategory> UomCategories { get; }
+    DbSet<UnitOfMeasure> UnitOfMeasures { get; }
+    DbSet<ProductUomConversion> ProductUomConversions { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
