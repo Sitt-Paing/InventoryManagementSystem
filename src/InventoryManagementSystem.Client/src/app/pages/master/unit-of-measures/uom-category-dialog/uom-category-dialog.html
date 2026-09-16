@@ -1,0 +1,112 @@
+<!-- Manage Categories Dialog -->
+<p-dialog
+  [(visible)]="visible"
+  header="UOM Categories"
+  [modal]="true"
+  [style]="{ width: '650px' }"
+  [draggable]="false"
+  [resizable]="false"
+  (onHide)="close()"
+>
+  <div class="space-y-3">
+    <div class="flex justify-between items-center">
+      <p class="text-xs text-muted-color">
+        Group your units by dimension (e.g. Count, Weight, Volume, Length)
+      </p>
+      <p-button
+        label="Add Category"
+        icon="pi pi-plus"
+        size="small"
+        (onClick)="createCategory()"
+      />
+    </div>
+
+    <p-table [value]="categories" [tableStyle]="{ 'min-width': '30rem' }" size="small">
+      <ng-template #header>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th class="w-24 text-right">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-cat>
+        <tr>
+          <td class="font-semibold">{{ cat.name }}</td>
+          <td>{{ cat.description || '—' }}</td>
+          <td>
+            <p-tag
+              [value]="cat.isActive ? 'Active' : 'Inactive'"
+              [severity]="cat.isActive ? 'success' : 'danger'"
+            />
+          </td>
+          <td class="text-right space-x-1">
+            <p-button
+              icon="pi pi-pencil"
+              variant="text"
+              severity="secondary"
+              size="small"
+              (onClick)="editCategory(cat)"
+            />
+            <p-button
+              icon="pi pi-trash"
+              variant="text"
+              severity="danger"
+              size="small"
+              (onClick)="deleteCategory(cat)"
+            />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="4" class="text-center p-4 text-muted-color">
+            No categories defined yet.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</p-dialog>
+
+<!-- Create / Edit Category Sub-Modal -->
+<p-dialog
+  [(visible)]="editModalVisible"
+  [header]="isEdit ? 'Edit UOM Category' : 'New UOM Category'"
+  [modal]="true"
+  [style]="{ width: '400px' }"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <form [formGroup]="categoryForm" class="space-y-3 pt-2">
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-semibold">Category Name <span class="text-red-500">*</span></label>
+      <input pInputText formControlName="name" placeholder="e.g. Count / Unit, Weight, Volume" class="w-full" />
+      @if (categoryForm.get('name')?.invalid && categoryForm.get('name')?.touched) {
+        <small class="text-red-500 text-xs">Name is required.</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-semibold">Description</label>
+      <input pInputText formControlName="description" placeholder="Optional notes" class="w-full" />
+    </div>
+
+    <div class="flex items-center justify-between pt-2">
+      <span class="text-xs font-semibold">Active Status</span>
+      <p-toggleswitch formControlName="isActive" />
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2">
+      <p-button label="Cancel" severity="secondary" variant="text" (onClick)="editModalVisible = false" />
+      <p-button
+        [label]="isEdit ? 'Update' : 'Save'"
+        icon="pi pi-check"
+        [loading]="isSubmitting"
+        (onClick)="saveCategory()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>
