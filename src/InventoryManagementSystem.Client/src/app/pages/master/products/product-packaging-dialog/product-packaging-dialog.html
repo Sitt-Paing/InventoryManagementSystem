@@ -12,7 +12,7 @@
     <!-- Subheader with product info -->
     <div class="flex flex-wrap items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
       <div>
-        <p class="text-xs text-muted-color">Item SKU / Primary Barcode</p>
+        <p class="text-xs  dark:text-slate-800 text-muted-color">Item SKU / Primary Barcode</p>
         <p class="font-mono text-sm font-bold text-slate-800">
           {{ product?.sku || '—' }} | {{ product?.barcode || 'No Barcode' }}
         </p>
@@ -57,7 +57,7 @@
           <td>
             @if (conv.barcode) {
               <div class="space-y-1">
-                <span class="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded border border-slate-300 font-bold block w-fit">
+                <span class="font-mono text-xs bg-slate-100 dark:text-slate-800 px-1.5 py-0.5 rounded border border-slate-300 font-bold block w-fit">
                   {{ conv.barcode }}
                 </span>
                 <app-barcode
