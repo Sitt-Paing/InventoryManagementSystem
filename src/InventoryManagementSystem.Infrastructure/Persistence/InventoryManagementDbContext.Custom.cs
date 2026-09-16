@@ -100,6 +100,15 @@ public partial class InventoryManagementDbContext : IApplicationDbContext
                     v => ParseGuidOrEmpty(v)
                 );
         });
+
+        modelBuilder.Entity<ProductUomConversion>(entity =>
+        {
+            entity.Property(e => e.ProductId)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => ParseGuidOrEmpty(v)
+                );
+        });
     }
 
     private static Guid ParseGuidOrDefault(string v)
