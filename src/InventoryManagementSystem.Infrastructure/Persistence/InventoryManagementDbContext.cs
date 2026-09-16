@@ -28,9 +28,15 @@ public partial class InventoryManagementDbContext : DbContext
 
     public virtual DbSet<Product> Products { get; set; }
 
+    public virtual DbSet<ProductUomConversion> ProductUomConversions { get; set; }
+
     public virtual DbSet<StockTransaction> StockTransactions { get; set; }
 
     public virtual DbSet<Supplier> Suppliers { get; set; }
+
+    public virtual DbSet<UnitOfMeasure> UnitOfMeasures { get; set; }
+
+    public virtual DbSet<UomCategory> UomCategories { get; set; }
 
     public virtual DbSet<Warehouse> Warehouses { get; set; }
 
@@ -144,11 +150,36 @@ public partial class InventoryManagementDbContext : DbContext
             entity.Property(e => e.Unit).HasMaxLength(50);
             entity.Property(e => e.UpdatedBy).HasMaxLength(256);
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+        });
 
-            entity.HasOne(d => d.Category).WithMany(p => p.Products)
-                .HasForeignKey(d => d.CategoryId)
+        modelBuilder.Entity<ProductUomConversion>(entity =>
+        {
+            entity.ToTable("ProductUomConversion");
+
+            entity.Property(e => e.Barcode).HasMaxLength(50);
+            entity.Property(e => e.ConversionFactor).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.CreatedBy).HasMaxLength(50);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.DeletedBy).HasMaxLength(50);
+            entity.Property(e => e.DeletedOn).HasColumnType("datetime");
+            entity.Property(e => e.ProductId).HasMaxLength(50);
+            entity.Property(e => e.UpdatedBy).HasMaxLength(50);
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+
+            entity.HasOne(d => d.FromUom).WithMany(p => p.ProductUomConversionFromUoms)
+                .HasForeignKey(d => d.FromUomId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Products_Categories");
+                .HasConstraintName("FK_ProductUomConversion_UnitOfMeasure");
+
+            entity.HasOne(d => d.Product).WithMany(p => p.ProductUomConversions)
+                .HasForeignKey(d => d.ProductId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ProductUomConversion_Products");
+
+            entity.HasOne(d => d.ToUom).WithMany(p => p.ProductUomConversionToUoms)
+                .HasForeignKey(d => d.ToUomId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ProductUomConversion_UnitOfMeasure1");
         });
 
         modelBuilder.Entity<StockTransaction>(entity =>
@@ -192,6 +223,40 @@ public partial class InventoryManagementDbContext : DbContext
             entity.Property(e => e.PaymentTerms).HasMaxLength(50);
             entity.Property(e => e.Phone).HasMaxLength(50);
             entity.Property(e => e.SupplierCode).HasMaxLength(50);
+            entity.Property(e => e.UpdatedBy).HasMaxLength(50);
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<UnitOfMeasure>(entity =>
+        {
+            entity.ToTable("UnitOfMeasure");
+
+            entity.Property(e => e.Code).HasMaxLength(20);
+            entity.Property(e => e.CreatedBy).HasMaxLength(50);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.DeletedBy).HasMaxLength(50);
+            entity.Property(e => e.DeletedOn).HasColumnType("datetime");
+            entity.Property(e => e.Name).HasMaxLength(150);
+            entity.Property(e => e.Symbol).HasMaxLength(20);
+            entity.Property(e => e.UpdatedBy).HasMaxLength(50);
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Category).WithMany(p => p.UnitOfMeasures)
+                .HasForeignKey(d => d.CategoryId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UnitOfMeasure_UOM_Category");
+        });
+
+        modelBuilder.Entity<UomCategory>(entity =>
+        {
+            entity.ToTable("UOM_Category");
+
+            entity.Property(e => e.CreatedBy).HasMaxLength(50);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.DeletedBy).HasMaxLength(50);
+            entity.Property(e => e.DeletedOn).HasColumnType("datetime");
+            entity.Property(e => e.Description).HasMaxLength(250);
+            entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.UpdatedBy).HasMaxLength(50);
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
         });
