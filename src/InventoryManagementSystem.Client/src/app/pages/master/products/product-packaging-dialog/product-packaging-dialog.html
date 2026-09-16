@@ -10,10 +10,10 @@
 >
   <div class="space-y-4 pt-2">
     <!-- Subheader with product info -->
-    <div class="flex flex-wrap items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+    <div class="flex flex-wrap items-center justify-between p-3 bg-slate-50 rounded-lg border dark:bg-[#090d10] border-slate-200">
       <div>
-        <p class="text-xs  dark:text-slate-800 text-muted-color">Item SKU / Primary Barcode</p>
-        <p class="font-mono text-sm font-bold text-slate-800">
+        <p class="text-xs text-muted-color">Item SKU / Primary Barcode</p>
+        <p class="font-mono text-sm font-bold text-slate-800 dark:text-slate-200">
           {{ product?.sku || '—' }} | {{ product?.barcode || 'No Barcode' }}
         </p>
       </div>
