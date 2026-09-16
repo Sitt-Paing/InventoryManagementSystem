@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using InventoryManagementSystem.Domain.Common;
 
 namespace InventoryManagementSystem.Domain.Entities;
 
-public partial class ProductUomConversion
+public partial class ProductUomConversion : BaseAuditableEntity<long>
 {
-    public long Id { get; set; }
-
-    public string ProductId { get; set; } = null!;
+    public Guid ProductId { get; set; }
 
     public long FromUomId { get; set; }
 
@@ -22,19 +19,7 @@ public partial class ProductUomConversion
 
     public bool IsDefaultSale { get; set; }
 
-    public bool IsActive { get; set; }
-
-    public DateTime? CreatedOn { get; set; }
-
-    public string? CreatedBy { get; set; }
-
-    public DateTime? UpdatedOn { get; set; }
-
-    public string? UpdatedBy { get; set; }
-
-    public DateTime? DeletedOn { get; set; }
-
-    public string? DeletedBy { get; set; }
+    public bool IsActive { get; set; } = true;
 
     [JsonIgnore]
     public virtual UnitOfMeasure FromUom { get; set; } = null!;
