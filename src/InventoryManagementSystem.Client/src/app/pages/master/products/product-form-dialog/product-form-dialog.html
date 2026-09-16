@@ -1,0 +1,129 @@
+<!-- Product Form Modal Dialog -->
+<p-dialog
+  [header]="isEdit ? 'Edit Product' : 'Create Product'"
+  [(visible)]="visible"
+  [breakpoints]="{
+    '1920px': '40vw',
+    '1440px': '45vw',
+    '1024px': '55vw',
+    '768px': '85vw',
+    '425px': '100vw',
+    '375px': '100vw',
+    '320px': '100vw'
+  }"
+  [modal]="true"
+  [style]="{ 'min-width': '40vw' }"
+  [draggable]="false"
+  [resizable]="false"
+  (onHide)="close()">
+
+  <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+    <div class="grid grid-cols-12 gap-3.5 mt-2">
+      <!-- Product Name -->
+      <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5">
+        <label for="name" class="text-xs font-bold">Product Name *</label>
+        <input id="name" formControlName="name" pInputText placeholder="Enter Product name..." required />
+        @if(productForm.get('name')?.invalid && (productForm.get('name')?.dirty || productForm.get('name')?.touched)){
+          <small class="text-xs text-red-500">Product name is required.</small>
+        }
+      </div>
+
+      <!-- Category Select -->
+      <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5">
+        <label for="categoryId" class="text-xs font-bold">Category *</label>
+        <p-select
+          id="categoryId"
+          formControlName="categoryId"
+          [options]="categories"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Select Category..."
+          class="w-full"
+          [ngClass]="{'ng-invalid ng-dirty' : productForm.get('categoryId')?.invalid && (productForm.get('categoryId')?.dirty || productForm.get('categoryId')?.touched)}"
+          >
+        </p-select>
+        @if(productForm.get('categoryId')?.invalid && (productForm.get('categoryId')?.dirty || productForm.get('categoryId')?.touched)){
+          <small class="text-xs text-red-500">Category is required.</small>
+        }
+      </div>
+
+      <!-- SKU -->
+      <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
+        <label for="sku" class="text-xs font-bold">SKU</label>
+        <input id="sku" formControlName="sku" pInputText placeholder="e.g. PRD-001" />
+      </div>
+
+      <!-- Barcode -->
+      <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
+        <label for="barcode" class="text-xs font-bold">Barcode</label>
+        <input id="barcode" formControlName="barcode" pInputText placeholder="e.g. 8901234567890" />
+      </div>
+
+      <!-- Brand -->
+      <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
+        <label for="brand" class="text-xs font-bold">Brand</label>
+        <input id="brand" formControlName="brand" pInputText placeholder="Enter Brand..." />
+      </div>
+
+      <!-- Unit -->
+      <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
+        <label for="unit" class="text-xs font-bold">Unit</label>
+        <input id="unit" formControlName="unit" pInputText placeholder="e.g. Pcs, Box, Kg..." />
+      </div>
+
+      <!-- Cost Price -->
+      <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
+        <label for="costPrice" class="text-xs font-bold">Cost Price *</label>
+        <input id="costPrice" formControlName="costPrice" type="number" pInputText min="0" step="0.01" />
+      </div>
+
+      <!-- Selling Price -->
+      <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
+        <label for="sellingPrice" class="text-xs font-bold">Selling Price *</label>
+        <input id="sellingPrice" formControlName="sellingPrice" type="number" pInputText min="0" step="0.01" />
+      </div>
+
+      <!-- Current Stock -->
+      <div class="col-span-12 sm:col-span-3 flex flex-col gap-1.5">
+        <label for="currentStock" class="text-xs font-bold">Current Stock *</label>
+        <input id="currentStock" formControlName="currentStock" type="number" pInputText min="0" />
+      </div>
+
+      <!-- Reorder Level -->
+      <div class="col-span-12 sm:col-span-3 flex flex-col gap-1.5">
+        <label for="reorderLevel" class="text-xs font-bold">Reorder Level *</label>
+        <input id="reorderLevel" formControlName="reorderLevel" type="number" pInputText min="0" />
+      </div>
+
+      <!-- Reorder Quantity -->
+      <div class="col-span-12 sm:col-span-3 flex flex-col gap-1.5">
+        <label for="reorderQuantity" class="text-xs font-bold">Reorder Quantity *</label>
+        <input id="reorderQuantity" formControlName="reorderQuantity" type="number" pInputText min="0" />
+      </div>
+
+      <!-- Tax -->
+      <div class="col-span-12 sm:col-span-3 flex flex-col gap-1.5">
+        <label for="tax" class="text-xs font-bold">Tax (%) *</label>
+        <input id="tax" formControlName="tax" type="number" pInputText min="0" step="0.01" />
+      </div>
+
+      <!-- Description -->
+      <div class="col-span-12 flex flex-col gap-1.5">
+        <label for="description" class="text-xs font-bold">Description</label>
+        <textarea id="description" formControlName="description" pTextarea [rows]="2" placeholder="Optional notes..."></textarea>
+      </div>
+
+      <!-- Status -->
+      <div class="col-span-12 flex items-center gap-2 mt-1">
+        <p-toggleswitch formControlName="status"></p-toggleswitch>
+        <label class="text-xs font-bold">Status</label>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-end gap-2 mt-4 pt-3 border-t border-slate-100">
+      <p-button label="Cancel" icon="pi pi-times" severity="secondary" size="small" [outlined]="true" (onClick)="close()"></p-button>
+      <p-button [label]="isEdit ? 'Update' : 'Save'" icon="pi pi-check" size="small" type="submit" [loading]="isSubmitting"></p-button>
+    </div>
+  </form>
+</p-dialog>
