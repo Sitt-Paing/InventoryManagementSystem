@@ -94,6 +94,12 @@ export const NAVIGATION_MENU: Readonly<NavigationMenuGroup[]> = [
         transKey: 'NAV.WAREHOUSE_LOCATIONS',
         icon: 'pi pi-map-marker',
         routerLink: '/master/warehouse-locations',
+      },
+      {
+        label: 'Unit of Measures',
+        transKey: 'NAV.UNIT_OF_MEASURES',
+        icon: 'pi pi-calculator',
+        routerLink: '/master/unit-of-measures',
       }
     ],
   },
