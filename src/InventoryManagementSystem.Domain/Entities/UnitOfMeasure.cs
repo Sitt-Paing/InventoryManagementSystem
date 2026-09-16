@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace InventoryManagementSystem.Domain.Entities;
 
@@ -31,9 +32,12 @@ public partial class UnitOfMeasure
 
     public string? DeletedBy { get; set; }
 
+    [JsonIgnore]
     public virtual UomCategory Category { get; set; } = null!;
 
+    [JsonIgnore]
     public virtual ICollection<ProductUomConversion> ProductUomConversionFromUoms { get; set; } = new List<ProductUomConversion>();
 
+    [JsonIgnore]
     public virtual ICollection<ProductUomConversion> ProductUomConversionToUoms { get; set; } = new List<ProductUomConversion>();
 }
