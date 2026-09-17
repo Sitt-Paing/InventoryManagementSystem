@@ -5,25 +5,14 @@
   <!-- Top Toolbar: Create Button, Warehouse Filter & Global Search -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
     <div>
-      <p-splitbutton
-        label="Create"
-        icon="pi pi-plus"
-        [model]="items"
-        (onClick)="create()"
-        size="small">
+      <p-splitbutton label="Create" icon="pi pi-plus" [model]="items" (onClick)="create()" size="small">
       </p-splitbutton>
     </div>
 
     <div class="flex flex-wrap gap-3 ml-auto">
       <!-- Warehouse Filter Select Box -->
-      <p-select
-        [options]="warehouses"
-        [(ngModel)]="selectedWarehouseFilter"
-        (onChange)="onWarehouseFilterChange()"
-        [showClear]="true"
-        optionLabel="name"
-        optionValue="id"
-        placeholder="All Warehouses">
+      <p-select [options]="warehouses" [(ngModel)]="selectedWarehouseFilter" (onChange)="onWarehouseFilterChange()"
+        [showClear]="true" optionLabel="name" optionValue="id" placeholder="All Warehouses">
       </p-select>
 
       <!-- Global Search -->
@@ -31,34 +20,18 @@
         <p-inputicon>
           <i class="pi pi-search"></i>
         </p-inputicon>
-        <input
-          #search
-          pInputText
-          type="text"
-          (input)="tblLocations.filterGlobal(search.value, 'contains')"
-          placeholder="Search keyword"
-          class="w-full text-xs" />
+        <input #search pInputText type="text" (input)="tblLocations.filterGlobal(search.value, 'contains')"
+          placeholder="Search keyword" class="w-full text-xs" />
       </p-iconfield>
     </div>
   </div>
 
   <!-- PrimeNG Data Table -->
-  <p-table
-    #tblLocations
-    [value]="locations"
-    [(selection)]="selectedLocation"
-    dataKey="id"
-    selectionMode="single"
-    stripedRows="true"
-    sortField="createdOn"
-    [sortOrder]="-1"
-    [paginator]="true"
-    [tableStyle]="{ 'min-width': '70rem', 'white-space': 'nowrap' }"
-    [rows]="20"
-    [rowsPerPageOptions]="[20, 50, 100]"
-    [showCurrentPageReport]="true"
-    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-    [loading]="isLoading"
+  <p-table #tblLocations [value]="locations" [(selection)]="selectedLocation" dataKey="id" selectionMode="single"
+    stripedRows="true" sortField="createdOn" [sortOrder]="-1" [paginator]="true"
+    [tableStyle]="{ 'min-width': '70rem', 'white-space': 'nowrap' }" [rows]="20" paginatorDropdownAppendTo="body"
+    [rowsPerPageOptions]="[20, 50, 100]" [showCurrentPageReport]="true"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [loading]="isLoading"
     [globalFilterFields]="['locationCode', 'warehouseName', 'zone', 'rack', 'bin', 'barcode', 'createdBy', 'updatedBy']">
 
     <ng-template #header let-location>
@@ -91,16 +64,14 @@
         <td>{{ location.bin || 'N/A' }}</td>
         <td>
           @if (location.barcode) {
-            <p-button label="Barcode" icon="pi pi-eye" size="small" (click)="viewBarcode(location)"></p-button>
+          <p-button label="Barcode" icon="pi pi-eye" size="small" (click)="viewBarcode(location)"></p-button>
           } @else {
-            <span class="text-gray-400">N/A</span>
+          <span class="text-gray-400">N/A</span>
           }
         </td>
         <td>{{ location.capacity != null ? (location.capacity | number:'1.0-2') : 'N/A' }}</td>
         <td>
-          <p-tag
-            [value]="location.status ? 'Active' : 'InActive'"
-            size="small"
+          <p-tag [value]="location.status ? 'Active' : 'InActive'" size="small"
             icon="{{ location.status ? 'pi pi-check' : 'pi pi-minus-circle' }}"
             [severity]="location.status ? 'success' : 'danger'">
           </p-tag>
@@ -114,9 +85,7 @@
   </p-table>
 
   <!-- Create / Edit Modal Dialog -->
-  <p-dialog
-    [header]="isEdit ? 'Edit Warehouse Location' : 'Create Warehouse Location'"
-    [(visible)]="modalVisible"
+  <p-dialog [header]="isEdit ? 'Edit Warehouse Location' : 'Create Warehouse Location'" [(visible)]="modalVisible"
     [breakpoints]="{
       '1920px': '40vw',
       '1440px': '45vw',
@@ -125,98 +94,59 @@
       '425px': '100vw',
       '375px': '100vw',
       '320px': '100vw'
-    }"
-    [modal]="true"
-    [style]="{ 'min-width': '40vw' }"
-    [draggable]="false"
-    [resizable]="false"
+    }" [modal]="true" [style]="{ 'min-width': '40vw' }" [draggable]="false" [resizable]="false"
     (onHide)="onDialogHide()">
     <form [formGroup]="locationForm" (ngSubmit)="onSubmit()">
       <div class="grid grid-cols-12 gap-3">
         <!-- Warehouse Select -->
         <div class="col-span-12 lg:col-span-6 flex flex-col gap-2">
           <label for="warehouseId">Warehouse</label>
-          <p-select
-            id="warehouseId"
-            formControlName="warehouseId"
-            [options]="warehouses"
-            optionLabel="name"
-            optionValue="id"
-            placeholder="Select Warehouse">
+          <p-select id="warehouseId" formControlName="warehouseId" [options]="warehouses" optionLabel="name"
+            optionValue="id" placeholder="Select Warehouse">
           </p-select>
           @if (locationForm.controls['warehouseId'].invalid && locationForm.get('warehouseId')?.dirty) {
-            <small class="text-xs text-red-500">Warehouse is required.</small>
+          <small class="text-xs text-red-500">Warehouse is required.</small>
           }
         </div>
 
         <!-- Location Code -->
         <div class="col-span-12 lg:col-span-6 flex flex-col gap-2">
           <label for="locationCode">Location Code</label>
-          <input
-            type="text"
-            id="locationCode"
-            formControlName="locationCode"
-            pInputText
-            placeholder="Location Code"
+          <input type="text" id="locationCode" formControlName="locationCode" pInputText placeholder="Location Code"
             required />
           @if (locationForm.controls['locationCode'].invalid && locationForm.get('locationCode')?.dirty) {
-            <small class="text-xs text-red-500">Location code is required.</small>
+          <small class="text-xs text-red-500">Location code is required.</small>
           }
         </div>
 
         <!-- Zone -->
         <div class="col-span-12 lg:col-span-6 flex flex-col gap-2">
           <label for="zone">Zone</label>
-          <input
-            type="text"
-            id="zone"
-            formControlName="zone"
-            pInputText
-            placeholder="Zone (e.g. Zone A)" />
+          <input type="text" id="zone" formControlName="zone" pInputText placeholder="Zone (e.g. Zone A)" />
         </div>
 
         <!-- Rack -->
         <div class="col-span-12 lg:col-span-6 flex flex-col gap-2">
           <label for="rack">Rack</label>
-          <input
-            type="text"
-            id="rack"
-            formControlName="rack"
-            pInputText
-            placeholder="Rack (e.g. Rack 1)" />
+          <input type="text" id="rack" formControlName="rack" pInputText placeholder="Rack (e.g. Rack 1)" />
         </div>
 
         <!-- Bin -->
         <div class="col-span-12 lg:col-span-6 flex flex-col gap-2">
           <label for="bin">Bin</label>
-          <input
-            type="text"
-            id="bin"
-            formControlName="bin"
-            pInputText
-            placeholder="Bin (e.g. Bin 01)" />
+          <input type="text" id="bin" formControlName="bin" pInputText placeholder="Bin (e.g. Bin 01)" />
         </div>
 
         <!-- Barcode -->
         <div class="col-span-12 lg:col-span-6 flex flex-col gap-2">
           <label for="barcode">Barcode</label>
-          <input
-            type="text"
-            id="barcode"
-            formControlName="barcode"
-            pInputText
-            placeholder="Barcode" />
+          <input type="text" id="barcode" formControlName="barcode" pInputText placeholder="Barcode" />
         </div>
 
         <!-- Capacity -->
         <div class="col-span-12 lg:col-span-6 flex flex-col gap-2">
           <label for="capacity">Capacity</label>
-          <input
-            type="number"
-            id="capacity"
-            formControlName="capacity"
-            pInputText
-            placeholder="Capacity" />
+          <input type="number" id="capacity" formControlName="capacity" pInputText placeholder="Capacity" />
         </div>
 
         <!-- Status -->
@@ -227,12 +157,8 @@
 
         <!-- Submit Button -->
         <div class="col-span-12 mt-3 ml-auto">
-          <p-button
-            icon="pi pi-check"
-            label="{{ isEdit ? 'Update' : 'Save' }}"
-            type="submit"
-            [severity]="isEdit ? 'info' : 'success'"
-            [loading]="isSubmitting">
+          <p-button icon="pi pi-check" label="{{ isEdit ? 'Update' : 'Save' }}" type="submit"
+            [severity]="isEdit ? 'info' : 'success'" [loading]="isSubmitting">
           </p-button>
         </div>
       </div>
@@ -240,10 +166,7 @@
   </p-dialog>
 
   <!-- Barcode Modal Dialog -->
-  <p-dialog
-    [(visible)]="barcodeModalVisible"
-    header="Location Barcode Sticker"
-    [breakpoints]="{
+  <p-dialog [(visible)]="barcodeModalVisible" header="Location Barcode Sticker" [breakpoints]="{
       '1920px': '35vw',
       '1440px': '35vw',
       '1024px': '45vw',
@@ -251,11 +174,7 @@
       '425px': '100vw',
       '375px': '100vw',
       '320px': '100vw'
-    }"
-    [modal]="true"
-    [draggable]="false"
-    [resizable]="false"
-    (onHide)="onBarcodeDialogHide()">
+    }" [modal]="true" [draggable]="false" [resizable]="false" (onHide)="onBarcodeDialogHide()">
     <div class="flex flex-col items-center gap-3 py-1">
       <!-- Sticker Size Controller (Dynamic mm) -->
       <div class="w-full bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-xs">
@@ -266,20 +185,18 @@
           <!-- Preset Buttons -->
           <div class="flex items-center gap-1">
             @for (preset of stickerPresets; track preset.label) {
-              <button
-                type="button"
-                class="px-2 py-1 rounded text-[11px] font-semibold transition-all cursor-pointer"
-                [class.bg-emerald-600]="stickerWidthMm === preset.width && stickerHeightMm === preset.height"
-                [class.text-white]="stickerWidthMm === preset.width && stickerHeightMm === preset.height"
-                [class.shadow-xs]="stickerWidthMm === preset.width && stickerHeightMm === preset.height"
-                [class.bg-white]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
-                [class.text-slate-700]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
-                [class.border]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
-                [class.border-slate-300]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
-                [class.hover:bg-slate-100]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
-                (click)="onStickerPresetChange(preset)">
-                {{ preset.width }}×{{ preset.height }}mm
-              </button>
+            <button type="button" class="px-2 py-1 rounded text-[11px] font-semibold transition-all cursor-pointer"
+              [class.bg-emerald-600]="stickerWidthMm === preset.width && stickerHeightMm === preset.height"
+              [class.text-white]="stickerWidthMm === preset.width && stickerHeightMm === preset.height"
+              [class.shadow-xs]="stickerWidthMm === preset.width && stickerHeightMm === preset.height"
+              [class.bg-white]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
+              [class.text-slate-700]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
+              [class.border]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
+              [class.border-slate-300]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
+              [class.hover:bg-slate-100]="stickerWidthMm !== preset.width || stickerHeightMm !== preset.height"
+              (click)="onStickerPresetChange(preset)">
+              {{ preset.width }}×{{ preset.height }}mm
+            </button>
             }
           </div>
         </div>
@@ -288,23 +205,13 @@
         <div class="flex items-center gap-3 pt-1.5 border-t border-slate-200">
           <label class="flex items-center gap-1.5 font-medium text-slate-700">
             Width:
-            <input
-              type="number"
-              [(ngModel)]="stickerWidthMm"
-              (ngModelChange)="onStickerSizeInput()"
-              min="20"
-              max="150"
+            <input type="number" [(ngModel)]="stickerWidthMm" (ngModelChange)="onStickerSizeInput()" min="20" max="150"
               class="w-14 px-1.5 py-0.5 border border-slate-300 rounded bg-white text-center font-mono font-bold text-slate-900 focus:outline-emerald-500" />
             <span class="text-slate-500 font-normal">mm</span>
           </label>
           <label class="flex items-center gap-1.5 font-medium text-slate-700">
             Height:
-            <input
-              type="number"
-              [(ngModel)]="stickerHeightMm"
-              (ngModelChange)="onStickerSizeInput()"
-              min="15"
-              max="150"
+            <input type="number" [(ngModel)]="stickerHeightMm" (ngModelChange)="onStickerSizeInput()" min="15" max="150"
               class="w-14 px-1.5 py-0.5 border border-slate-300 rounded bg-white text-center font-mono font-bold text-slate-900 focus:outline-emerald-500" />
             <span class="text-slate-500 font-normal">mm</span>
           </label>
@@ -318,47 +225,34 @@
       <div
         class="w-full bg-slate-100 rounded-xl p-3.5 border border-slate-200 flex flex-col items-center justify-center min-h-[190px]">
         @if (isLoadingPreview) {
-          <div class="flex flex-col items-center gap-2 py-8 text-slate-600">
-            <i class="pi pi-spin pi-spinner text-2xl text-emerald-600"></i>
-            <span class="text-xs font-semibold">Generating server preview...</span>
-          </div>
+        <div class="flex flex-col items-center gap-2 py-8 text-slate-600">
+          <i class="pi pi-spin pi-spinner text-2xl text-emerald-600"></i>
+          <span class="text-xs font-semibold">Generating server preview...</span>
+        </div>
         } @else if (serverPreviewBlobUrl) {
-          <div
-            id="location-barcode-sticker"
-            class="bg-white rounded-lg p-2 shadow-sm border border-slate-300 flex justify-center items-center overflow-hidden max-w-full"
-            [style.max-width.px]="480">
-            <img
-              [src]="serverPreviewBlobUrl"
-              alt="Server Barcode Label Preview"
-              class="w-full h-auto object-contain block rounded" />
-          </div>
-          <p class="text-xs text-slate-600 font-medium mt-2 flex items-center gap-1.5">
-            <i class="pi pi-check-circle text-emerald-600 font-bold"></i> Server-rendered Code 128 preview (WYSIWYG)
-          </p>
+        <div id="location-barcode-sticker"
+          class="bg-white rounded-lg p-2 shadow-sm border border-slate-300 flex justify-center items-center overflow-hidden max-w-full"
+          [style.max-width.px]="480">
+          <img [src]="serverPreviewBlobUrl" alt="Server Barcode Label Preview"
+            class="w-full h-auto object-contain block rounded" />
+        </div>
+        <p class="text-xs text-slate-600 font-medium mt-2 flex items-center gap-1.5">
+          <i class="pi pi-check-circle text-emerald-600 font-bold"></i> Server-rendered Code 128 preview (WYSIWYG)
+        </p>
         } @else {
-          <div class="flex flex-col items-center gap-1 py-8 text-slate-600 text-xs font-medium">
-            <i class="pi pi-exclamation-triangle text-amber-500 text-xl mb-1"></i>
-            <span>Unable to load server preview</span>
-          </div>
+        <div class="flex flex-col items-center gap-1 py-8 text-slate-600 text-xs font-medium">
+          <i class="pi pi-exclamation-triangle text-amber-500 text-xl mb-1"></i>
+          <span>Unable to load server preview</span>
+        </div>
         }
       </div>
 
       <!-- Action Buttons -->
       <div class="flex items-center justify-end gap-2 mt-2 w-full pt-2 border-t border-slate-200">
-        <p-button
-          label="Print Sticker"
-          icon="pi pi-print"
-          severity="success"
-          size="small"
-          [disabled]="!selectedLocationForBarcode || isLoadingPreview"
-          (onClick)="printSticker()">
+        <p-button label="Print Sticker" icon="pi pi-print" severity="success" size="small"
+          [disabled]="!selectedLocationForBarcode || isLoadingPreview" (onClick)="printSticker()">
         </p-button>
-        <p-button
-          label="Close"
-          icon="pi pi-times"
-          severity="secondary"
-          size="small"
-          [outlined]="true"
+        <p-button label="Close" icon="pi pi-times" severity="secondary" size="small" [outlined]="true"
           (onClick)="onBarcodeDialogHide()">
         </p-button>
       </div>
