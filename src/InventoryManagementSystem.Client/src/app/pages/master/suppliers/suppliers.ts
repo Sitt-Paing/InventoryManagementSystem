@@ -5,7 +5,6 @@ import { SplitButtonModule } from "primeng/splitbutton";
 import { IconFieldModule } from "primeng/iconfield";
 import { InputIconModule } from "primeng/inputicon";
 import { Table, TableModule } from "primeng/table";
-import { SuppliersService } from '../../../core/services/suppliers.service';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { SuppliersModel } from '../../../core/models/suppliers.model';
 import { InputTextModule } from 'primeng/inputtext';
@@ -16,6 +15,7 @@ import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angu
 import { ToggleSwitchModule } from "primeng/toggleswitch";
 import { ButtonModule } from "primeng/button";
 import { ExportService } from '../../../core/services/export.service';
+import { SuppliersService } from '../../../core/services/master/suppliers.service';
 
 @Component({
   selector: 'app-suppliers',
