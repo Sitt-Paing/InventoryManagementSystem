@@ -65,20 +65,101 @@
         <input id="brand" formControlName="brand" pInputText placeholder="Enter Brand..." />
       </div>
 
-      <!-- Unit -->
+      <!-- Base Unit -->
       <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
-        <label for="unit" class="text-xs font-bold">Unit</label>
-        <input id="unit" formControlName="unit" pInputText placeholder="e.g. Pcs, Box, Kg..." />
+        <label for="baseUomId" class="text-xs font-bold">Base Unit *</label>
+        <p-select
+          id="baseUomId"
+          formControlName="baseUomId"
+          [options]="availableUoms"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Select Base Unit..."
+          class="w-full"
+          appendTo="body"
+          [ngClass]="{'ng-invalid ng-dirty' : productForm.get('baseUomId')?.invalid && (productForm.get('baseUomId')?.dirty || productForm.get('baseUomId')?.touched)}"
+          >
+          <ng-template #selectedItem let-selectedOption>
+            @if (selectedOption) {
+              <span>{{ selectedOption.name }} ({{ selectedOption.code }})</span>
+            }
+          </ng-template>
+          <ng-template #item let-item>
+            <div class="flex items-center justify-between w-full">
+              <span>{{ item.name }}</span>
+              <span class="text-xs text-slate-400 font-mono">({{ item.code }})</span>
+            </div>
+          </ng-template>
+        </p-select>
+        @if(productForm.get('baseUomId')?.invalid && (productForm.get('baseUomId')?.dirty || productForm.get('baseUomId')?.touched)){
+          <small class="text-xs text-red-500">Base Unit is required.</small>
+        }
+      </div>
+
+      <!-- Purchase Unit -->
+      <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
+        <label for="purchaseUomId" class="text-xs font-bold">Default Purchase Unit</label>
+        <p-select
+          id="purchaseUomId"
+          formControlName="purchaseUomId"
+          [options]="availableUoms"
+          optionLabel="name"
+          optionValue="id"
+          [showClear]="true"
+          placeholder="Same as Base Unit"
+          class="w-full"
+          appendTo="body"
+          >
+          <ng-template #selectedItem let-selectedOption>
+            @if (selectedOption) {
+              <span>{{ selectedOption.name }} ({{ selectedOption.code }})</span>
+            }
+          </ng-template>
+          <ng-template #item let-item>
+            <div class="flex items-center justify-between w-full">
+              <span>{{ item.name }}</span>
+              <span class="text-xs text-slate-400 font-mono">({{ item.code }})</span>
+            </div>
+          </ng-template>
+        </p-select>
+      </div>
+
+      <!-- Sale Unit -->
+      <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
+        <label for="saleUomId" class="text-xs font-bold">Default Sales Unit</label>
+        <p-select
+          id="saleUomId"
+          formControlName="saleUomId"
+          [options]="availableUoms"
+          optionLabel="name"
+          optionValue="id"
+          [showClear]="true"
+          placeholder="Same as Base Unit"
+          class="w-full"
+          appendTo="body"
+          >
+          <ng-template #selectedItem let-selectedOption>
+            @if (selectedOption) {
+              <span>{{ selectedOption.name }} ({{ selectedOption.code }})</span>
+            }
+          </ng-template>
+          <ng-template #item let-item>
+            <div class="flex items-center justify-between w-full">
+              <span>{{ item.name }}</span>
+              <span class="text-xs text-slate-400 font-mono">({{ item.code }})</span>
+            </div>
+          </ng-template>
+        </p-select>
       </div>
 
       <!-- Cost Price -->
-      <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
+      <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5">
         <label for="costPrice" class="text-xs font-bold">Cost Price *</label>
         <input id="costPrice" formControlName="costPrice" type="number" pInputText min="0" step="0.01" />
       </div>
 
       <!-- Selling Price -->
-      <div class="col-span-12 sm:col-span-4 flex flex-col gap-1.5">
+      <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5">
         <label for="sellingPrice" class="text-xs font-bold">Selling Price *</label>
         <input id="sellingPrice" formControlName="sellingPrice" type="number" pInputText min="0" step="0.01" />
       </div>
