@@ -15,8 +15,8 @@ import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { ProductModel } from '../../../../core/models/product.model';
 import { ProductUomConversionModel } from '../../../../core/models/product-uom-conversion.model';
 import { UnitOfMeasureModel } from '../../../../core/models/unit-of-measure.model';
-import { ProductUomConversionService } from '../../../../core/services/product-uom-conversion.service';
 import { Barcode } from '../../../../shared/components/barcode/barcode';
+import { ProductUomConversionService } from '../../../../core/services/master/product-uom-conversion.service';
 
 @Component({
   selector: 'app-product-packaging-dialog',
