@@ -4,7 +4,6 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { StockTransactionModel } from '../../core/models/stock-transaction.model';
 import { ProductModel } from '../../core/models/product.model';
 import { StockTransactionService } from '../../core/services/stock-transaction.service';
-import { ProductService } from '../../core/services/product.service';
 import { ExportService } from '../../core/services/export.service';
 import { SharedService } from '../../core/services/shared.service';
 
@@ -19,6 +18,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
 import { FieldsetModule } from 'primeng/fieldset';
 import { DatePickerModule } from 'primeng/datepicker';
+import { ProductService } from '../../core/services/master/product.service';
 
 @Component({
   selector: 'app-stock-transactions',
