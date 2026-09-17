@@ -20,7 +20,7 @@
     </div>
 
     <p-table #tblSuppliers [value]="suppliers" [(selection)]="selectedSupplier" dataKey="id" selectionMode="single"
-        stripedRows="true" sortField="createdOn" [sortOrder]="-1" [paginator]="true" 
+        stripedRows="true" sortField="createdOn" [sortOrder]="-1" [paginator]="true"   paginatorDropdownAppendTo="body"
         [tableStyle]="{ 'min-width': '50rem', 'white-space': 'nowrap' }" [rows]="20" [rowsPerPageOptions]="[20, 50, 100]"
         [showCurrentPageReport]="true" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
         [loading]="isLoading"
