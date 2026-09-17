@@ -1,6 +1,8 @@
 @use "tailwindcss";
 @use "primeicons/primeicons.css";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ═══════════════════════════════════════════════════════════
    INVENTORY MANAGEMENT SYSTEM DESIGN SYSTEM
    Emerald Green Primary Accent, Clean & Professional
@@ -47,7 +49,8 @@
   --bg-sidebar: #12201a;           /* Rich Dark Green-Tint Sidebar */
   --bg-card: #12201a;              /* Elevated Dark Card Surface */
   --bg-table-hdr: #0c1612;         /* Dark Pitch Table Header */
-  --bg-hover: #1a2e26;             /* Row Hover Background */
+  --bg-hover: #1a2e26;  
+  --bg: #090d10;           /* Row Hover Background */
 
   --border-color: #243d33;         /* Crisp Dark Green Border */
   --border-subtle: #1a2e26;        /* Table Dividers */
