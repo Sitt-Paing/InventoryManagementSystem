@@ -6,6 +6,15 @@ export interface ProductModel {
   categoryName?: string;
   brand?: string;
   unit?: string;
+  baseUomId?: number;
+  baseUomCode?: string;
+  baseUomName?: string;
+  purchaseUomId?: number | null;
+  purchaseUomCode?: string;
+  purchaseUomName?: string;
+  saleUomId?: number | null;
+  saleUomCode?: string;
+  saleUomName?: string;
   barcode?: string;
   costPrice?: number;
   sellingPrice?: number;
