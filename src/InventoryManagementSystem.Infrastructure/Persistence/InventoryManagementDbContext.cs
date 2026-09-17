@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using InventoryManagementSystem.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -147,9 +147,30 @@ public partial class InventoryManagementDbContext : DbContext
                 .HasColumnName("SKU");
             entity.Property(e => e.Status).HasDefaultValue(true);
             entity.Property(e => e.Tax).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.Unit).HasMaxLength(50);
+            entity.Property(e => e.CurrentStock).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.ReorderLevel).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.ReorderQuantity).HasColumnType("decimal(18, 4)");
+            entity.Ignore(e => e.Unit);
+            entity.Property(e => e.BaseUomId).HasColumnName("BaseUomId");
+            entity.Property(e => e.PurchaseUomId).HasColumnName("PurchaseUomId");
+            entity.Property(e => e.SaleUomId).HasColumnName("SaleUomId");
             entity.Property(e => e.UpdatedBy).HasMaxLength(256);
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+
+            entity.HasOne(d => d.BaseUom).WithMany()
+                .HasForeignKey(d => d.BaseUomId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Products_BaseUom");
+
+            entity.HasOne(d => d.PurchaseUom).WithMany()
+                .HasForeignKey(d => d.PurchaseUomId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Products_PurchaseUom");
+
+            entity.HasOne(d => d.SaleUom).WithMany()
+                .HasForeignKey(d => d.SaleUomId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Products_SaleUom");
         });
 
         modelBuilder.Entity<ProductUomConversion>(entity =>
