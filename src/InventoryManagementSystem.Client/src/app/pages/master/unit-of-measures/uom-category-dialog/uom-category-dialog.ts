@@ -9,7 +9,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { UomCategoryModel } from '../../../../core/models/uom-category.model';
-import { UomCategoryService } from '../../../../core/services/uom-category.service';
+import { UomCategoryService } from '../../../../core/services/master/uom-category.service';
 
 @Component({
   selector: 'app-uom-category-dialog',
