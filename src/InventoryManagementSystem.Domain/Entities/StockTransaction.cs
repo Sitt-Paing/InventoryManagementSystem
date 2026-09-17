@@ -1,13 +1,13 @@
-﻿using System;
+using InventoryManagementSystem.Domain.Common;
+using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace InventoryManagementSystem.Domain.Entities;
 
-public partial class StockTransaction
+public partial class StockTransaction : BaseAuditableEntity<long>
 {
-    public long Id { get; set; }
-
-    public string ProductId { get; set; } = null!;
+    public Guid ProductId { get; set; }
 
     public string UserId { get; set; } = null!;
 
@@ -25,17 +25,6 @@ public partial class StockTransaction
 
     public string? Note { get; set; }
 
-    public DateTime? CreatedOn { get; set; }
-
-    public string? CreatedBy { get; set; }
-
-    public DateTime? UpdatedOn { get; set; }
-
-    public string? UpdatedBy { get; set; }
-
-    public DateTime? DeletedOn { get; set; }
-
-    public string? DeletedBy { get; set; }
-
+    [JsonIgnore]
     public virtual Product Product { get; set; } = null!;
 }
