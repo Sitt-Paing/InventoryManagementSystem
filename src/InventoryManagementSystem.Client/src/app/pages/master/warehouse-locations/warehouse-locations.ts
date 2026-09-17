@@ -5,8 +5,6 @@ import { SplitButtonModule } from 'primeng/splitbutton';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { Table, TableModule } from 'primeng/table';
-import { WarehouseLocationService } from '../../../core/services/warehouse-location.service';
-import { WarehouseService } from '../../../core/services/warehouse.service';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { WarehouseLocationModel } from '../../../core/models/warehouse-location.model';
 import { WarehouseModel } from '../../../core/models/warehouse.model';
@@ -19,6 +17,8 @@ import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { ExportService } from '../../../core/services/export.service';
+import { WarehouseLocationService } from '../../../core/services/master/warehouse-location.service';
+import { WarehouseService } from '../../../core/services/master/warehouse.service';
 
 @Component({
   selector: 'app-warehouse-locations',
