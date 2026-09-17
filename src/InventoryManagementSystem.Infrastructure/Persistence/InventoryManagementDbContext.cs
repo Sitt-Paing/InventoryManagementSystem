@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using InventoryManagementSystem.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -136,40 +136,34 @@ public partial class InventoryManagementDbContext : DbContext
             entity.Property(e => e.CostPrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.CreatedBy).HasMaxLength(256);
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.CurrentStock).HasColumnType("decimal(18, 4)");
             entity.Property(e => e.DeletedBy).HasMaxLength(256);
             entity.Property(e => e.DeletedOn).HasColumnType("datetime");
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.Name).HasMaxLength(250);
+            entity.Property(e => e.ReorderLevel).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.ReorderQuantity).HasColumnType("decimal(18, 4)");
             entity.Property(e => e.SellingPrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Sku)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("SKU");
-            entity.Property(e => e.Status).HasDefaultValue(true);
+            entity.Property(e => e.Status).HasDefaultValue(true, "DF__Products__Status__1AD3FDA4");
             entity.Property(e => e.Tax).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.CurrentStock).HasColumnType("decimal(18, 4)");
-            entity.Property(e => e.ReorderLevel).HasColumnType("decimal(18, 4)");
-            entity.Property(e => e.ReorderQuantity).HasColumnType("decimal(18, 4)");
-            entity.Ignore(e => e.Unit);
-            entity.Property(e => e.BaseUomId).HasColumnName("BaseUomId");
-            entity.Property(e => e.PurchaseUomId).HasColumnName("PurchaseUomId");
-            entity.Property(e => e.SaleUomId).HasColumnName("SaleUomId");
             entity.Property(e => e.UpdatedBy).HasMaxLength(256);
             entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
 
-            entity.HasOne(d => d.BaseUom).WithMany()
+            entity.HasOne(d => d.BaseUom).WithMany(p => p.ProductBaseUoms)
                 .HasForeignKey(d => d.BaseUomId)
-                .OnDelete(DeleteBehavior.Restrict)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Products_BaseUom");
 
-            entity.HasOne(d => d.PurchaseUom).WithMany()
+            entity.HasOne(d => d.PurchaseUom).WithMany(p => p.ProductPurchaseUoms)
                 .HasForeignKey(d => d.PurchaseUomId)
-                .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("FK_Products_PurchaseUom");
 
-            entity.HasOne(d => d.SaleUom).WithMany()
+            entity.HasOne(d => d.SaleUom).WithMany(p => p.ProductSaleUoms)
                 .HasForeignKey(d => d.SaleUomId)
-                .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("FK_Products_SaleUom");
         });
 
@@ -212,6 +206,7 @@ public partial class InventoryManagementDbContext : DbContext
             entity.Property(e => e.DeletedOn).HasColumnType("datetime");
             entity.Property(e => e.Note).HasMaxLength(250);
             entity.Property(e => e.ProductId).HasMaxLength(50);
+            entity.Property(e => e.Quantity).HasColumnType("decimal(18, 4)");
             entity.Property(e => e.TransactionDate).HasColumnType("datetime");
             entity.Property(e => e.TransactionType)
                 .HasMaxLength(30)
