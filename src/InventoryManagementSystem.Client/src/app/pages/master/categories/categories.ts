@@ -3,7 +3,6 @@ import { ChangeDetectorRef, Component, inject, OnInit, signal, ViewChild } from 
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CategoryModel } from '../../../core/models/category.model';
 import { ExportColumnModel } from '../../../core/models/export-column.model';
-import { CategoryService } from '../../../core/services/category.service';
 import { ExportService } from '../../../core/services/export.service';
 import { LoggerService } from '../../../core/services/logger.service';
 import { SharedService } from '../../../core/services/shared.service';
@@ -21,6 +20,7 @@ import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { ToggleSwitch, ToggleSwitchModule } from 'primeng/toggleswitch';
+import { CategoryService } from '../../../core/services/master/category.service';
 
 @Component({
   selector: 'app-categories',
