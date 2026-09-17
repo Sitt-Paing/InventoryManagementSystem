@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SharedService } from '../../core/services/shared.service';
-import { ProductService } from '../../core/services/product.service';
 import { StockTransactionService } from '../../core/services/stock-transaction.service';
 import { ProductModel } from '../../core/models/product.model';
 import { StockTransactionModel } from '../../core/models/stock-transaction.model';
@@ -12,6 +11,7 @@ import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { ProductService } from '../../core/services/master/product.service';
 
 @Component({
   selector: 'app-dashboard',
