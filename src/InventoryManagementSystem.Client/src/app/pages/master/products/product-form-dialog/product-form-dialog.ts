@@ -10,7 +10,8 @@ import { TextareaModule } from 'primeng/textarea';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { CategoryModel } from '../../../../core/models/category.model';
 import { ProductModel } from '../../../../core/models/product.model';
-import { ProductService } from '../../../../core/services/product.service';
+import { UnitOfMeasureModel } from '../../../../core/models/unit-of-measure.model';
+import { ProductService } from '../../../../core/services/master/product.service';
 
 @Component({
   selector: 'app-product-form-dialog',
@@ -33,6 +34,7 @@ export class ProductFormDialog implements OnChanges {
   @Input() isEdit: boolean = false;
   @Input() product: ProductModel | null = null;
   @Input() categories: CategoryModel[] = [];
+  @Input() availableUoms: UnitOfMeasureModel[] = [];
 
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() saved = new EventEmitter<void>();
@@ -47,6 +49,9 @@ export class ProductFormDialog implements OnChanges {
     id: [null as string | null],
     name: ['', Validators.required],
     categoryId: [null as number | null, Validators.required],
+    baseUomId: [null as number | null, Validators.required],
+    purchaseUomId: [null as number | null],
+    saleUomId: [null as number | null],
     sku: [''],
     barcode: [''],
     brand: [''],
@@ -68,6 +73,9 @@ export class ProductFormDialog implements OnChanges {
           id: this.product.id || null,
           name: this.product.name,
           categoryId: Number(this.product.categoryId),
+          baseUomId: this.product.baseUomId ? Number(this.product.baseUomId) : (this.availableUoms.length > 0 ? this.availableUoms[0].id : null),
+          purchaseUomId: this.product.purchaseUomId ? Number(this.product.purchaseUomId) : null,
+          saleUomId: this.product.saleUomId ? Number(this.product.saleUomId) : null,
           sku: this.product.sku || '',
           barcode: this.product.barcode || '',
           brand: this.product.brand || '',
@@ -86,6 +94,9 @@ export class ProductFormDialog implements OnChanges {
           id: null,
           name: '',
           categoryId: this.categories.length > 0 ? Number(this.categories[0].id) : null,
+          baseUomId: this.availableUoms.length > 0 ? this.availableUoms[0].id : null,
+          purchaseUomId: null,
+          saleUomId: null,
           sku: '',
           barcode: '',
           brand: '',
@@ -115,10 +126,13 @@ export class ProductFormDialog implements OnChanges {
     const payload: ProductModel = {
       name: formVal.name!,
       categoryId: formVal.categoryId!,
+      baseUomId: Number(formVal.baseUomId!),
+      purchaseUomId: formVal.purchaseUomId ? Number(formVal.purchaseUomId) : null,
+      saleUomId: formVal.saleUomId ? Number(formVal.saleUomId) : null,
       sku: formVal.sku?.trim() || undefined,
       barcode: formVal.barcode?.trim() || undefined,
       brand: formVal.brand || undefined,
-      unit: formVal.unit || undefined,
+      unit: this.availableUoms.find(u => Number(u.id) === Number(formVal.baseUomId))?.code || formVal.unit || undefined,
       costPrice: Number(formVal.costPrice) || 0,
       sellingPrice: Number(formVal.sellingPrice) || 0,
       currentStock: Number(formVal.currentStock) || 0,
