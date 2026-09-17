@@ -33,7 +33,7 @@
       <ng-template #body let-cat>
         <tr>
           <td class="font-semibold">{{ cat.name }}</td>
-          <td>{{ cat.description || '—' }}</td>
+          <td>{{ cat.description || 'N/A' }}</td>
           <td>
             <p-tag
               [value]="cat.isActive ? 'Active' : 'Inactive'"
