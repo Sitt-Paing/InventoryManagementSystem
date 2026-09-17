@@ -1,4 +1,4 @@
-<p-toast key="globalMessage"></p-toast>
+﻿<p-toast key="globalMessage"></p-toast>
 <p-confirmDialog key="positionDialog" position="bottom" rejectButtonStyleClass="p-button-outlined"></p-confirmDialog>
 
 <div class="table-card">
@@ -102,7 +102,31 @@
           <p-tag [value]="getCategoryName(prod.categoryId)" severity="info" [rounded]="true"></p-tag>
         </td>
         <td>{{ prod.brand || '—' }}</td>
-        <td>{{ prod.baseUomCode || prod.unit || '—' }}</td>
+        <td>
+          <div class="flex flex-col gap-1">
+            <span class="font-medium">
+              {{ prod.baseUomCode || prod.unit || '—' }}
+            </span>
+            @if ((prod.purchaseUomCode && prod.purchaseUomCode !== prod.baseUomCode) || (prod.saleUomCode && prod.saleUomCode !== prod.baseUomCode)) {
+              <div class="flex items-center gap-1 text-[10px] font-medium leading-none">
+                @if (prod.purchaseUomCode && prod.purchaseUomCode !== prod.baseUomCode) {
+                  <span
+                    class="px-1 py-0.5 rounded bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800"
+                    title="Default Purchase Unit: {{ prod.purchaseUomName || prod.purchaseUomCode }}">
+                    P: {{ prod.purchaseUomCode }}
+                  </span>
+                }
+                @if (prod.saleUomCode && prod.saleUomCode !== prod.baseUomCode) {
+                  <span
+                    class="px-1 py-0.5 rounded bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800"
+                    title="Default Sales Unit: {{ prod.saleUomName || prod.saleUomCode }}">
+                    S: {{ prod.saleUomCode }}
+                  </span>
+                }
+              </div>
+            }
+          </div>
+        </td>
         <td>
           <p-button
             label="Barcode"
