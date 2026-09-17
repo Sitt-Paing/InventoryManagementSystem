@@ -1,4 +1,4 @@
-﻿<p-toast key="globalMessage"></p-toast>
+<p-toast key="globalMessage"></p-toast>
 <p-confirmDialog key="positionDialog" position="bottom" rejectButtonStyleClass="p-button-outlined"></p-confirmDialog>
 
 <div class="table-card">
@@ -56,11 +56,12 @@
     [paginator]="true"
     [rows]="20"
     [rowsPerPageOptions]="[20, 50, 100]"
+    paginatorDropdownAppendTo="body"
     [showCurrentPageReport]="true"
     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
     [loading]="isLoading"
     stripedRows="true"
-    [globalFilterFields]="['name', 'sku', 'barcode', 'brand', 'unit', 'description', 'createdBy']"
+    [globalFilterFields]="['name', 'sku', 'barcode', 'brand', 'unit', 'baseUomCode', 'baseUomName', 'description', 'createdBy']"
     [tableStyle]="{ 'min-width': '65rem' }">
 
     <!-- Table Header -->
@@ -71,8 +72,9 @@
         <th pSortableColumn="name">Product Name <p-sortIcon field="name"></p-sortIcon></th>
         <th>Category</th>
         <th pSortableColumn="brand">Brand <p-sortIcon field="brand"></p-sortIcon></th>
-        <th pSortableColumn="unit">Unit <p-sortIcon field="unit"></p-sortIcon></th>
-        <th>Barcodes</th>
+        <th pSortableColumn="baseUomCode">Unit <p-sortIcon field="baseUomCode"></p-sortIcon></th>
+        <th>Barcode</th>
+        <th>Packaging</th>
         <th pSortableColumn="costPrice">Cost Price <p-sortIcon field="costPrice"></p-sortIcon></th>
         <th pSortableColumn="sellingPrice">Selling Price <p-sortIcon field="sellingPrice"></p-sortIcon></th>
         <th pSortableColumn="currentStock">Stock <p-sortIcon field="currentStock"></p-sortIcon></th>
@@ -100,25 +102,25 @@
           <p-tag [value]="getCategoryName(prod.categoryId)" severity="info" [rounded]="true"></p-tag>
         </td>
         <td>{{ prod.brand || '—' }}</td>
-        <td>{{ prod.unit || '—' }}</td>
+        <td>{{ prod.baseUomCode || prod.unit || '—' }}</td>
         <td>
-          <div class="flex items-center gap-1.5">
-            <p-button
-              label="Barcode"
-              icon="pi pi-eye"
-              size="small"
-              variant="text"
-              (click)="viewItemBarcode(prod)">
-            </p-button>
-            <p-button
-              label="Packaging"
-              icon="pi pi-box"
-              size="small"
-              severity="secondary"
-              variant="outlined"
-              (click)="openPackagingDialog(prod)">
-            </p-button>
-          </div>
+          <p-button
+            label="Barcode"
+            icon="pi pi-eye"
+            size="small"
+            variant="text"
+            (click)="viewItemBarcode(prod)">
+          </p-button>
+        </td>
+        <td>
+          <p-button
+            label="Packaging"
+            icon="pi pi-box"
+            size="small"
+            severity="secondary"
+            variant="outlined"
+            (click)="openPackagingDialog(prod)">
+          </p-button>
         </td>
         <td>{{ prod.costPrice | currency:'USD':'symbol':'1.2-2' }}</td>
         <td>{{ prod.sellingPrice | currency:'USD':'symbol':'1.2-2' }}</td>
@@ -150,7 +152,7 @@
 
     <ng-template #emptymessage>
       <tr>
-        <td colspan="19" class="text-center py-8 text-sm font-semibold text-slate-500">
+        <td colspan="20" class="text-center py-8 text-sm font-semibold text-slate-500">
           No products found.
         </td>
       </tr>
@@ -164,6 +166,7 @@
   [isEdit]="isEdit"
   [product]="selectedProduct"
   [categories]="categories"
+  [availableUoms]="availableUoms"
   (saved)="loadData()">
 </app-product-form-dialog>
 
