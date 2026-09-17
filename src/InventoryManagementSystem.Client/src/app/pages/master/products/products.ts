@@ -1,16 +1,13 @@
-import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+﻿import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CategoryModel } from '../../../core/models/category.model';
 import { ExportColumnModel } from '../../../core/models/export-column.model';
 import { ProductModel } from '../../../core/models/product.model';
 import { UnitOfMeasureModel } from '../../../core/models/unit-of-measure.model';
-import { CategoryService } from '../../../core/services/category.service';
 import { ExportService } from '../../../core/services/export.service';
 import { LoggerService } from '../../../core/services/logger.service';
-import { ProductService } from '../../../core/services/product.service';
 import { SharedService } from '../../../core/services/shared.service';
-import { UnitOfMeasureService } from '../../../core/services/unit-of-measure.service';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -25,6 +22,9 @@ import { ToastModule } from 'primeng/toast';
 import { ProductBarcodeDialog } from './product-barcode-dialog/product-barcode-dialog';
 import { ProductFormDialog } from './product-form-dialog/product-form-dialog';
 import { ProductPackagingDialog } from './product-packaging-dialog/product-packaging-dialog';
+import { CategoryService } from '../../../core/services/master/category.service';
+import { ProductService } from '../../../core/services/master/product.service';
+import { UnitOfMeasureService } from '../../../core/services/master/unit-of-measure.service';
 
 @Component({
   selector: 'app-products',
