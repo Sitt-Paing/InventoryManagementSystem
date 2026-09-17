@@ -5,8 +5,6 @@ import { UnitOfMeasureModel } from '../../../core/models/unit-of-measure.model';
 import { UomCategoryModel } from '../../../core/models/uom-category.model';
 import { ExportService } from '../../../core/services/export.service';
 import { LoggerService } from '../../../core/services/logger.service';
-import { UnitOfMeasureService } from '../../../core/services/unit-of-measure.service';
-import { UomCategoryService } from '../../../core/services/uom-category.service';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -21,6 +19,8 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { UomCategoryDialog } from './uom-category-dialog/uom-category-dialog';
+import { UomCategoryService } from '../../../core/services/master/uom-category.service';
+import { UnitOfMeasureService } from '../../../core/services/master/unit-of-measure.service';
 
 @Component({
   selector: 'app-unit-of-measures',
