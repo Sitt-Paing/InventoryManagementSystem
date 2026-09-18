@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InventoryManagementSystem.Application.Process.StockTransactions.Queries.GetStockTransactions;
 
-public class GetStockTransactionsQueryHandler : IRequestHandler<GetStockTransactionsQuery, List<StockTrasactionsDto>>
+public class GetStockTransactionsQueryHandler : IRequestHandler<GetStockTransactionsQuery, List<StockTransactionsDto>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -19,16 +19,16 @@ public class GetStockTransactionsQueryHandler : IRequestHandler<GetStockTransact
         _context = context;
     }
 
-    public async Task<List<StockTrasactionsDto>> Handle(GetStockTransactionsQuery request, CancellationToken cancellationToken)
+    public async Task<List<StockTransactionsDto>> Handle(GetStockTransactionsQuery request, CancellationToken cancellationToken)
     {
         var query = _context.StockTransactions
             .AsNoTracking()
-            .Include(t => t.Product)
             .Where(t => !t.DeletedOn.HasValue);
 
         if (!string.IsNullOrWhiteSpace(request.TransactionType))
         {
-            query = query.Where(t => t.TransactionType == request.TransactionType.ToUpper());
+            var normalizedType = request.TransactionType.Trim().ToUpperInvariant();
+            query = query.Where(t => t.TransactionType == normalizedType);
         }
 
         if (request.ProductId.HasValue && request.ProductId.Value != Guid.Empty)
@@ -43,33 +43,39 @@ public class GetStockTransactionsQueryHandler : IRequestHandler<GetStockTransact
 
         if (request.Date.HasValue)
         {
-            var targetDate = request.Date.Value.Date;
-            query = query.Where(t => t.TransactionDate.Date == targetDate);
+            var startDate = request.Date.Value.Date;
+            var endDate = startDate.AddDays(1);
+            query = query.Where(t => t.TransactionDate >= startDate && t.TransactionDate < endDate);
         }
 
-        return await query
-            .OrderByDescending(t => t.TransactionDate)
-            .Select(t => new StockTrasactionsDto
-            {
-                Id = t.Id,
-                ProductId = t.ProductId,
-                ProductName = t.Product != null ? t.Product.Name : null,
-                ProductSku = t.Product != null ? t.Product.Sku : null,
-                UserId = t.UserId,
-                WarehouseId = t.WarehouseId,
-                WarehouseLocationId = t.WarehouseLocationId,
-                Quantity = t.Quantity,
-                TransactionType = t.TransactionType,
-                TransactionDate = t.TransactionDate,
-                ReferenceNo = t.ReferenceNo,
-                Note = t.Note,
-                CreatedOn = t.CreatedOn,
-                CreatedBy = t.CreatedBy,
-                UpdatedOn = t.UpdatedOn,
-                UpdatedBy = t.UpdatedBy,
-                DeletedOn = t.DeletedOn,
-                DeletedBy = t.DeletedBy
-            })
-            .ToListAsync(cancellationToken);
+        return await (from t in query
+                      join w in _context.Warehouses.AsNoTracking() on t.WarehouseId equals w.Id into whGroup
+                      from wh in whGroup.DefaultIfEmpty()
+                      join l in _context.WarehouseLocations.AsNoTracking() on t.WarehouseLocationId equals l.Id into locGroup
+                      from loc in locGroup.DefaultIfEmpty()
+                      orderby t.TransactionDate descending
+                      select new StockTransactionsDto
+                      {
+                          Id = t.Id,
+                          ProductId = t.ProductId,
+                          ProductName = t.Product != null ? t.Product.Name : null,
+                          ProductSku = t.Product != null ? t.Product.Sku : null,
+                          UserId = t.UserId,
+                          WarehouseId = t.WarehouseId,
+                          WarehouseName = wh != null ? wh.Name : null,
+                          WarehouseLocationId = t.WarehouseLocationId,
+                          WarehouseLocationName = loc != null ? loc.LocationCode : null,
+                          Quantity = t.Quantity,
+                          TransactionType = t.TransactionType,
+                          TransactionDate = t.TransactionDate,
+                          ReferenceNo = t.ReferenceNo,
+                          Note = t.Note,
+                          CreatedOn = t.CreatedOn,
+                          CreatedBy = t.CreatedBy,
+                          UpdatedOn = t.UpdatedOn,
+                          UpdatedBy = t.UpdatedBy,
+                          DeletedOn = t.DeletedOn,
+                          DeletedBy = t.DeletedBy
+                      }).ToListAsync(cancellationToken);
     }
 }
