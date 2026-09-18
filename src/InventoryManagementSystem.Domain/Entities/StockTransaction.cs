@@ -1,4 +1,4 @@
-using InventoryManagementSystem.Domain.Common;
+﻿using InventoryManagementSystem.Domain.Common;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
@@ -7,6 +7,7 @@ namespace InventoryManagementSystem.Domain.Entities;
 
 public partial class StockTransaction : BaseAuditableEntity<long>
 {
+
     public Guid ProductId { get; set; }
 
     public string UserId { get; set; } = null!;
