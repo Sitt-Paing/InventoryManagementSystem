@@ -12,7 +12,7 @@
     <div class="flex flex-wrap gap-3 ml-auto">
       <!-- Warehouse Filter Select Box -->
       <p-select [options]="warehouses" [(ngModel)]="selectedWarehouseFilter" (onChange)="onWarehouseFilterChange()"
-        [showClear]="true" optionLabel="name" optionValue="id" placeholder="All Warehouses">
+        [showClear]="true" optionLabel="name" optionValue="id" placeholder="All Warehouses" size="small" class="w-48">
       </p-select>
 
       <!-- Global Search -->
@@ -21,7 +21,7 @@
           <i class="pi pi-search"></i>
         </p-inputicon>
         <input #search pInputText type="text" (input)="tblLocations.filterGlobal(search.value, 'contains')"
-          placeholder="Search keyword" class="w-full text-xs" />
+          pSize="small" placeholder="Search keyword" class="w-full text-xs" />
       </p-iconfield>
     </div>
   </div>
