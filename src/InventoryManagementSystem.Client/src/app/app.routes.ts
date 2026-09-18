@@ -25,6 +25,11 @@ export const routes: Routes = [
         loadChildren: () => import('./pages/master/master.routes').then(m => m.default),
         canActivate: [authGuard]
       },
+      {
+        path: 'process',
+        loadChildren: () => import('./pages/process/process.routes').then(m => m.default),
+        canActivate: [authGuard]
+      },
       // Backward compatibility redirects
       { path: 'products', redirectTo: 'master/products', pathMatch: 'full' },
       { path: 'categories', redirectTo: 'master/categories', pathMatch: 'full' },
