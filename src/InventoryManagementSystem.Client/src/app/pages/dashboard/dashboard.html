@@ -99,31 +99,43 @@
         <i class="pi pi-clock text-emerald-600 dark:text-emerald-400 font-bold"></i>
         <span class="text-sm font-extrabold tracking-wide uppercase font-mono text-slate-800 dark:text-slate-200">Recent Movement Activity</span>
       </div>
-      <!-- <a routerLink="/stock-transactions" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline">View All &rarr;</a> -->
+      <a routerLink="/stock-transactions" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline">View All &rarr;</a>
     </div>
 
     <p-table [value]="recentTransactions" styleClass="p-datatable-sm" responsiveLayout="scroll">
       <ng-template #header>
         <tr class="text-xs font-bold uppercase tracking-wider">
-          <th class="py-3 px-4">Txn Code</th>
+          <th class="py-3 px-4">Txn ID</th>
           <th class="py-3 px-4">Product Name</th>
           <th class="py-3 px-4 text-center">Type</th>
           <th class="py-3 px-4 text-right">Quantity</th>
-          <th class="py-3 px-4 text-right">Value ($)</th>
           <th class="py-3 px-4">Date</th>
         </tr>
       </ng-template>
 
       <ng-template #body let-txn>
         <tr class="border-b border-slate-200 dark:border-slate-700 transition-colors text-sm">
-          <td class="py-3 px-4 font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">{{ txn.transactionCode }}</td>
+          <td class="py-3 px-4 font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">#{{ txn.id }}</td>
           <td class="py-3 px-4 font-bold text-slate-900 dark:text-slate-100">{{ txn.productName }}</td>
           <td class="py-3 px-4 text-center">
             <p-tag [value]="txn.transactionType" [severity]="getTxnSeverity(txn.transactionType)" styleClass="text-xs font-bold px-2 py-0.5"></p-tag>
           </td>
-          <td class="py-3 px-4 text-right font-mono font-extrabold text-slate-900 dark:text-slate-100">{{ txn.quantity }}</td>
-          <td class="py-3 px-4 text-right font-mono font-bold text-slate-900 dark:text-slate-100">${{ txn.totalAmount | number:'1.2-2' }}</td>
-          <td class="py-3 px-4 text-xs font-mono font-semibold text-slate-700 dark:text-slate-300">{{ txn.transactionDate }}</td>
+          <td class="py-3 px-4 text-right font-mono font-extrabold text-slate-900 dark:text-slate-100">
+            <span [ngClass]="{
+              'text-emerald-600 dark:text-emerald-400': txn.transactionType === 'IN',
+              'text-rose-600 dark:text-rose-400': txn.transactionType === 'OUT',
+              'text-amber-600 dark:text-amber-400': txn.transactionType === 'ADJUSTMENT'
+            }">
+              {{ txn.transactionType === 'IN' ? '+' : (txn.transactionType === 'OUT' ? '-' : '') }}{{ txn.quantity }}
+            </span>
+          </td>
+          <td class="py-3 px-4 text-xs font-mono font-semibold text-slate-700 dark:text-slate-300">{{ txn.transactionDate | date:'dd/MM/yyyy HH:mm' }}</td>
+        </tr>
+      </ng-template>
+
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="5" class="text-center py-6 text-slate-500 text-xs">No recent movements found.</td>
         </tr>
       </ng-template>
     </p-table>
