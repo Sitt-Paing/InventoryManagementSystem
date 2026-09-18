@@ -33,22 +33,46 @@ public class CreateStockTransactionsCommandHandler : IRequestHandler<CreateStock
 
         var normalizedType = command.TransactionType.Trim().ToUpperInvariant();
 
+        var effectiveUserId = !string.IsNullOrWhiteSpace(command.UserId)
+            ? command.UserId
+            : (_currentUserService.UserId ?? _currentUserService.UserName ?? "system");
+
+        var sourceStock = await _context.WarehouseStocks
+            .FirstOrDefaultAsync(x => x.ProductId == command.ProductId && x.WarehouseId == command.WarehouseId && !x.DeletedOn.HasValue, cancellationToken);
+
+        if (sourceStock == null)
+        {
+            sourceStock = new WarehouseStocks
+            {
+                ProductId = command.ProductId,
+                WarehouseId = command.WarehouseId,
+                Quantity = 0,
+                CreatedOn = DateTime.Now,
+                CreatedBy = effectiveUserId
+            };
+            _context.WarehouseStocks.Add(sourceStock);
+        }
+
         if (string.Equals(normalizedType, "IN", StringComparison.OrdinalIgnoreCase))
         {
             product.CurrentStock += command.Quantity;
+            sourceStock.Quantity += command.Quantity;
         }
         else if (string.Equals(normalizedType, "OUT", StringComparison.OrdinalIgnoreCase))
         {
-            if (product.CurrentStock < command.Quantity)
+            if (sourceStock.Quantity < command.Quantity)
             {
                 throw new InvalidOperationException(
-                    $"Insufficient stock for '{product.Name}'. Current stock is {product.CurrentStock}, but requested quantity is {command.Quantity}.");
+                    $"Insufficient stock in the selected warehouse for '{product.Name}'. Available warehouse stock is {sourceStock.Quantity}, but requested quantity is {command.Quantity}.");
             }
             product.CurrentStock -= command.Quantity;
+            sourceStock.Quantity -= command.Quantity;
         }
         else if (string.Equals(normalizedType, "ADJUSTMENT", StringComparison.OrdinalIgnoreCase))
         {
-            product.CurrentStock = command.Quantity;
+            var diff = command.Quantity - sourceStock.Quantity;
+            sourceStock.Quantity = command.Quantity;
+            product.CurrentStock += diff;
         }
         else if (string.Equals(normalizedType, "TRANSFER", StringComparison.OrdinalIgnoreCase))
         {
@@ -62,17 +86,32 @@ public class CreateStockTransactionsCommandHandler : IRequestHandler<CreateStock
                 throw new InvalidOperationException("Source warehouse and Destination warehouse cannot be the same.");
             }
 
-            if (product.CurrentStock < command.Quantity)
+            if (sourceStock.Quantity < command.Quantity)
             {
                 throw new InvalidOperationException(
-                    $"Insufficient stock for '{product.Name}'. Current stock is {product.CurrentStock}, but requested transfer quantity is {command.Quantity}.");
+                    $"Insufficient stock in the source warehouse for '{product.Name}'. Available source warehouse stock is {sourceStock.Quantity}, but requested transfer quantity is {command.Quantity}.");
             }
+
+            var destStock = await _context.WarehouseStocks
+                .FirstOrDefaultAsync(x => x.ProductId == command.ProductId && x.WarehouseId == command.ToWarehouseId.Value && !x.DeletedOn.HasValue, cancellationToken);
+
+            if (destStock == null)
+            {
+                destStock = new WarehouseStocks
+                {
+                    ProductId = command.ProductId,
+                    WarehouseId = command.ToWarehouseId.Value,
+                    Quantity = 0,
+                    CreatedOn = DateTime.Now,
+                    CreatedBy = effectiveUserId
+                };
+                _context.WarehouseStocks.Add(destStock);
+            }
+
+            sourceStock.Quantity -= command.Quantity;
+            destStock.Quantity += command.Quantity;
             // Product.CurrentStock is preserved (net zero change across warehouses)
         }
-
-        var effectiveUserId = !string.IsNullOrWhiteSpace(command.UserId)
-            ? command.UserId
-            : (_currentUserService.UserId ?? _currentUserService.UserName ?? "system");
 
         var transactionDate = command.TransactionDate != default 
             ? (command.TransactionDate.Kind == DateTimeKind.Utc ? command.TransactionDate.ToLocalTime() : command.TransactionDate)
