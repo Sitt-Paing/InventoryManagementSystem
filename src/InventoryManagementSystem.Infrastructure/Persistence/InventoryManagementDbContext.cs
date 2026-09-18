@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using InventoryManagementSystem.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -202,7 +202,6 @@ public partial class InventoryManagementDbContext : DbContext
 
         modelBuilder.Entity<StockTransaction>(entity =>
         {
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CreatedBy).HasMaxLength(256);
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.DeletedBy).HasMaxLength(256);
