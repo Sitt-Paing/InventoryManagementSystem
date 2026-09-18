@@ -77,6 +77,21 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
             {
                 newProduct.CurrentStock = request.Quantity;
             }
+            else if (normalizedNewType == "TRANSFER")
+            {
+                if (!request.ToWarehouseId.HasValue || request.ToWarehouseId.Value <= 0)
+                {
+                    throw new InvalidOperationException("Destination Warehouse is required for stock transfer.");
+                }
+                if (request.WarehouseId == request.ToWarehouseId.Value)
+                {
+                    throw new InvalidOperationException("Source warehouse and Destination warehouse cannot be the same.");
+                }
+                if (newProduct.CurrentStock < request.Quantity)
+                {
+                    throw new InvalidOperationException($"Insufficient stock available for product '{newProduct.Name}'. Current stock: {newProduct.CurrentStock}, Requested: {request.Quantity}.");
+                }
+            }
 
             activeProduct = newProduct;
         }
@@ -116,6 +131,21 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
             {
                 product.CurrentStock = request.Quantity;
             }
+            else if (normalizedNewType == "TRANSFER")
+            {
+                if (!request.ToWarehouseId.HasValue || request.ToWarehouseId.Value <= 0)
+                {
+                    throw new InvalidOperationException("Destination Warehouse is required for stock transfer.");
+                }
+                if (request.WarehouseId == request.ToWarehouseId.Value)
+                {
+                    throw new InvalidOperationException("Source warehouse and Destination warehouse cannot be the same.");
+                }
+                if (product.CurrentStock < request.Quantity)
+                {
+                    throw new InvalidOperationException($"Insufficient stock available for product '{product.Name}'. Available stock: {product.CurrentStock}, Requested: {request.Quantity}.");
+                }
+            }
 
             activeProduct = product;
         }
@@ -124,16 +154,22 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
             ? request.UserId
             : (_currentUserService.UserId ?? _currentUserService.UserName ?? "system");
 
+        var isTransfer = string.Equals(normalizedNewType, "TRANSFER", StringComparison.OrdinalIgnoreCase);
+
         // Update transaction entity properties
         transaction.ProductId = request.ProductId;
         transaction.WarehouseId = request.WarehouseId;
         transaction.WarehouseLocationId = request.WarehouseLocationId;
+        transaction.ToWarehouseId = isTransfer ? request.ToWarehouseId : null;
+        transaction.ToWarehouseLocationId = isTransfer ? request.ToWarehouseLocationId : null;
         transaction.Quantity = request.Quantity;
         transaction.TransactionType = normalizedNewType;
-        transaction.TransactionDate = request.TransactionDate != default ? request.TransactionDate : DateTime.UtcNow;
+        transaction.TransactionDate = request.TransactionDate != default 
+            ? (request.TransactionDate.Kind == DateTimeKind.Utc ? request.TransactionDate.ToLocalTime() : request.TransactionDate)
+            : DateTime.Now;
         transaction.ReferenceNo = request.ReferenceNo;
         transaction.Note = request.Note?.Trim();
-        transaction.UpdatedOn = DateTime.UtcNow;
+        transaction.UpdatedOn = DateTime.Now;
         transaction.UpdatedBy = effectiveUserId;
 
         await _context.SaveChangesAsync(cancellationToken);
@@ -142,6 +178,19 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
             .FirstOrDefaultAsync(w => w.Id == transaction.WarehouseId, cancellationToken);
         var location = await _context.WarehouseLocations.AsNoTracking()
             .FirstOrDefaultAsync(l => l.Id == transaction.WarehouseLocationId, cancellationToken);
+
+        Warehouse? toWarehouse = null;
+        WarehouseLocation? toLocation = null;
+        if (transaction.ToWarehouseId.HasValue)
+        {
+            toWarehouse = await _context.Warehouses.AsNoTracking()
+                .FirstOrDefaultAsync(w => w.Id == transaction.ToWarehouseId.Value, cancellationToken);
+        }
+        if (transaction.ToWarehouseLocationId.HasValue)
+        {
+            toLocation = await _context.WarehouseLocations.AsNoTracking()
+                .FirstOrDefaultAsync(l => l.Id == transaction.ToWarehouseLocationId.Value, cancellationToken);
+        }
 
         return new StockTransactionsDto
         {
@@ -154,6 +203,10 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
             WarehouseName = warehouse?.Name,
             WarehouseLocationId = transaction.WarehouseLocationId,
             WarehouseLocationName = location?.LocationCode,
+            ToWarehouseId = transaction.ToWarehouseId,
+            ToWarehouseName = toWarehouse?.Name,
+            ToWarehouseLocationId = transaction.ToWarehouseLocationId,
+            ToWarehouseLocationName = toLocation?.LocationCode,
             Quantity = transaction.Quantity,
             TransactionType = transaction.TransactionType,
             TransactionDate = transaction.TransactionDate,
