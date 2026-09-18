@@ -42,6 +42,8 @@ public partial class InventoryManagementDbContext : DbContext
 
     public virtual DbSet<WarehouseLocation> WarehouseLocations { get; set; }
 
+    public virtual DbSet<WarehouseStocks> WarehouseStocks { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AspNetRole>(entity =>
