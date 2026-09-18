@@ -9,8 +9,12 @@ export interface StockTransactionModel {
   warehouseName?: string;
   warehouseLocationId: number;
   warehouseLocationName?: string;
+  toWarehouseId?: number | null;
+  toWarehouseName?: string | null;
+  toWarehouseLocationId?: number | null;
+  toWarehouseLocationName?: string | null;
   quantity: number;
-  transactionType: 'IN' | 'OUT' | 'ADJUSTMENT';
+  transactionType: 'IN' | 'OUT' | 'ADJUSTMENT' | 'TRANSFER';
   transactionDate: Date | string;
   referenceNo?: number | null;
   note?: string | null;
