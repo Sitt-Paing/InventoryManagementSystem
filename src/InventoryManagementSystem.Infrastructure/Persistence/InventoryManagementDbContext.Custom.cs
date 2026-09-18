@@ -109,6 +109,16 @@ public partial class InventoryManagementDbContext : IApplicationDbContext
                     v => ParseGuidOrEmpty(v)
                 );
         });
+
+        modelBuilder.Entity<WarehouseStocks>(entity =>
+        {
+            entity.Property(e => e.ProductId)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => ParseGuidOrEmpty(v)
+                );
+            entity.Property(e => e.Quantity).HasColumnType("decimal(18, 4)");
+        });
     }
 
     private static Guid ParseGuidOrDefault(string v)
