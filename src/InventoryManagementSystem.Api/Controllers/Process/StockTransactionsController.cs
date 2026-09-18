@@ -8,6 +8,7 @@ using InventoryManagementSystem.Application.Process.StockTransactions.Command.Up
 using InventoryManagementSystem.Application.Process.StockTransactions.DTOs;
 using InventoryManagementSystem.Application.Process.StockTransactions.Queries.GetStockTransactionById;
 using InventoryManagementSystem.Application.Process.StockTransactions.Queries.GetStockTransactions;
+using InventoryManagementSystem.Application.Process.StockTransactions.Queries.GetWarehouseStockBalance;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +34,22 @@ public class StockTransactionsController : ApiControllerBase
             StatusCode = StatusCodes.Status200OK,
             Success = true,
             Message = "Stock transactions retrieved successfully.",
+            Data = result
+        });
+    }
+
+    [HttpGet("warehouse-balance")]
+    [EndpointSummary("Get current available stock balance of a product in a warehouse")]
+    public async Task<IActionResult> GetWarehouseStockBalance(
+        [FromQuery] Guid productId,
+        [FromQuery] int warehouseId)
+    {
+        var result = await Mediator.Send(new GetWarehouseStockBalanceQuery(productId, warehouseId));
+        return Ok(new DefaultResponseModel
+        {
+            StatusCode = StatusCodes.Status200OK,
+            Success = true,
+            Message = "Warehouse stock balance retrieved successfully.",
             Data = result
         });
     }
