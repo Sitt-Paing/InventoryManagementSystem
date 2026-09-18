@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SharedService } from '../../core/services/shared.service';
 import { StockTransactionService } from '../../core/services/stock-transaction.service';
@@ -25,6 +25,7 @@ import { ProductService } from '../../core/services/master/product.service';
     TagModule,
     ProgressBarModule
   ],
+  providers: [DatePipe, DecimalPipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss'
 })
@@ -48,17 +49,24 @@ export class DashboardComponent implements OnInit {
   }
 
   loadData(): void {
-    // this.productService.getByCB().subscribe(res => {
-    //   this.products = res.data;
-    //   this.totalProductsCount = this.products.length;
-    //   this.lowStockCount = this.products.filter(p => p.status === 'Low Stock').length;
-    //   this.outOfStockCount = this.products.filter(p => p.status === 'Out of Stock').length;
-    //   this.totalValuation = this.products.reduce((acc, p) => acc + (p.unitPrice * p.quantityInStock), 0);
-    // });
+    this.productService.get().subscribe({
+      next: (res) => {
+        this.products = res.data || [];
+        this.totalProductsCount = this.products.length;
+        this.lowStockCount = this.products.filter(p => (p.currentStock || 0) <= (p.reorderLevel || 0) && (p.currentStock || 0) > 0).length;
+        this.outOfStockCount = this.products.filter(p => (p.currentStock || 0) <= 0).length;
+        this.totalValuation = this.products.reduce((acc, p) => acc + ((p.sellingPrice || 0) * (p.currentStock || 0)), 0);
+      },
+      error: () => {}
+    });
 
-    // this.transactionService.getByCB().subscribe(res => {
-    //   this.recentTransactions = res.data.slice(0, 5);
-    // });
+    this.transactionService.get().subscribe({
+      next: (res) => {
+        const txns = (res.data || []) as StockTransactionModel[];
+        this.recentTransactions = txns.slice(0, 5);
+      },
+      error: () => {}
+    });
   }
 
   getTxnSeverity(type: string): 'success' | 'danger' | 'warn' {
