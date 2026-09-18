@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InventoryManagementSystem.Application.Process.StockTransactions.Queries.GetStockTransactionById;
 
-public class GetStockTransactionByIdQueryHandler : IRequestHandler<GetStockTransactionByIdQuery, StockTrasactionsDto?>
+public class GetStockTransactionByIdQueryHandler : IRequestHandler<GetStockTransactionByIdQuery, StockTransactionsDto?>
 {
     private readonly IApplicationDbContext _context;
 
@@ -17,34 +17,37 @@ public class GetStockTransactionByIdQueryHandler : IRequestHandler<GetStockTrans
         _context = context;
     }
 
-    public async Task<StockTrasactionsDto?> Handle(GetStockTransactionByIdQuery request, CancellationToken cancellationToken)
+    public async Task<StockTransactionsDto?> Handle(GetStockTransactionByIdQuery request, CancellationToken cancellationToken)
     {
-        var transaction = await _context.StockTransactions
-            .AsNoTracking()
-            .Include(t => t.Product)
-            .Where(t => t.Id == request.Id && !t.DeletedOn.HasValue)
-            .Select(t => new StockTrasactionsDto
-            {
-                Id = t.Id,
-                ProductId = t.ProductId,
-                ProductName = t.Product != null ? t.Product.Name : null,
-                ProductSku = t.Product != null ? t.Product.Sku : null,
-                UserId = t.UserId,
-                WarehouseId = t.WarehouseId,
-                WarehouseLocationId = t.WarehouseLocationId,
-                Quantity = t.Quantity,
-                TransactionType = t.TransactionType,
-                TransactionDate = t.TransactionDate,
-                ReferenceNo = t.ReferenceNo,
-                Note = t.Note,
-                CreatedOn = t.CreatedOn,
-                CreatedBy = t.CreatedBy,
-                UpdatedOn = t.UpdatedOn,
-                UpdatedBy = t.UpdatedBy,
-                DeletedOn = t.DeletedOn,
-                DeletedBy = t.DeletedBy
-            })
-            .FirstOrDefaultAsync(cancellationToken);
+        var transaction = await (from t in _context.StockTransactions.AsNoTracking()
+                                 where t.Id == request.Id && !t.DeletedOn.HasValue
+                                 join w in _context.Warehouses.AsNoTracking() on t.WarehouseId equals w.Id into whGroup
+                                 from wh in whGroup.DefaultIfEmpty()
+                                 join l in _context.WarehouseLocations.AsNoTracking() on t.WarehouseLocationId equals l.Id into locGroup
+                                 from loc in locGroup.DefaultIfEmpty()
+                                 select new StockTransactionsDto
+                                 {
+                                     Id = t.Id,
+                                     ProductId = t.ProductId,
+                                     ProductName = t.Product != null ? t.Product.Name : null,
+                                     ProductSku = t.Product != null ? t.Product.Sku : null,
+                                     UserId = t.UserId,
+                                     WarehouseId = t.WarehouseId,
+                                     WarehouseName = wh != null ? wh.Name : null,
+                                     WarehouseLocationId = t.WarehouseLocationId,
+                                     WarehouseLocationName = loc != null ? loc.LocationCode : null,
+                                     Quantity = t.Quantity,
+                                     TransactionType = t.TransactionType,
+                                     TransactionDate = t.TransactionDate,
+                                     ReferenceNo = t.ReferenceNo,
+                                     Note = t.Note,
+                                     CreatedOn = t.CreatedOn,
+                                     CreatedBy = t.CreatedBy,
+                                     UpdatedOn = t.UpdatedOn,
+                                     UpdatedBy = t.UpdatedBy,
+                                     DeletedOn = t.DeletedOn,
+                                     DeletedBy = t.DeletedBy
+                                 }).FirstOrDefaultAsync(cancellationToken);
 
         return transaction;
     }
