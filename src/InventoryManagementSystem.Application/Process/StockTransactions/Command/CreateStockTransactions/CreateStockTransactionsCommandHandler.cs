@@ -50,14 +50,35 @@ public class CreateStockTransactionsCommandHandler : IRequestHandler<CreateStock
         {
             product.CurrentStock = command.Quantity;
         }
+        else if (string.Equals(normalizedType, "TRANSFER", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!command.ToWarehouseId.HasValue || command.ToWarehouseId.Value <= 0)
+            {
+                throw new InvalidOperationException("Destination Warehouse is required for stock transfer.");
+            }
+
+            if (command.WarehouseId == command.ToWarehouseId.Value)
+            {
+                throw new InvalidOperationException("Source warehouse and Destination warehouse cannot be the same.");
+            }
+
+            if (product.CurrentStock < command.Quantity)
+            {
+                throw new InvalidOperationException(
+                    $"Insufficient stock for '{product.Name}'. Current stock is {product.CurrentStock}, but requested transfer quantity is {command.Quantity}.");
+            }
+            // Product.CurrentStock is preserved (net zero change across warehouses)
+        }
 
         var effectiveUserId = !string.IsNullOrWhiteSpace(command.UserId)
             ? command.UserId
             : (_currentUserService.UserId ?? _currentUserService.UserName ?? "system");
 
         var transactionDate = command.TransactionDate != default 
-            ? command.TransactionDate 
-            : DateTime.UtcNow;
+            ? (command.TransactionDate.Kind == DateTimeKind.Utc ? command.TransactionDate.ToLocalTime() : command.TransactionDate)
+            : DateTime.Now;
+
+        var isTransfer = string.Equals(normalizedType, "TRANSFER", StringComparison.OrdinalIgnoreCase);
 
         var transaction = new StockTransaction
         {
@@ -65,6 +86,8 @@ public class CreateStockTransactionsCommandHandler : IRequestHandler<CreateStock
             UserId = effectiveUserId,
             WarehouseId = command.WarehouseId,
             WarehouseLocationId = command.WarehouseLocationId,
+            ToWarehouseId = isTransfer ? command.ToWarehouseId : null,
+            ToWarehouseLocationId = isTransfer ? command.ToWarehouseLocationId : null,
             Quantity = command.Quantity,
             TransactionType = normalizedType,
             TransactionDate = transactionDate,
@@ -80,6 +103,19 @@ public class CreateStockTransactionsCommandHandler : IRequestHandler<CreateStock
         var location = await _context.WarehouseLocations.AsNoTracking()
             .FirstOrDefaultAsync(l => l.Id == command.WarehouseLocationId, cancellationToken);
 
+        Warehouse? toWarehouse = null;
+        WarehouseLocation? toLocation = null;
+        if (transaction.ToWarehouseId.HasValue)
+        {
+            toWarehouse = await _context.Warehouses.AsNoTracking()
+                .FirstOrDefaultAsync(w => w.Id == transaction.ToWarehouseId.Value, cancellationToken);
+        }
+        if (transaction.ToWarehouseLocationId.HasValue)
+        {
+            toLocation = await _context.WarehouseLocations.AsNoTracking()
+                .FirstOrDefaultAsync(l => l.Id == transaction.ToWarehouseLocationId.Value, cancellationToken);
+        }
+
         return new StockTransactionsDto
         {
             Id = transaction.Id,
@@ -91,6 +127,10 @@ public class CreateStockTransactionsCommandHandler : IRequestHandler<CreateStock
             WarehouseName = warehouse?.Name,
             WarehouseLocationId = transaction.WarehouseLocationId,
             WarehouseLocationName = location?.LocationCode,
+            ToWarehouseId = transaction.ToWarehouseId,
+            ToWarehouseName = toWarehouse?.Name,
+            ToWarehouseLocationId = transaction.ToWarehouseLocationId,
+            ToWarehouseLocationName = toLocation?.LocationCode,
             Quantity = transaction.Quantity,
             TransactionType = transaction.TransactionType,
             TransactionDate = transaction.TransactionDate,
