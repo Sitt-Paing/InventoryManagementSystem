@@ -69,7 +69,7 @@ public class CreateStockTransactionsCommandHandler : IRequestHandler<CreateStock
             TransactionType = normalizedType,
             TransactionDate = transactionDate,
             ReferenceNo = command.ReferenceNo,
-            Note = command.Note?.Trim()
+            Note = command.Note
         };
 
         _context.StockTransactions.Add(transaction);
