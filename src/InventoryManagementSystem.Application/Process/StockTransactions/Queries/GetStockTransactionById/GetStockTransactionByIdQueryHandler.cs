@@ -25,6 +25,10 @@ public class GetStockTransactionByIdQueryHandler : IRequestHandler<GetStockTrans
                                  from wh in whGroup.DefaultIfEmpty()
                                  join l in _context.WarehouseLocations.AsNoTracking() on t.WarehouseLocationId equals l.Id into locGroup
                                  from loc in locGroup.DefaultIfEmpty()
+                                 join tw in _context.Warehouses.AsNoTracking() on t.ToWarehouseId equals (int?)tw.Id into toWhGroup
+                                 from toWh in toWhGroup.DefaultIfEmpty()
+                                 join tl in _context.WarehouseLocations.AsNoTracking() on t.ToWarehouseLocationId equals (int?)tl.Id into toLocGroup
+                                 from toLoc in toLocGroup.DefaultIfEmpty()
                                  select new StockTransactionsDto
                                  {
                                      Id = t.Id,
@@ -36,6 +40,10 @@ public class GetStockTransactionByIdQueryHandler : IRequestHandler<GetStockTrans
                                      WarehouseName = wh != null ? wh.Name : null,
                                      WarehouseLocationId = t.WarehouseLocationId,
                                      WarehouseLocationName = loc != null ? loc.LocationCode : null,
+                                     ToWarehouseId = t.ToWarehouseId,
+                                     ToWarehouseName = toWh != null ? toWh.Name : null,
+                                     ToWarehouseLocationId = t.ToWarehouseLocationId,
+                                     ToWarehouseLocationName = toLoc != null ? toLoc.LocationCode : null,
                                      Quantity = t.Quantity,
                                      TransactionType = t.TransactionType,
                                      TransactionDate = t.TransactionDate,
