@@ -7,7 +7,7 @@ namespace InventoryManagementSystem.Application.Process.StockTransactions.Comman
 public record class UpdateStockTransactionsCommand(
     long Id,
     Guid ProductId,
-    string UserId,
+    string? UserId,
     int WarehouseId,
     int WarehouseLocationId,
     decimal Quantity,
@@ -15,4 +15,4 @@ public record class UpdateStockTransactionsCommand(
     DateTime TransactionDate,
     long? ReferenceNo,
     string? Note
-) : IRequest<StockTrasactionsDto>;
+) : IRequest<StockTransactionsDto?>;
