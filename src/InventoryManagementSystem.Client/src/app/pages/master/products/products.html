@@ -1,4 +1,4 @@
-﻿<p-toast key="globalMessage"></p-toast>
+<p-toast key="globalMessage"></p-toast>
 <p-confirmDialog key="positionDialog" position="bottom" rejectButtonStyleClass="p-button-outlined"></p-confirmDialog>
 
 <div class="table-card">
@@ -24,6 +24,8 @@
         optionLabel="name"
         optionValue="id"
         placeholder="All Categories"
+        size="small"
+        class="w-48"
       >
       </p-select>
 
@@ -37,7 +39,7 @@
           pInputText
           type="text"
           (input)="tblProducts.filterGlobal(search.value, 'contains')"
-          size="small"
+          pSize="small"
           placeholder="Search keyword"
           class="w-full text-xs" />
       </p-iconfield>
