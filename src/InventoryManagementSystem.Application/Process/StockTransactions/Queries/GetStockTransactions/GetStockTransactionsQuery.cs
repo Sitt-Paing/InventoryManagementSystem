@@ -10,4 +10,4 @@ public record class GetStockTransactionsQuery(
     DateTime? Date = null,
     Guid? ProductId = null,
     int? WarehouseId = null
-) : IRequest<List<StockTrasactionsDto>>;
+) : IRequest<List<StockTransactionsDto>>;
