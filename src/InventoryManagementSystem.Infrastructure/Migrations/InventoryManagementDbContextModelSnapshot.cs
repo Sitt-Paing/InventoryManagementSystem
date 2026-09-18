@@ -265,11 +265,15 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Barcode")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<long>("BaseUomId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Brand")
                         .HasMaxLength(100)
@@ -288,8 +292,8 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Property<DateTime?>("CreatedOn")
                         .HasColumnType("datetime");
 
-                    b.Property<int>("CurrentStock")
-                        .HasColumnType("int");
+                    b.Property<decimal>("CurrentStock")
+                        .HasColumnType("decimal(18, 4)");
 
                     b.Property<string>("DeletedBy")
                         .HasMaxLength(256)
@@ -307,11 +311,17 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
-                    b.Property<int>("ReorderLevel")
-                        .HasColumnType("int");
+                    b.Property<long?>("PurchaseUomId")
+                        .HasColumnType("bigint");
 
-                    b.Property<int>("ReorderQuantity")
-                        .HasColumnType("int");
+                    b.Property<decimal>("ReorderLevel")
+                        .HasColumnType("decimal(18, 4)");
+
+                    b.Property<decimal>("ReorderQuantity")
+                        .HasColumnType("decimal(18, 4)");
+
+                    b.Property<long?>("SaleUomId")
+                        .HasColumnType("bigint");
 
                     b.Property<decimal>("SellingPrice")
                         .HasColumnType("decimal(18, 2)");
@@ -325,17 +335,10 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Property<bool>("Status")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
-                        .HasDefaultValue(true);
+                        .HasDefaultValue(true, "DF__Products__Status__1AD3FDA4");
 
                     b.Property<decimal>("Tax")
                         .HasColumnType("decimal(18, 2)");
-
-                    b.Property<string>("Unit")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(256)
@@ -346,11 +349,17 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Barcode")
-                        .IsUnique()
-                        .HasFilter("[Barcode] IS NOT NULL AND [DeletedOn] IS NULL");
+                    b.HasIndex("BaseUomId");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("PurchaseUomId");
+
+                    b.HasIndex("SaleUomId");
+
+                    b.HasIndex(new[] { "Barcode" }, "IX_Products_Barcode")
+                        .IsUnique()
+                        .HasFilter("[Barcode] IS NOT NULL AND [DeletedOn] IS NULL");
 
                     b.HasIndex(new[] { "Sku" }, "IX_Products_Sku")
                         .IsUnique()
@@ -359,10 +368,80 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.ToTable("Products");
                 });
 
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.ProductUomConversion", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Barcode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("ConversionFactor")
+                        .HasColumnType("decimal(18, 4)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("CreatedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<long>("FromUomId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDefaultPurchase")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDefaultSale")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ProductId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<long>("ToUomId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FromUomId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("ToUomId");
+
+                    b.ToTable("ProductUomConversion", (string)null);
+                });
+
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.StockTransaction", b =>
                 {
                     b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(256)
@@ -384,9 +463,19 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
 
                     b.Property<string>("ProductId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
-                    b.Property<int>("Quantity")
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(18, 4)");
+
+                    b.Property<long?>("ReferenceNo")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("ToWarehouseId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ToWarehouseLocationId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("TransactionDate")
@@ -410,11 +499,333 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int>("WarehouseId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WarehouseLocationId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
 
+                    b.HasIndex("ToWarehouseId");
+
+                    b.HasIndex("WarehouseId");
+
                     b.ToTable("StockTransactions");
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.Supplier", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("CompanyName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("ContactPerson")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("CreatedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<decimal?>("CreditLimit")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("PaymentTerms")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SupplierCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("Id")
+                        .HasName("PK_Supplier");
+
+                    b.HasIndex(new[] { "SupplierCode" }, "UQ_Supplier_SupplierCode")
+                        .IsUnique();
+
+                    b.ToTable("Suppliers");
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.UnitOfMeasure", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CategoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("CreatedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("DecimalPlaces")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Symbol")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("UnitOfMeasure", (string)null);
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.UomCategory", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("CreatedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UOM_Category", (string)null);
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.Warehouse", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<decimal?>("Capacity")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("ContactPerson")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("CreatedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("WarehouseCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Warehouses");
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.WarehouseLocation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Barcode")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Bin")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal?>("Capacity")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("CreatedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("LocationCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Rack")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("WarehouseId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Zone")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WarehouseId");
+
+                    b.ToTable("Warehouse_Locations", (string)null);
                 });
 
             modelBuilder.Entity("AspNetUserRole", b =>
@@ -478,13 +889,65 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
 
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.Product", b =>
                 {
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.UnitOfMeasure", "BaseUom")
+                        .WithMany()
+                        .HasForeignKey("BaseUomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_Products_BaseUom");
+
                     b.HasOne("InventoryManagementSystem.Domain.Entities.Category", "Category")
                         .WithMany("Products")
                         .HasForeignKey("CategoryId")
-                        .IsRequired()
-                        .HasConstraintName("FK_Products_Categories");
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.UnitOfMeasure", "PurchaseUom")
+                        .WithMany()
+                        .HasForeignKey("PurchaseUomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_Products_PurchaseUom");
+
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.UnitOfMeasure", "SaleUom")
+                        .WithMany()
+                        .HasForeignKey("SaleUomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_Products_SaleUom");
+
+                    b.Navigation("BaseUom");
 
                     b.Navigation("Category");
+
+                    b.Navigation("PurchaseUom");
+
+                    b.Navigation("SaleUom");
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.ProductUomConversion", b =>
+                {
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.UnitOfMeasure", "FromUom")
+                        .WithMany("ProductUomConversionFromUoms")
+                        .HasForeignKey("FromUomId")
+                        .IsRequired()
+                        .HasConstraintName("FK_ProductUomConversion_UnitOfMeasure");
+
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.Product", "Product")
+                        .WithMany("ProductUomConversions")
+                        .HasForeignKey("ProductId")
+                        .IsRequired()
+                        .HasConstraintName("FK_ProductUomConversion_Products");
+
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.UnitOfMeasure", "ToUom")
+                        .WithMany("ProductUomConversionToUoms")
+                        .HasForeignKey("ToUomId")
+                        .IsRequired()
+                        .HasConstraintName("FK_ProductUomConversion_UnitOfMeasure1");
+
+                    b.Navigation("FromUom");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("ToUom");
                 });
 
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.StockTransaction", b =>
@@ -495,7 +958,43 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_StockTransactions_Products");
 
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.Warehouse", "ToWarehouse")
+                        .WithMany()
+                        .HasForeignKey("ToWarehouseId");
+
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.Warehouse", "Warehouse")
+                        .WithMany()
+                        .HasForeignKey("WarehouseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Product");
+
+                    b.Navigation("ToWarehouse");
+
+                    b.Navigation("Warehouse");
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.UnitOfMeasure", b =>
+                {
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.UomCategory", "Category")
+                        .WithMany("UnitOfMeasures")
+                        .HasForeignKey("CategoryId")
+                        .IsRequired()
+                        .HasConstraintName("FK_UnitOfMeasure_UOM_Category");
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.WarehouseLocation", b =>
+                {
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.Warehouse", "Warehouse")
+                        .WithMany("WarehouseLocations")
+                        .HasForeignKey("WarehouseId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Warehouse_Locations_Warehouses");
+
+                    b.Navigation("Warehouse");
                 });
 
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.AspNetRole", b =>
@@ -519,7 +1018,26 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
 
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.Product", b =>
                 {
+                    b.Navigation("ProductUomConversions");
+
                     b.Navigation("StockTransactions");
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.UnitOfMeasure", b =>
+                {
+                    b.Navigation("ProductUomConversionFromUoms");
+
+                    b.Navigation("ProductUomConversionToUoms");
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.UomCategory", b =>
+                {
+                    b.Navigation("UnitOfMeasures");
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.Warehouse", b =>
+                {
+                    b.Navigation("WarehouseLocations");
                 });
 #pragma warning restore 612, 618
         }
