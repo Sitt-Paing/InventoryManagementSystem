@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -7,7 +7,9 @@ namespace InventoryManagementSystem.Application.Process.StockTransactions.DTOs;
 public record class StockTrasactionsDto
 {
     public long Id { get; set; }
-    public string ProductId { get; set; } = null!;
+    public Guid ProductId { get; set; }
+    public string? ProductName { get; set; }
+    public string? ProductSku { get; set; }
 
     public string UserId { get; set; } = null!;
 
