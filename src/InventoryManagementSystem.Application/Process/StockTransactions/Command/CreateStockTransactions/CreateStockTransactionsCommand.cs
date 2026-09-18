@@ -16,5 +16,7 @@ public record class CreateStockTransactionsCommand(
     string TransactionType,
     DateTime TransactionDate,
     long? ReferenceNo,
-    string? Note
+    string? Note,
+    int? ToWarehouseId = null,
+    int? ToWarehouseLocationId = null
 ) : IRequest<StockTransactionsDto>;
