@@ -255,8 +255,13 @@
           class="w-full">
           <ng-template #item let-item>
             <div class="flex justify-between items-center w-full">
-              <span class="font-medium">{{ item.name }}</span>
-              <span class="text-xs font-mono text-slate-500">Stock: {{ item.currentStock }}</span>
+              <div class="flex flex-col">
+                <span class="font-medium text-slate-800 dark:text-slate-200">{{ item.name }}</span>
+                @if (item.sku) {
+                  <span class="text-[11px] font-mono text-slate-400">SKU: {{ item.sku }}</span>
+                }
+              </div>
+              <span class="text-xs font-mono text-slate-500">Total: {{ item.currentStock }}</span>
             </div>
           </ng-template>
         </p-select>
@@ -264,9 +269,14 @@
           <small class="text-xs text-red-500">Product is required.</small>
         }
         @if (selectedProductForForm) {
-          <div class="text-xs p-2 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-between mt-1">
+          <div class="text-xs p-2 rounded bg-slate-100 dark:bg-slate-800 flex flex-wrap items-center justify-between gap-2 mt-1">
             <span class="font-mono text-slate-600 dark:text-slate-400">SKU: {{ selectedProductForForm.sku || '-' }}</span>
-            <span class="font-bold">Current Stock: <span class="font-mono text-emerald-600 dark:text-emerald-400">{{ selectedProductForForm.currentStock }}</span></span>
+            <div class="flex items-center gap-4">
+              <span class="text-slate-600 dark:text-slate-300">Total Stock: <span class="font-mono font-bold text-slate-900 dark:text-slate-100">{{ selectedProductForForm.currentStock }}</span></span>
+              @if (warehouseStock !== null) {
+                <span class="text-slate-600 dark:text-slate-300">Warehouse Stock: <span class="font-mono font-bold" [ngClass]="warehouseStock > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">{{ warehouseStock }}</span></span>
+              }
+            </div>
           </div>
         }
       </div>
