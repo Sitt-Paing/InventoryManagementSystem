@@ -8,16 +8,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InventoryManagementSystem.Application.Process.StockTransactions.Command.CreateStockTransactions;
 
-public class CreateStockTransactionsCommandHandler : IRequestHandler<CreateStockTransactionsCommand, StockTrasactionsDto>
+public class CreateStockTransactionsCommandHandler : IRequestHandler<CreateStockTransactionsCommand, StockTransactionsDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public CreateStockTransactionsCommandHandler(IApplicationDbContext context)
+    public CreateStockTransactionsCommandHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
     {
         _context = context;
+        _currentUserService = currentUserService;
     }
 
-    public async Task<StockTrasactionsDto> Handle(CreateStockTransactionsCommand command, CancellationToken cancellationToken)
+    public async Task<StockTransactionsDto> Handle(CreateStockTransactionsCommand command, CancellationToken cancellationToken)
     {
         var product = await _context.Products
             .FirstOrDefaultAsync(x => x.Id == command.ProductId && !x.DeletedOn.HasValue, cancellationToken);
@@ -27,11 +31,13 @@ public class CreateStockTransactionsCommandHandler : IRequestHandler<CreateStock
             throw new KeyNotFoundException($"Product with ID '{command.ProductId}' was not found.");
         }
 
-        if (string.Equals(command.TransactionType, "IN", StringComparison.OrdinalIgnoreCase))
+        var normalizedType = command.TransactionType.Trim().ToUpperInvariant();
+
+        if (string.Equals(normalizedType, "IN", StringComparison.OrdinalIgnoreCase))
         {
             product.CurrentStock += command.Quantity;
         }
-        else if (string.Equals(command.TransactionType, "OUT", StringComparison.OrdinalIgnoreCase))
+        else if (string.Equals(normalizedType, "OUT", StringComparison.OrdinalIgnoreCase))
         {
             if (product.CurrentStock < command.Quantity)
             {
@@ -40,28 +46,41 @@ public class CreateStockTransactionsCommandHandler : IRequestHandler<CreateStock
             }
             product.CurrentStock -= command.Quantity;
         }
-        else if (string.Equals(command.TransactionType, "ADJUSTMENT", StringComparison.OrdinalIgnoreCase))
+        else if (string.Equals(normalizedType, "ADJUSTMENT", StringComparison.OrdinalIgnoreCase))
         {
             product.CurrentStock = command.Quantity;
         }
 
+        var effectiveUserId = !string.IsNullOrWhiteSpace(command.UserId)
+            ? command.UserId
+            : (_currentUserService.UserId ?? _currentUserService.UserName ?? "system");
+
+        var transactionDate = command.TransactionDate != default 
+            ? command.TransactionDate 
+            : DateTime.UtcNow;
+
         var transaction = new StockTransaction
         {
             ProductId = command.ProductId,
-            UserId = command.UserId,
+            UserId = effectiveUserId,
             WarehouseId = command.WarehouseId,
             WarehouseLocationId = command.WarehouseLocationId,
             Quantity = command.Quantity,
-            TransactionType = command.TransactionType.ToUpperInvariant(),
-            TransactionDate = DateTime.UtcNow,
+            TransactionType = normalizedType,
+            TransactionDate = transactionDate,
             ReferenceNo = command.ReferenceNo,
-            Note = command.Note
+            Note = command.Note?.Trim()
         };
 
         _context.StockTransactions.Add(transaction);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new StockTrasactionsDto
+        var warehouse = await _context.Warehouses.AsNoTracking()
+            .FirstOrDefaultAsync(w => w.Id == command.WarehouseId, cancellationToken);
+        var location = await _context.WarehouseLocations.AsNoTracking()
+            .FirstOrDefaultAsync(l => l.Id == command.WarehouseLocationId, cancellationToken);
+
+        return new StockTransactionsDto
         {
             Id = transaction.Id,
             ProductId = transaction.ProductId,
@@ -69,7 +88,9 @@ public class CreateStockTransactionsCommandHandler : IRequestHandler<CreateStock
             ProductSku = product.Sku,
             UserId = transaction.UserId,
             WarehouseId = transaction.WarehouseId,
+            WarehouseName = warehouse?.Name,
             WarehouseLocationId = transaction.WarehouseLocationId,
+            WarehouseLocationName = location?.LocationCode,
             Quantity = transaction.Quantity,
             TransactionType = transaction.TransactionType,
             TransactionDate = transaction.TransactionDate,
