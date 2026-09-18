@@ -112,7 +112,7 @@
     [showCurrentPageReport]="true"
     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
     [loading]="isLoading"
-    [globalFilterFields]="['id', 'productName', 'productSku', 'transactionType', 'warehouseName', 'warehouseLocationName', 'referenceNo', 'note', 'createdBy']">
+    [globalFilterFields]="['id', 'productName', 'productSku', 'transactionType', 'warehouseName', 'warehouseLocationName', 'toWarehouseName', 'toWarehouseLocationName', 'referenceNo', 'note', 'createdBy']">
 
     <ng-template #header>
       <tr style="white-space: nowrap">
@@ -146,15 +146,27 @@
           <span [ngClass]="{
             'text-emerald-600 dark:text-emerald-400': txn.transactionType === 'IN',
             'text-rose-600 dark:text-rose-400': txn.transactionType === 'OUT',
+            'text-sky-600 dark:text-sky-400': txn.transactionType === 'TRANSFER',
             'text-amber-600 dark:text-amber-400': txn.transactionType === 'ADJUSTMENT'
           }">
-            {{ txn.transactionType === 'IN' ? '+' : (txn.transactionType === 'OUT' ? '-' : '') }}{{ txn.quantity }}
+            {{ txn.transactionType === 'IN' ? '+' : (txn.transactionType === 'OUT' ? '-' : (txn.transactionType === 'TRANSFER' ? '⇄ ' : '')) }}{{ txn.quantity }}
           </span>
         </td>
         <td class="text-xs">
-          <span class="font-medium text-slate-800 dark:text-slate-200">{{ txn.warehouseName || getWarehouseName(txn.warehouseId) }}</span>
-          <span class="text-slate-400 dark:text-slate-500 mx-1">/</span>
-          <span class="font-mono text-slate-600 dark:text-slate-400">{{ txn.warehouseLocationName || getLocationName(txn.warehouseLocationId) }}</span>
+          @if (txn.transactionType === 'TRANSFER') {
+            <div class="flex items-center gap-1">
+              <span class="font-medium text-slate-800 dark:text-slate-200">{{ txn.warehouseName || getWarehouseName(txn.warehouseId) }}</span>
+              <i class="pi pi-arrow-right text-[10px] text-sky-500"></i>
+              <span class="font-medium text-sky-700 dark:text-sky-300">{{ txn.toWarehouseName || (txn.toWarehouseId ? getWarehouseName(txn.toWarehouseId) : 'N/A') }}</span>
+            </div>
+            <div class="text-[11px] font-mono text-slate-400 dark:text-slate-500">
+              {{ txn.warehouseLocationName || getLocationName(txn.warehouseLocationId) }} → {{ txn.toWarehouseLocationName || (txn.toWarehouseLocationId ? getLocationName(txn.toWarehouseLocationId) : '-') }}
+            </div>
+          } @else {
+            <span class="font-medium text-slate-800 dark:text-slate-200">{{ txn.warehouseName || getWarehouseName(txn.warehouseId) }}</span>
+            <span class="text-slate-400 dark:text-slate-500 mx-1">/</span>
+            <span class="font-mono text-slate-600 dark:text-slate-400">{{ txn.warehouseLocationName || getLocationName(txn.warehouseLocationId) }}</span>
+          }
         </td>
         <td class="font-mono text-xs">{{ txn.referenceNo || '-' }}</td>
         <td class="text-xs">{{ txn.transactionDate | date: 'dd/MM/yyyy HH:mm' }}</td>
@@ -295,7 +307,9 @@
 
       <!-- Warehouse -->
       <div class="col-span-12 lg:col-span-6 flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Warehouse *</label>
+        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">
+          {{ stockTransactionForm.get('transactionType')?.value === 'TRANSFER' ? 'From Warehouse (Source) *' : 'Warehouse *' }}
+        </label>
         <p-select
           formControlName="warehouseId"
           [options]="warehouses"
@@ -314,7 +328,9 @@
 
       <!-- Warehouse Location -->
       <div class="col-span-12 lg:col-span-6 flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Warehouse Location *</label>
+        <label class="text-xs font-bold text-slate-800 dark:text-slate-200">
+          {{ stockTransactionForm.get('transactionType')?.value === 'TRANSFER' ? 'From Location *' : 'Warehouse Location *' }}
+        </label>
         <p-select
           formControlName="warehouseLocationId"
           [options]="filteredLocations"
@@ -329,6 +345,47 @@
           <small class="text-xs text-red-500">Warehouse location is required.</small>
         }
       </div>
+
+      <!-- Destination Warehouse & Location (Only for TRANSFER) -->
+      @if (stockTransactionForm.get('transactionType')?.value === 'TRANSFER') {
+        <div class="col-span-12 lg:col-span-6 flex flex-col gap-1.5 p-2 rounded bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800">
+          <label class="text-xs font-bold text-sky-800 dark:text-sky-300">To Warehouse (Destination) *</label>
+          <p-select
+            formControlName="toWarehouseId"
+            [options]="warehouses"
+            (onChange)="onToWarehouseChange($event)"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="Select Destination Warehouse"
+            appendTo="body"
+            size="small"
+            class="w-full">
+          </p-select>
+          @if (stockTransactionForm.get('toWarehouseId')?.invalid && (stockTransactionForm.get('toWarehouseId')?.dirty || stockTransactionForm.get('toWarehouseId')?.touched)) {
+            <small class="text-xs text-red-500">Destination warehouse is required.</small>
+          }
+          @if (stockTransactionForm.get('toWarehouseId')?.value && stockTransactionForm.get('warehouseId')?.value === stockTransactionForm.get('toWarehouseId')?.value) {
+            <small class="text-xs text-red-500 font-medium">Destination cannot be the same as Source warehouse.</small>
+          }
+        </div>
+
+        <div class="col-span-12 lg:col-span-6 flex flex-col gap-1.5 p-2 rounded bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800">
+          <label class="text-xs font-bold text-sky-800 dark:text-sky-300">To Location *</label>
+          <p-select
+            formControlName="toWarehouseLocationId"
+            [options]="filteredToLocations"
+            optionLabel="locationCode"
+            optionValue="id"
+            placeholder="Select Destination Location"
+            appendTo="body"
+            size="small"
+            class="w-full">
+          </p-select>
+          @if (stockTransactionForm.get('toWarehouseLocationId')?.invalid && (stockTransactionForm.get('toWarehouseLocationId')?.dirty || stockTransactionForm.get('toWarehouseLocationId')?.touched)) {
+            <small class="text-xs text-red-500">Destination location is required.</small>
+          }
+        </div>
+      }
 
       <!-- Reference No -->
       <div class="col-span-12 lg:col-span-6 flex flex-col gap-1.5">
@@ -421,14 +478,32 @@
             <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Quantity</span>
             <span class="font-mono font-bold text-base text-slate-900 dark:text-slate-100">{{ selectedStockTransaction.quantity }}</span>
           </div>
-          <div>
-            <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Warehouse</span>
-            <span class="font-semibold text-slate-800 dark:text-slate-200">{{ selectedStockTransaction.warehouseName || getWarehouseName(selectedStockTransaction.warehouseId) }}</span>
-          </div>
-          <div>
-            <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Location</span>
-            <span class="font-mono text-slate-800 dark:text-slate-200">{{ selectedStockTransaction.warehouseLocationName || getLocationName(selectedStockTransaction.warehouseLocationId) }}</span>
-          </div>
+          @if (selectedStockTransaction.transactionType === 'TRANSFER') {
+            <div class="col-span-2 p-2.5 rounded bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 space-y-2">
+              <span class="text-xs font-bold text-sky-800 dark:text-sky-300 block">Transfer Route</span>
+              <div class="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span class="text-slate-500 dark:text-slate-400 block font-semibold">From Warehouse:</span>
+                  <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStockTransaction.warehouseName || getWarehouseName(selectedStockTransaction.warehouseId) }}</span>
+                  <div class="text-[11px] font-mono text-slate-500">Loc: {{ selectedStockTransaction.warehouseLocationName || getLocationName(selectedStockTransaction.warehouseLocationId) }}</div>
+                </div>
+                <div>
+                  <span class="text-slate-500 dark:text-slate-400 block font-semibold">To Warehouse:</span>
+                  <span class="font-bold text-sky-700 dark:text-sky-300">{{ selectedStockTransaction.toWarehouseName || (selectedStockTransaction.toWarehouseId ? getWarehouseName(selectedStockTransaction.toWarehouseId) : 'N/A') }}</span>
+                  <div class="text-[11px] font-mono text-slate-500">Loc: {{ selectedStockTransaction.toWarehouseLocationName || (selectedStockTransaction.toWarehouseLocationId ? getLocationName(selectedStockTransaction.toWarehouseLocationId) : '-') }}</div>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div>
+              <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Warehouse</span>
+              <span class="font-semibold text-slate-800 dark:text-slate-200">{{ selectedStockTransaction.warehouseName || getWarehouseName(selectedStockTransaction.warehouseId) }}</span>
+            </div>
+            <div>
+              <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Location</span>
+              <span class="font-mono text-slate-800 dark:text-slate-200">{{ selectedStockTransaction.warehouseLocationName || getLocationName(selectedStockTransaction.warehouseLocationId) }}</span>
+            </div>
+          }
         </div>
       </div>
 
