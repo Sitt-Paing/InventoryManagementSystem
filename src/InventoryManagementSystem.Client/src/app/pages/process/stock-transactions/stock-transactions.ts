@@ -69,6 +69,7 @@ export class StockTransactionsComponent implements OnInit {
   filteredLocations: WarehouseLocationModel[] = [];
   filteredToLocations: WarehouseLocationModel[] = [];
   selectedProductForForm: ProductModel | null = null;
+  warehouseStock: number | null = null;
 
   // Filter toolbar state
   selectedType: string | null = null;
@@ -227,6 +228,7 @@ export class StockTransactionsComponent implements OnInit {
     const warehouseId = event?.value ?? null;
     this.updateFilteredLocations(warehouseId);
     this.stockTransactionForm.patchValue({ warehouseLocationId: 0 });
+    this.loadWarehouseBalance();
   }
 
   updateFilteredLocations(warehouseId: number | null): void {
@@ -255,9 +257,29 @@ export class StockTransactionsComponent implements OnInit {
     const productId = event?.value ?? null;
     if (!productId) {
       this.selectedProductForForm = null;
+      this.warehouseStock = null;
       return;
     }
     this.selectedProductForForm = this.products.find(p => p.id === productId) || null;
+    this.loadWarehouseBalance();
+  }
+
+  loadWarehouseBalance(): void {
+    const productId = this.stockTransactionForm.get('productId')?.value;
+    const warehouseId = Number(this.stockTransactionForm.get('warehouseId')?.value);
+    if (productId && warehouseId > 0) {
+      this.stockTransactionService.getWarehouseBalance(productId, warehouseId).subscribe({
+        next: (res) => {
+          this.warehouseStock = res.data != null ? Number(res.data) : 0;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.warehouseStock = null;
+        }
+      });
+    } else {
+      this.warehouseStock = null;
+    }
   }
 
   onDialogHide(): void {
@@ -272,6 +294,7 @@ export class StockTransactionsComponent implements OnInit {
     this.modalVisible = true;
     this.selectedStockTransaction = null;
     this.selectedProductForForm = null;
+    this.warehouseStock = null;
 
     const defaultWarehouseId = this.warehouses.length > 0 ? this.warehouses[0].id : 0;
     this.updateFilteredLocations(defaultWarehouseId);
@@ -306,6 +329,18 @@ export class StockTransactionsComponent implements OnInit {
           severity: 'error',
           summary: 'Validation Error',
           detail: 'Source warehouse and Destination warehouse cannot be the same.'
+        });
+        return;
+      }
+
+      const quantity = Number(formValue.quantity);
+      if ((formValue.transactionType === 'OUT' || isTransfer) && this.warehouseStock !== null && quantity > this.warehouseStock) {
+        this.isSubmitting = false;
+        this.messageService.add({
+          key: 'globalMessage',
+          severity: 'error',
+          summary: 'Insufficient Warehouse Stock',
+          detail: `Selected warehouse only has ${this.warehouseStock} available.`
         });
         return;
       }
@@ -420,6 +455,7 @@ export class StockTransactionsComponent implements OnInit {
         referenceNo: txn.referenceNo,
         note: txn.note || txn.notes || ''
       });
+      this.loadWarehouseBalance();
     } else {
       this.messageService.add({
         key: 'globalMessage',
