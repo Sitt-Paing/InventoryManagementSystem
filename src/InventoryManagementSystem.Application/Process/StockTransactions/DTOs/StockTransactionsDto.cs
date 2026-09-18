@@ -38,6 +38,3 @@ public record class StockTransactionsDto
 
     public string? DeletedBy { get; set; }
 }
-
-[Obsolete("Use StockTransactionsDto instead.")]
-public record class StockTrasactionsDto : StockTransactionsDto;
