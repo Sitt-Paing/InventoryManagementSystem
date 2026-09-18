@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace InventoryManagementSystem.Application.Process.StockTransactions.DTOs;
 
-public record class StockTrasactionsDto
+public record class StockTransactionsDto
 {
     public long Id { get; set; }
     public Guid ProductId { get; set; }
@@ -14,8 +12,10 @@ public record class StockTrasactionsDto
     public string UserId { get; set; } = null!;
 
     public int WarehouseId { get; set; }
+    public string? WarehouseName { get; set; }
 
     public int WarehouseLocationId { get; set; }
+    public string? WarehouseLocationName { get; set; }
 
     public decimal Quantity { get; set; }
 
@@ -38,3 +38,6 @@ public record class StockTrasactionsDto
 
     public string? DeletedBy { get; set; }
 }
+
+[Obsolete("Use StockTransactionsDto instead.")]
+public record class StockTrasactionsDto : StockTransactionsDto;
