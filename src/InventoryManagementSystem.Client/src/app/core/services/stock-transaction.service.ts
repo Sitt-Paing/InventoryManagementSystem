@@ -48,4 +48,9 @@ export class StockTransactionService {
     const url = `${environment.main_url}/process/stock-transactions/${id}`;
     return this.http.delete<RootModel>(url);
   }
+
+  getWarehouseBalance(productId: string, warehouseId: number): Observable<RootModel> {
+    const url = `${environment.main_url}/process/stock-transactions/warehouse-balance?productId=${productId}&warehouseId=${warehouseId}`;
+    return this.http.get<RootModel>(url);
+  }
 }
