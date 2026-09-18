@@ -1,51 +1,51 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { RootModel } from '../models/root.model';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { RootModel } from '../models/root.model';
 import { StockTransactionModel } from '../models/stock-transaction.model';
 
-const jsonHeaders = new HttpHeaders({ 'Content-Type': 'application/json' });
-
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class StockTransactionService {
-  private http = inject(HttpClient);
+  constructor(private http: HttpClient) {}
 
-  get(): Observable<RootModel> {
-    const url = `${environment.main_url}/StockTransactions`;
-    return this.http.get<RootModel>(url);
+  get(filter?: { transactionType?: string | null; date?: string | null; productId?: string | null; warehouseId?: number | null }): Observable<RootModel> {
+    let params = new HttpParams();
+    if (filter?.transactionType) {
+      params = params.set('transactionType', filter.transactionType);
+    }
+    if (filter?.date) {
+      params = params.set('date', filter.date);
+    }
+    if (filter?.productId) {
+      params = params.set('productId', filter.productId);
+    }
+    if (filter?.warehouseId && filter.warehouseId > 0) {
+      params = params.set('warehouseId', filter.warehouseId.toString());
+    }
+    const url = `${environment.main_url}/process/stock-transactions`;
+    return this.http.get<RootModel>(url, { params });
   }
 
   getById(id: number | string): Observable<RootModel> {
-    const url = `${environment.main_url}/StockTransactions/${id}`;
+    const url = `${environment.main_url}/process/stock-transactions/${id}`;
     return this.http.get<RootModel>(url);
   }
 
-  create(model: Partial<StockTransactionModel>): Observable<RootModel> {
-    const url = `${environment.main_url}/StockTransactions`;
-    return this.http.post<RootModel>(url, JSON.stringify(model), { headers: jsonHeaders });
+  create(model: StockTransactionModel): Observable<RootModel> {
+    const url = `${environment.main_url}/process/stock-transactions`;
+    return this.http.post<RootModel>(url, JSON.stringify(model));
+  }
+
+  update(model: StockTransactionModel): Observable<RootModel> {
+    const url = `${environment.main_url}/process/stock-transactions/${model.id}`;
+    return this.http.put<RootModel>(url, JSON.stringify(model));
   }
 
   delete(id: number | string): Observable<RootModel> {
-    const url = `${environment.main_url}/StockTransactions/${id}`;
+    const url = `${environment.main_url}/process/stock-transactions/${id}`;
     return this.http.delete<RootModel>(url);
-  }
-
-  // Legacy compat: used by StockTransactionsComponent and Dashboard
-  getByCB(): Observable<{ data: StockTransactionModel[] }> {
-    return new Observable(observer => {
-      this.get().subscribe({
-        next: res => observer.next({ data: (res.data || []) as StockTransactionModel[] }),
-        error: err => observer.next({ data: [] }),
-        complete: () => observer.complete()
-      });
-    });
-  }
-
-  // Legacy compat: used by StockTransactionsComponent save
-  save(model: Partial<StockTransactionModel>): Observable<RootModel> {
-    return this.create(model);
   }
 }
