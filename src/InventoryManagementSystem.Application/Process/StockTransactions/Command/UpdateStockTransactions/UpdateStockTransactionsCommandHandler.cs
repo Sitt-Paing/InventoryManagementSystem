@@ -4,21 +4,26 @@ using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Application.Process.StockTransactions.DTOs;
+using InventoryManagementSystem.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryManagementSystem.Application.Process.StockTransactions.Command.UpdateStockTransactions;
 
-public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStockTransactionsCommand, StockTrasactionsDto>
+public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStockTransactionsCommand, StockTransactionsDto?>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public UpdateStockTransactionsCommandHandler(IApplicationDbContext context)
+    public UpdateStockTransactionsCommandHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
     {
         _context = context;
+        _currentUserService = currentUserService;
     }
 
-    public async Task<StockTrasactionsDto> Handle(UpdateStockTransactionsCommand request, CancellationToken cancellationToken)
+    public async Task<StockTransactionsDto?> Handle(UpdateStockTransactionsCommand request, CancellationToken cancellationToken)
     {
         var transaction = await _context.StockTransactions
             .Include(t => t.Product)
@@ -26,10 +31,11 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
 
         if (transaction == null)
         {
-            throw new KeyNotFoundException($"Stock transaction with ID {request.Id} not found.");
+            return null;
         }
 
-        var normalizedNewType = request.TransactionType.ToUpper();
+        var normalizedNewType = request.TransactionType.Trim().ToUpperInvariant();
+        Product activeProduct;
 
         // Check if product changed
         if (transaction.ProductId != request.ProductId)
@@ -71,6 +77,8 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
             {
                 newProduct.CurrentStock = request.Quantity;
             }
+
+            activeProduct = newProduct;
         }
         else
         {
@@ -108,7 +116,13 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
             {
                 product.CurrentStock = request.Quantity;
             }
+
+            activeProduct = product;
         }
+
+        var effectiveUserId = !string.IsNullOrWhiteSpace(request.UserId)
+            ? request.UserId
+            : (_currentUserService.UserId ?? _currentUserService.UserName ?? "system");
 
         // Update transaction entity properties
         transaction.ProductId = request.ProductId;
@@ -116,26 +130,30 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
         transaction.WarehouseLocationId = request.WarehouseLocationId;
         transaction.Quantity = request.Quantity;
         transaction.TransactionType = normalizedNewType;
-        transaction.TransactionDate = request.TransactionDate;
+        transaction.TransactionDate = request.TransactionDate != default ? request.TransactionDate : DateTime.UtcNow;
         transaction.ReferenceNo = request.ReferenceNo;
-        transaction.Note = request.Note;
+        transaction.Note = request.Note?.Trim();
         transaction.UpdatedOn = DateTime.UtcNow;
-        transaction.UpdatedBy = request.UserId;
+        transaction.UpdatedBy = effectiveUserId;
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Reload product details for DTO response
-        var currentProduct = await _context.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == transaction.ProductId, cancellationToken);
+        var warehouse = await _context.Warehouses.AsNoTracking()
+            .FirstOrDefaultAsync(w => w.Id == transaction.WarehouseId, cancellationToken);
+        var location = await _context.WarehouseLocations.AsNoTracking()
+            .FirstOrDefaultAsync(l => l.Id == transaction.WarehouseLocationId, cancellationToken);
 
-        return new StockTrasactionsDto
+        return new StockTransactionsDto
         {
             Id = transaction.Id,
             ProductId = transaction.ProductId,
-            ProductName = currentProduct?.Name,
-            ProductSku = currentProduct?.Sku,
+            ProductName = activeProduct.Name,
+            ProductSku = activeProduct.Sku,
             UserId = transaction.UserId,
             WarehouseId = transaction.WarehouseId,
+            WarehouseName = warehouse?.Name,
             WarehouseLocationId = transaction.WarehouseLocationId,
+            WarehouseLocationName = location?.LocationCode,
             Quantity = transaction.Quantity,
             TransactionType = transaction.TransactionType,
             TransactionDate = transaction.TransactionDate,
