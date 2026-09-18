@@ -8,8 +8,7 @@ public class CreateStockTransactionsCommandValidator : AbstractValidator<CreateS
     public CreateStockTransactionsCommandValidator()
     {
         RuleFor(x => x.ProductId)
-            .NotEmpty().WithMessage("Product is required.")
-            .Must(id => Guid.TryParse(id, out _)).WithMessage("Invalid Product ID format.");
+            .NotEmpty().WithMessage("Product is required.");
 
         RuleFor(x => x.WarehouseId)
             .GreaterThan(0).WithMessage("Warehouse is required.");
