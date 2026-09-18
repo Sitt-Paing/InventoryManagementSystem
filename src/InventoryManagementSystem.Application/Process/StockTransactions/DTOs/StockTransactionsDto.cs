@@ -17,6 +17,12 @@ public record class StockTransactionsDto
     public int WarehouseLocationId { get; set; }
     public string? WarehouseLocationName { get; set; }
 
+    public int? ToWarehouseId { get; set; }
+    public string? ToWarehouseName { get; set; }
+
+    public int? ToWarehouseLocationId { get; set; }
+    public string? ToWarehouseLocationName { get; set; }
+
     public decimal Quantity { get; set; }
 
     public string TransactionType { get; set; } = null!;
