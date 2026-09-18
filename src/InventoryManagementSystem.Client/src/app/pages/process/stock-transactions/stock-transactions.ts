@@ -67,6 +67,7 @@ export class StockTransactionsComponent implements OnInit {
   warehouses: WarehouseModel[] = [];
   allLocations: WarehouseLocationModel[] = [];
   filteredLocations: WarehouseLocationModel[] = [];
+  filteredToLocations: WarehouseLocationModel[] = [];
   selectedProductForForm: ProductModel | null = null;
 
   // Filter toolbar state
@@ -78,12 +79,14 @@ export class StockTransactionsComponent implements OnInit {
     { label: 'All Movement Types', value: null },
     { label: 'Stock Intake (IN)', value: 'IN' },
     { label: 'Stock Issue / Dispatch (OUT)', value: 'OUT' },
+    { label: 'Stock Transfer (TRANSFER)', value: 'TRANSFER' },
     { label: 'Stock Adjustment (ADJUSTMENT)', value: 'ADJUSTMENT' }
   ];
 
   formTypeOptions = [
     { label: 'Stock Intake (IN)', value: 'IN' },
     { label: 'Stock Issue / Dispatch (OUT)', value: 'OUT' },
+    { label: 'Stock Transfer (TRANSFER)', value: 'TRANSFER' },
     { label: 'Stock Adjustment (ADJUSTMENT)', value: 'ADJUSTMENT' }
   ];
 
@@ -93,6 +96,8 @@ export class StockTransactionsComponent implements OnInit {
     productId: ['', Validators.required],
     warehouseId: [0, [Validators.required, Validators.min(1)]],
     warehouseLocationId: [0, [Validators.required, Validators.min(1)]],
+    toWarehouseId: [null as number | null],
+    toWarehouseLocationId: [null as number | null],
     transactionType: ['IN', Validators.required],
     quantity: [1, [Validators.required, Validators.min(0.01)]],
     transactionDate: [new Date(), Validators.required],
@@ -137,15 +142,35 @@ export class StockTransactionsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.setupTransactionTypeListener();
     this.loadProducts();
     this.loadWarehouses();
     this.loadLocations();
     this.loadData();
   }
 
+  setupTransactionTypeListener(): void {
+    this.stockTransactionForm.get('transactionType')?.valueChanges.subscribe(type => {
+      const toWhControl = this.stockTransactionForm.get('toWarehouseId');
+      const toLocControl = this.stockTransactionForm.get('toWarehouseLocationId');
+      if (type === 'TRANSFER') {
+        toWhControl?.setValidators([Validators.required, Validators.min(1)]);
+        toLocControl?.setValidators([Validators.required, Validators.min(1)]);
+      } else {
+        toWhControl?.clearValidators();
+        toLocControl?.clearValidators();
+        toWhControl?.setValue(null);
+        toLocControl?.setValue(null);
+        this.filteredToLocations = [];
+      }
+      toWhControl?.updateValueAndValidity();
+      toLocControl?.updateValueAndValidity();
+    });
+  }
+
   loadData(): void {
     this.isLoading = true;
-    const dateParam = this.filterDate ? this.filterDate.toISOString() : null;
+    const dateParam = this.filterDate ? this.datePipe.transform(this.filterDate, 'yyyy-MM-dd') : null;
     this.stockTransactionService.get({
       transactionType: this.selectedType,
       date: dateParam,
@@ -212,6 +237,20 @@ export class StockTransactionsComponent implements OnInit {
     }
   }
 
+  onToWarehouseChange(event: any): void {
+    const warehouseId = event?.value ?? null;
+    this.updateFilteredToLocations(warehouseId);
+    this.stockTransactionForm.patchValue({ toWarehouseLocationId: null });
+  }
+
+  updateFilteredToLocations(warehouseId: number | null): void {
+    if (warehouseId && warehouseId > 0) {
+      this.filteredToLocations = this.allLocations.filter(loc => loc.warehouseId === warehouseId);
+    } else {
+      this.filteredToLocations = [...this.allLocations];
+    }
+  }
+
   onProductChange(event: any): void {
     const productId = event?.value ?? null;
     if (!productId) {
@@ -237,12 +276,15 @@ export class StockTransactionsComponent implements OnInit {
     const defaultWarehouseId = this.warehouses.length > 0 ? this.warehouses[0].id : 0;
     this.updateFilteredLocations(defaultWarehouseId);
     const defaultLocationId = this.filteredLocations.length > 0 ? this.filteredLocations[0].id : 0;
+    this.filteredToLocations = [];
 
     this.stockTransactionForm.reset({
       id: 0,
       productId: '',
       warehouseId: defaultWarehouseId,
       warehouseLocationId: defaultLocationId,
+      toWarehouseId: null,
+      toWarehouseLocationId: null,
       transactionType: 'IN',
       quantity: 1,
       transactionDate: new Date(),
@@ -255,18 +297,31 @@ export class StockTransactionsComponent implements OnInit {
     this.isSubmitting = true;
     if (this.stockTransactionForm.valid) {
       const formValue = this.stockTransactionForm.value;
+      const isTransfer = formValue.transactionType === 'TRANSFER';
+
+      if (isTransfer && Number(formValue.warehouseId) === Number(formValue.toWarehouseId)) {
+        this.isSubmitting = false;
+        this.messageService.add({
+          key: 'globalMessage',
+          severity: 'error',
+          summary: 'Validation Error',
+          detail: 'Source warehouse and Destination warehouse cannot be the same.'
+        });
+        return;
+      }
+
       const model: StockTransactionModel = {
         id: this.isEdit ? Number(formValue.id) : 0,
         productId: formValue.productId!,
         warehouseId: Number(formValue.warehouseId),
         warehouseLocationId: Number(formValue.warehouseLocationId),
+        toWarehouseId: isTransfer && formValue.toWarehouseId ? Number(formValue.toWarehouseId) : null,
+        toWarehouseLocationId: isTransfer && formValue.toWarehouseLocationId ? Number(formValue.toWarehouseLocationId) : null,
         transactionType: formValue.transactionType as any,
         quantity: Number(formValue.quantity),
-        transactionDate: formValue.transactionDate instanceof Date 
-          ? formValue.transactionDate.toISOString() 
-          : new Date(formValue.transactionDate!).toISOString(),
+        transactionDate: this.datePipe.transform(formValue.transactionDate || new Date(), 'yyyy-MM-ddTHH:mm:ss')!,
         referenceNo: formValue.referenceNo ? Number(formValue.referenceNo) : null,
-        note: formValue.note?.trim() || null
+        note: formValue.note || null
       };
 
       if (!this.isEdit) {
@@ -345,6 +400,11 @@ export class StockTransactionsComponent implements OnInit {
       this.modalVisible = true;
       const txn = this.selectedStockTransaction;
       this.updateFilteredLocations(txn.warehouseId);
+      if (txn.toWarehouseId) {
+        this.updateFilteredToLocations(txn.toWarehouseId);
+      } else {
+        this.filteredToLocations = [];
+      }
       this.selectedProductForForm = this.products.find(p => p.id === txn.productId) || null;
 
       this.stockTransactionForm.patchValue({
@@ -352,6 +412,8 @@ export class StockTransactionsComponent implements OnInit {
         productId: txn.productId,
         warehouseId: txn.warehouseId,
         warehouseLocationId: txn.warehouseLocationId,
+        toWarehouseId: txn.toWarehouseId ?? null,
+        toWarehouseLocationId: txn.toWarehouseLocationId ?? null,
         transactionType: txn.transactionType,
         quantity: txn.quantity,
         transactionDate: txn.transactionDate ? new Date(txn.transactionDate) : new Date(),
@@ -451,10 +513,11 @@ export class StockTransactionsComponent implements OnInit {
     return loc ? `${loc.locationCode}` : `LOC #${locationId}`;
   }
 
-  getTxnSeverity(type: string): 'success' | 'danger' | 'warn' {
+  getTxnSeverity(type: string): 'success' | 'danger' | 'warn' | 'info' {
     switch (type) {
       case 'IN': return 'success';
       case 'OUT': return 'danger';
+      case 'TRANSFER': return 'info';
       case 'ADJUSTMENT': return 'warn';
       default: return 'warn';
     }
