@@ -5,6 +5,7 @@ using InventoryManagementSystem.Application.Common.Models;
 using InventoryManagementSystem.Application.Process.StockTransactions.Command.CreateStockTransactions;
 using InventoryManagementSystem.Application.Process.StockTransactions.Command.DeleteStockTransactions;
 using InventoryManagementSystem.Application.Process.StockTransactions.Command.UpdateStockTransactions;
+using InventoryManagementSystem.Application.Process.StockTransactions.DTOs;
 using InventoryManagementSystem.Application.Process.StockTransactions.Queries.GetStockTransactionById;
 using InventoryManagementSystem.Application.Process.StockTransactions.Queries.GetStockTransactions;
 using Microsoft.AspNetCore.Authorization;
@@ -20,7 +21,7 @@ public class StockTransactionsController : ApiControllerBase
 {
     [HttpGet]
     [EndpointSummary("Get all stock transactions with optional filters")]
-    public async Task<IActionResult> GetTransactions(
+    public async Task<IActionResult> GetStockTransactions(
         [FromQuery] string? transactionType,
         [FromQuery] DateTime? date,
         [FromQuery] Guid? productId,
@@ -38,7 +39,7 @@ public class StockTransactionsController : ApiControllerBase
 
     [HttpGet("{id:long}")]
     [EndpointSummary("Get stock transaction by ID")]
-    public async Task<IActionResult> GetTransactionById(long id)
+    public async Task<IActionResult> GetStockTransactionById(long id)
     {
         var result = await Mediator.Send(new GetStockTransactionByIdQuery(id));
         if (result == null)
@@ -63,50 +64,32 @@ public class StockTransactionsController : ApiControllerBase
 
     [HttpPost]
     [EndpointSummary("Record a new stock transaction (IN, OUT, ADJUSTMENT)")]
-    public async Task<IActionResult> CreateTransaction([FromBody] CreateStockTransactionsCommand command)
+    public async Task<IActionResult> CreateStockTransaction([FromBody] CreateStockTransactionsCommand command)
     {
         if (string.IsNullOrWhiteSpace(command.UserId))
         {
-            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.Identity?.Name ?? "system";
-            command = command with { UserId = currentUserId };
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.Identity?.Name;
+            if (!string.IsNullOrWhiteSpace(currentUserId))
+            {
+                command = command with { UserId = currentUserId };
+            }
         }
 
-        try
+        var result = await Mediator.Send(command);
+        var response = new DefaultResponseModel
         {
-            var result = await Mediator.Send(command);
-            return Ok(new DefaultResponseModel
-            {
-                StatusCode = StatusCodes.Status201Created,
-                Success = true,
-                Message = "Stock transaction recorded successfully.",
-                Data = result
-            });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new DefaultResponseModel
-            {
-                StatusCode = StatusCodes.Status400BadRequest,
-                Success = false,
-                Message = ex.Message,
-                Data = null
-            });
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new DefaultResponseModel
-            {
-                StatusCode = StatusCodes.Status404NotFound,
-                Success = false,
-                Message = ex.Message,
-                Data = null
-            });
-        }
+            StatusCode = StatusCodes.Status201Created,
+            Success = true,
+            Message = "Stock transaction recorded successfully.",
+            Data = result
+        };
+
+        return CreatedAtAction(nameof(GetStockTransactionById), new { id = result.Id }, response);
     }
 
     [HttpPut("{id:long}")]
     [EndpointSummary("Update an existing stock transaction and adjust stock balances")]
-    public async Task<IActionResult> UpdateTransaction(long id, [FromBody] UpdateStockTransactionsCommand command)
+    public async Task<IActionResult> UpdateStockTransaction(long id, [FromBody] UpdateStockTransactionsCommand command)
     {
         if (id != command.Id)
         {
@@ -121,79 +104,68 @@ public class StockTransactionsController : ApiControllerBase
 
         if (string.IsNullOrWhiteSpace(command.UserId))
         {
-            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.Identity?.Name ?? "system";
-            command = command with { UserId = currentUserId };
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.Identity?.Name;
+            if (!string.IsNullOrWhiteSpace(currentUserId))
+            {
+                command = command with { UserId = currentUserId };
+            }
         }
 
-        try
-        {
-            var result = await Mediator.Send(command);
-            return Ok(new DefaultResponseModel
-            {
-                StatusCode = StatusCodes.Status200OK,
-                Success = true,
-                Message = "Stock transaction updated successfully.",
-                Data = result
-            });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new DefaultResponseModel
-            {
-                StatusCode = StatusCodes.Status400BadRequest,
-                Success = false,
-                Message = ex.Message,
-                Data = null
-            });
-        }
-        catch (KeyNotFoundException ex)
+        var result = await Mediator.Send(command);
+        if (result == null)
         {
             return NotFound(new DefaultResponseModel
             {
                 StatusCode = StatusCodes.Status404NotFound,
                 Success = false,
-                Message = ex.Message,
+                Message = $"Stock transaction with ID {id} not found.",
                 Data = null
             });
         }
+
+        return Ok(new DefaultResponseModel
+        {
+            StatusCode = StatusCodes.Status200OK,
+            Success = true,
+            Message = "Stock transaction updated successfully.",
+            Data = result
+        });
     }
 
     [HttpDelete("{id:long}")]
     [EndpointSummary("Delete (soft-delete) a stock transaction and revert stock balances")]
-    public async Task<IActionResult> DeleteTransaction(long id)
+    public async Task<IActionResult> DeleteStockTransaction(long id)
     {
-        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.Identity?.Name ?? "system";
-
-        try
-        {
-            var result = await Mediator.Send(new DeleteStockTransactionsCommand(id, currentUserId));
-            return Ok(new DefaultResponseModel
-            {
-                StatusCode = StatusCodes.Status200OK,
-                Success = true,
-                Message = "Stock transaction deleted successfully.",
-                Data = result
-            });
-        }
-        catch (InvalidOperationException ex)
+        if (id <= 0)
         {
             return BadRequest(new DefaultResponseModel
             {
                 StatusCode = StatusCodes.Status400BadRequest,
                 Success = false,
-                Message = ex.Message,
+                Message = "Invalid stock transaction ID.",
                 Data = null
             });
         }
-        catch (KeyNotFoundException ex)
+
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.Identity?.Name;
+        var result = await Mediator.Send(new DeleteStockTransactionsCommand(id, currentUserId));
+        if (result == null)
         {
             return NotFound(new DefaultResponseModel
             {
                 StatusCode = StatusCodes.Status404NotFound,
                 Success = false,
-                Message = ex.Message,
+                Message = $"Stock transaction with ID {id} not found.",
                 Data = null
             });
         }
+
+        return Ok(new DefaultResponseModel
+        {
+            StatusCode = StatusCodes.Status200OK,
+            Success = true,
+            Message = "Stock transaction deleted successfully.",
+            Data = result
+        });
     }
 }
