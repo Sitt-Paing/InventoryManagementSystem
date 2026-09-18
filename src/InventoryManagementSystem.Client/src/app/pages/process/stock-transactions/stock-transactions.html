@@ -1,24 +1,18 @@
 <p-toast key="globalMessage" position="top-right"></p-toast>
-<p-confirmDialog key="positionDialog" position="bottom" rejectButtonStyleClass="p-button-outlined"></p-confirmDialog>
+<p-confirmDialog key="positionDialog" position="bottom"></p-confirmDialog>
 
 <div class="table-card p-4 space-y-3">
-  <!-- Row 1: SplitButton Actions & Title on Left, Global Search on Right -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200 dark:border-slate-800">
-    <div class="flex items-center gap-3">
-      <p-splitbutton 
-        label="Create" 
-        icon="pi pi-plus" 
-        [model]="items" 
-        (onClick)="create()" 
+  <!-- Row 1: Create Button on Left, Global Search on Right -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div>
+      <p-splitbutton
+        label="Create"
+        icon="pi pi-plus"
+        [model]="items"
+        (onClick)="create()"
         size="small"
         appendTo="body">
       </p-splitbutton>
-      <h2 class="text-lg font-extrabold tracking-tight flex items-center gap-2 text-slate-900 dark:text-slate-100 m-0">
-        <i class="pi pi-arrow-right-left text-emerald-600 dark:text-emerald-400"></i> Stock Movements Audit Log
-      </h2>
-      <span class="px-2 py-0.5 rounded-full text-xs font-mono font-bold border border-emerald-500/30 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
-        {{ stockTransactions.length }} logs
-      </span>
     </div>
 
     <div class="flex ml-auto w-full sm:w-64">
@@ -26,95 +20,102 @@
         <p-inputicon>
           <i class="pi pi-search"></i>
         </p-inputicon>
-        <input 
-          #search 
-          pInputText 
-          type="text" 
+        <input
+          #search
+          pInputText
+          type="text"
           (input)="tblStockTransactions.filterGlobal(search.value, 'contains')"
-          placeholder="Search keyword" 
+          pSize="small"
+          placeholder="Search keyword"
           class="w-full text-xs" />
       </p-iconfield>
     </div>
   </div>
 
-  <!-- Row 2: Filter Toolbar Controls with appendTo="body" -->
-  <div class="flex flex-wrap items-center gap-2.5 pt-1">
+  <!-- Row 2: Filter Toolbar (Movement Type, Warehouse, Date, View, Reset) -->
+  <div class="flex flex-wrap items-center gap-3 pt-1 border-t border-slate-100 dark:border-slate-800">
     <!-- Movement Type Filter -->
-    <p-select 
-      [options]="typeOptions" 
-      [(ngModel)]="selectedType" 
-      optionLabel="label" 
+    <p-select
+      [options]="typeOptions"
+      [(ngModel)]="selectedType"
+      optionLabel="label"
       optionValue="value"
-      placeholder="All Types"
+      placeholder="All Movement Types"
+      size="small"
       appendTo="body"
-      styleClass="p-select-sm w-44">
+      class="w-56">
     </p-select>
 
     <!-- Warehouse Filter -->
-    <p-select 
-      [options]="warehouses" 
-      [(ngModel)]="selectedWarehouseFilter" 
-      optionLabel="name" 
-      optionValue="id" 
+    <p-select
+      [options]="warehouses"
+      [(ngModel)]="selectedWarehouseFilter"
+      optionLabel="name"
+      optionValue="id"
       [showClear]="true"
       placeholder="All Warehouses"
+      size="small"
       appendTo="body"
-      styleClass="p-select-sm w-44">
+      class="w-48">
     </p-select>
 
-    <!-- Date Filter with appendTo="body" -->
-    <p-datepicker 
-      [(ngModel)]="filterDate" 
-      dateFormat="dd/mm/yy" 
-      [showIcon]="true" 
+    <!-- Date Filter -->
+    <p-datepicker
+      [(ngModel)]="filterDate"
+      dateFormat="dd/mm/yy"
+      [showIcon]="true"
+      iconDisplay="input"
       [showClear]="true"
       placeholder="Select Date"
+      size="small"
       appendTo="body"
-      styleClass="p-inputtext-sm w-40">
+      [fluid]="true"
+      class="inline-block w-48">
     </p-datepicker>
 
-    <!-- Filter Actions -->
-    <p-button 
-      label="Filter" 
-      icon="pi pi-search" 
-      severity="info" 
-      (click)="view()"
-      size="small"
-      styleClass="p-button-sm font-bold">
-    </p-button>
-    <p-button 
-      label="Reset" 
-      icon="pi pi-refresh" 
-      severity="secondary" 
-      [outlined]="true"
-      (click)="resetState()"
-      size="small"
-      styleClass="p-button-sm font-bold">
-    </p-button>
+    <!-- View & Reset Buttons -->
+    <div class="flex items-center gap-2">
+      <p-button
+        label="View"
+        icon="pi pi-search"
+        severity="info"
+        (click)="view()"
+        size="small">
+      </p-button>
+
+      <p-button
+        label="Reset"
+        icon="pi pi-refresh"
+        severity="secondary"
+        [outlined]="true"
+        (click)="resetState()"
+        size="small">
+      </p-button>
+    </div>
   </div>
 
   <!-- PrimeNG Data Table -->
-  <p-table 
-    #tblStockTransactions 
-    [value]="stockTransactions" 
-    [(selection)]="selectedStockTransaction" 
-    dataKey="id" 
+  <p-table
+    #tblStockTransactions
+    [value]="stockTransactions"
+    [(selection)]="selectedStockTransaction"
+    dataKey="id"
     selectionMode="single"
-    stripedRows="true" 
-    sortField="createdOn" 
-    [sortOrder]="-1" 
-    [paginator]="true" 
+    [stripedRows]="true"
+    sortField="createdOn"
+    [sortOrder]="-1"
+    [paginator]="true"
     paginatorDropdownAppendTo="body"
-    [tableStyle]="{ 'min-width': '65rem', 'white-space': 'nowrap' }" 
-    [rows]="20" 
+    [tableStyle]="{ 'min-width': '65rem', 'white-space': 'nowrap' }"
+    [rows]="20"
     [rowsPerPageOptions]="[20, 50, 100]"
-    [showCurrentPageReport]="true" 
-    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" 
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
     [loading]="isLoading"
-    [globalFilterFields]="['productName', 'productSku', 'transactionType', 'referenceNo', 'note', 'createdBy']">
+    [globalFilterFields]="['id', 'productName', 'productSku', 'transactionType', 'warehouseName', 'warehouseLocationName', 'referenceNo', 'note', 'createdBy']">
 
-    <ng-template #header let-txn>
-      <tr style="white-space:nowrap" [pSelectableRow]="txn">
+    <ng-template #header>
+      <tr style="white-space: nowrap">
         <th pFrozenColumn [style]="{ width: '10px' }">#</th>
         <th pSortableColumn="id">Txn ID <p-sortIcon field="id"></p-sortIcon></th>
         <th pSortableColumn="productName">Product <p-sortIcon field="productName"></p-sortIcon></th>
@@ -129,9 +130,9 @@
     </ng-template>
 
     <ng-template #body let-txn>
-      <tr [pSelectableRow]="txn" style="white-space:nowrap">
+      <tr [pSelectableRow]="txn" style="white-space: nowrap">
         <td>
-          <span class="pi pi-circle" [class.pi-check-circle]="selectedStockTransaction === txn"></span>
+          <span class="pi pi-circle" [class.pi-check-circle]="selectedStockTransaction?.id === txn.id"></span>
         </td>
         <td class="font-mono text-xs font-semibold text-slate-600 dark:text-slate-400">#{{ txn.id }}</td>
         <td>
@@ -151,18 +152,42 @@
           </span>
         </td>
         <td class="text-xs">
-          <span class="font-medium text-slate-800 dark:text-slate-200">{{ getWarehouseName(txn.warehouseId) }}</span>
+          <span class="font-medium text-slate-800 dark:text-slate-200">{{ txn.warehouseName || getWarehouseName(txn.warehouseId) }}</span>
           <span class="text-slate-400 dark:text-slate-500 mx-1">/</span>
-          <span class="font-mono text-slate-600 dark:text-slate-400">{{ getLocationName(txn.warehouseLocationId) }}</span>
+          <span class="font-mono text-slate-600 dark:text-slate-400">{{ txn.warehouseLocationName || getLocationName(txn.warehouseLocationId) }}</span>
         </td>
         <td class="font-mono text-xs">{{ txn.referenceNo || '-' }}</td>
-        <td class="text-xs">{{ txn.transactionDate | date:'dd/MM/yyyy HH:mm' }}</td>
+        <td class="text-xs">{{ txn.transactionDate | date: 'dd/MM/yyyy HH:mm' }}</td>
         <td class="text-xs font-medium text-slate-600 dark:text-slate-400">{{ txn.createdBy || txn.userId || '-' }}</td>
         <td class="text-center">
           <div class="flex items-center justify-center gap-1">
-            <button pButton icon="pi pi-eye" [rounded]="true" [text]="true" severity="info" (click)="openDetail(txn)" title="View Details"></button>
-            <button pButton icon="pi pi-pencil" [rounded]="true" [text]="true" severity="warn" (click)="editRow(txn)" title="Edit Transaction"></button>
-            <button pButton icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (click)="deleteRow(txn)" title="Delete Transaction"></button>
+            <p-button
+              icon="pi pi-eye"
+              [rounded]="true"
+              [text]="true"
+              severity="info"
+              size="small"
+              (click)="openDetail(txn)"
+              title="View Details">
+            </p-button>
+            <p-button
+              icon="pi pi-pencil"
+              [rounded]="true"
+              [text]="true"
+              severity="warn"
+              size="small"
+              (click)="editRow(txn)"
+              title="Edit Transaction">
+            </p-button>
+            <p-button
+              icon="pi pi-trash"
+              [rounded]="true"
+              [text]="true"
+              severity="danger"
+              size="small"
+              (click)="deleteRow(txn)"
+              title="Delete Transaction">
+            </p-button>
           </div>
         </td>
       </tr>
@@ -179,10 +204,10 @@
   </p-table>
 </div>
 
-<!-- Create / Edit Dialog matching Supplier Modal Style -->
-<p-dialog 
-  [header]="isEdit ? 'Edit Stock Movement' : 'Create Stock Movement'" 
-  [(visible)]="modalVisible" 
+<!-- Create / Edit Dialog -->
+<p-dialog
+  [header]="isEdit ? 'Edit Stock Movement' : 'Create Stock Movement'"
+  [(visible)]="modalVisible"
   [breakpoints]="{
     '1920px': '40vw',
     '1440px': '45vw',
@@ -191,30 +216,31 @@
     '425px': '100vw',
     '375px': '100vw',
     '320px': '100vw'
-  }" 
-  [modal]="true" 
-  [style]="{ 'min-width': '40vw' }" 
-  [draggable]="false" 
+  }"
+  [modal]="true"
+  [style]="{ 'min-width': '40vw' }"
+  [draggable]="false"
   [resizable]="false"
   (onHide)="onDialogHide()">
 
   <form [formGroup]="stockTransactionForm" (ngSubmit)="onSubmit()">
-    <div class="grid grid-cols-12 gap-3">
+    <div class="grid grid-cols-12 gap-3.5 mt-2">
       <!-- Product Selection -->
       <div class="col-span-12 flex flex-col gap-1.5">
         <label for="productId" class="text-xs font-bold text-slate-800 dark:text-slate-200">Product *</label>
-        <p-select 
+        <p-select
           id="productId"
-          formControlName="productId" 
-          [options]="products" 
+          formControlName="productId"
+          [options]="products"
           (onChange)="onProductChange($event)"
-          optionLabel="name" 
+          optionLabel="name"
           optionValue="id"
           [filter]="true"
           filterBy="name,sku"
           placeholder="Select Product"
           appendTo="body"
-          styleClass="w-full p-select-sm">
+          size="small"
+          class="w-full">
           <ng-template #item let-item>
             <div class="flex justify-between items-center w-full">
               <span class="font-medium">{{ item.name }}</span>
@@ -222,10 +248,10 @@
             </div>
           </ng-template>
         </p-select>
-        @if(stockTransactionForm.controls['productId'].invalid && stockTransactionForm.get('productId')?.dirty){
+        @if (stockTransactionForm.get('productId')?.invalid && (stockTransactionForm.get('productId')?.dirty || stockTransactionForm.get('productId')?.touched)) {
           <small class="text-xs text-red-500">Product is required.</small>
         }
-        @if(selectedProductForForm){
+        @if (selectedProductForForm) {
           <div class="text-xs p-2 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-between mt-1">
             <span class="font-mono text-slate-600 dark:text-slate-400">SKU: {{ selectedProductForForm.sku || '-' }}</span>
             <span class="font-bold">Current Stock: <span class="font-mono text-emerald-600 dark:text-emerald-400">{{ selectedProductForForm.currentStock }}</span></span>
@@ -236,15 +262,16 @@
       <!-- Movement Type -->
       <div class="col-span-12 lg:col-span-6 flex flex-col gap-1.5">
         <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Movement Type *</label>
-        <p-select 
-          formControlName="transactionType" 
-          [options]="formTypeOptions" 
-          optionLabel="label" 
+        <p-select
+          formControlName="transactionType"
+          [options]="formTypeOptions"
+          optionLabel="label"
           optionValue="value"
           appendTo="body"
-          styleClass="w-full p-select-sm">
+          size="small"
+          class="w-full">
         </p-select>
-        @if(stockTransactionForm.controls['transactionType'].invalid && stockTransactionForm.get('transactionType')?.dirty){
+        @if (stockTransactionForm.get('transactionType')?.invalid && (stockTransactionForm.get('transactionType')?.dirty || stockTransactionForm.get('transactionType')?.touched)) {
           <small class="text-xs text-red-500">Movement type is required.</small>
         }
       </div>
@@ -252,8 +279,16 @@
       <!-- Quantity -->
       <div class="col-span-12 lg:col-span-6 flex flex-col gap-1.5">
         <label for="quantity" class="text-xs font-bold text-slate-800 dark:text-slate-200">Quantity *</label>
-        <input type="number" id="quantity" step="1" min="1" pInputText formControlName="quantity" class="w-full text-sm py-2 px-3 rounded-lg" />
-        @if(stockTransactionForm.controls['quantity'].invalid && stockTransactionForm.get('quantity')?.dirty){
+        <input
+          type="number"
+          id="quantity"
+          step="1"
+          min="1"
+          pInputText
+          formControlName="quantity"
+          pSize="small"
+          class="w-full" />
+        @if (stockTransactionForm.get('quantity')?.invalid && (stockTransactionForm.get('quantity')?.dirty || stockTransactionForm.get('quantity')?.touched)) {
           <small class="text-xs text-red-500">Quantity must be greater than 0.</small>
         }
       </div>
@@ -261,17 +296,18 @@
       <!-- Warehouse -->
       <div class="col-span-12 lg:col-span-6 flex flex-col gap-1.5">
         <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Warehouse *</label>
-        <p-select 
-          formControlName="warehouseId" 
-          [options]="warehouses" 
+        <p-select
+          formControlName="warehouseId"
+          [options]="warehouses"
           (onChange)="onWarehouseChange($event)"
-          optionLabel="name" 
+          optionLabel="name"
           optionValue="id"
           placeholder="Select Warehouse"
           appendTo="body"
-          styleClass="w-full p-select-sm">
+          size="small"
+          class="w-full">
         </p-select>
-        @if(stockTransactionForm.controls['warehouseId'].invalid && stockTransactionForm.get('warehouseId')?.dirty){
+        @if (stockTransactionForm.get('warehouseId')?.invalid && (stockTransactionForm.get('warehouseId')?.dirty || stockTransactionForm.get('warehouseId')?.touched)) {
           <small class="text-xs text-red-500">Warehouse is required.</small>
         }
       </div>
@@ -279,16 +315,17 @@
       <!-- Warehouse Location -->
       <div class="col-span-12 lg:col-span-6 flex flex-col gap-1.5">
         <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Warehouse Location *</label>
-        <p-select 
-          formControlName="warehouseLocationId" 
-          [options]="filteredLocations" 
-          optionLabel="locationCode" 
+        <p-select
+          formControlName="warehouseLocationId"
+          [options]="filteredLocations"
+          optionLabel="locationCode"
           optionValue="id"
           placeholder="Select Location"
           appendTo="body"
-          styleClass="w-full p-select-sm">
+          size="small"
+          class="w-full">
         </p-select>
-        @if(stockTransactionForm.controls['warehouseLocationId'].invalid && stockTransactionForm.get('warehouseLocationId')?.dirty){
+        @if (stockTransactionForm.get('warehouseLocationId')?.invalid && (stockTransactionForm.get('warehouseLocationId')?.dirty || stockTransactionForm.get('warehouseLocationId')?.touched)) {
           <small class="text-xs text-red-500">Warehouse location is required.</small>
         }
       </div>
@@ -296,21 +333,31 @@
       <!-- Reference No -->
       <div class="col-span-12 lg:col-span-6 flex flex-col gap-1.5">
         <label for="referenceNo" class="text-xs font-bold text-slate-800 dark:text-slate-200">Reference No (Numeric)</label>
-        <input type="number" id="referenceNo" pInputText formControlName="referenceNo" placeholder="e.g. 100234" class="w-full text-sm py-2 px-3 rounded-lg" />
+        <input
+          type="number"
+          id="referenceNo"
+          pInputText
+          formControlName="referenceNo"
+          placeholder="e.g. 100234"
+          pSize="small"
+          class="w-full" />
       </div>
 
       <!-- Transaction Date -->
       <div class="col-span-12 lg:col-span-6 flex flex-col gap-1.5">
         <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Date *</label>
-        <p-datepicker 
-          formControlName="transactionDate" 
-          dateFormat="dd/mm/yy" 
-          [showIcon]="true" 
+        <p-datepicker
+          formControlName="transactionDate"
+          dateFormat="dd/mm/yy"
+          [showIcon]="true"
+          iconDisplay="input"
           [showTime]="true"
           appendTo="body"
-          styleClass="w-full p-inputtext-sm">
+          size="small"
+          [fluid]="true"
+          class="w-full">
         </p-datepicker>
-        @if(stockTransactionForm.controls['transactionDate'].invalid && stockTransactionForm.get('transactionDate')?.dirty){
+        @if (stockTransactionForm.get('transactionDate')?.invalid && (stockTransactionForm.get('transactionDate')?.dirty || stockTransactionForm.get('transactionDate')?.touched)) {
           <small class="text-xs text-red-500">Date is required.</small>
         }
       </div>
@@ -318,86 +365,102 @@
       <!-- Notes -->
       <div class="col-span-12 flex flex-col gap-1.5">
         <label class="text-xs font-bold text-slate-800 dark:text-slate-200">Notes / Remarks</label>
-        <textarea pTextarea formControlName="note" rows="2" maxlength="250" placeholder="Movement reason or invoice reference..." class="w-full text-sm p-3 rounded-lg"></textarea>
+        <textarea
+          pTextarea
+          formControlName="note"
+          rows="2"
+          maxlength="250"
+          placeholder="Movement reason or invoice reference..."
+          class="w-full text-sm p-3 rounded-lg">
+        </textarea>
       </div>
     </div>
 
     <div class="flex justify-end gap-3 pt-4 mt-2 border-t border-slate-200 dark:border-slate-700">
       <p-button label="Cancel" icon="pi pi-times" severity="secondary" (click)="onDialogHide()" size="small"></p-button>
-      <p-button [label]="isEdit ? 'Update' : 'Submit'" icon="pi pi-check" severity="primary" type="submit" [loading]="isSubmitting" size="small"></p-button>
+      <p-button
+        [label]="isEdit ? 'Update' : 'Submit'"
+        icon="pi pi-check"
+        severity="primary"
+        type="submit"
+        [loading]="isSubmitting"
+        size="small">
+      </p-button>
     </div>
   </form>
 </p-dialog>
 
 <!-- Detail View Dialog Modal -->
-<p-dialog 
-  header="Transaction Details" 
-  [(visible)]="detailModalVisible" 
-  [modal]="true" 
+<p-dialog
+  header="Transaction Details"
+  [(visible)]="detailModalVisible"
+  [modal]="true"
   [style]="{ width: '40rem' }"
   appendTo="body">
-  
-  <div *ngIf="selectedStockTransaction" class="space-y-4 pt-2">
-    <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-3">
-      <div class="font-bold text-sm text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-1">
-        Movement Information
-      </div>
-      <div class="grid grid-cols-2 gap-4 text-sm">
-        <div>
-          <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Product Name</span>
-          <span class="font-bold text-slate-900 dark:text-slate-100">{{ selectedStockTransaction.productName || 'N/A' }}</span>
-        </div>
-        <div>
-          <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Product SKU</span>
-          <span class="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{{ selectedStockTransaction.productSku || '-' }}</span>
-        </div>
-        <div>
-          <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Movement Type</span>
-          <p-tag [value]="selectedStockTransaction.transactionType" [severity]="getTxnSeverity(selectedStockTransaction.transactionType)" [rounded]="true"></p-tag>
-        </div>
-        <div>
-          <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Quantity</span>
-          <span class="font-mono font-bold text-base text-slate-900 dark:text-slate-100">{{ selectedStockTransaction.quantity }}</span>
-        </div>
-        <div>
-          <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Warehouse</span>
-          <span class="font-semibold text-slate-800 dark:text-slate-200">{{ getWarehouseName(selectedStockTransaction.warehouseId) }}</span>
-        </div>
-        <div>
-          <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Location</span>
-          <span class="font-mono text-slate-800 dark:text-slate-200">{{ getLocationName(selectedStockTransaction.warehouseLocationId) }}</span>
-        </div>
-      </div>
-    </div>
 
-    <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-3">
-      <div class="font-bold text-sm text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-1">
-        Audit & Metadata
+  @if (selectedStockTransaction) {
+    <div class="space-y-4 pt-2">
+      <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-3">
+        <div class="font-bold text-sm text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-1">
+          Movement Information
+        </div>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Product Name</span>
+            <span class="font-bold text-slate-900 dark:text-slate-100">{{ selectedStockTransaction.productName || 'N/A' }}</span>
+          </div>
+          <div>
+            <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Product SKU</span>
+            <span class="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{{ selectedStockTransaction.productSku || '-' }}</span>
+          </div>
+          <div>
+            <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Movement Type</span>
+            <p-tag [value]="selectedStockTransaction.transactionType" [severity]="getTxnSeverity(selectedStockTransaction.transactionType)" [rounded]="true"></p-tag>
+          </div>
+          <div>
+            <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Quantity</span>
+            <span class="font-mono font-bold text-base text-slate-900 dark:text-slate-100">{{ selectedStockTransaction.quantity }}</span>
+          </div>
+          <div>
+            <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Warehouse</span>
+            <span class="font-semibold text-slate-800 dark:text-slate-200">{{ selectedStockTransaction.warehouseName || getWarehouseName(selectedStockTransaction.warehouseId) }}</span>
+          </div>
+          <div>
+            <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Location</span>
+            <span class="font-mono text-slate-800 dark:text-slate-200">{{ selectedStockTransaction.warehouseLocationName || getLocationName(selectedStockTransaction.warehouseLocationId) }}</span>
+          </div>
+        </div>
       </div>
-      <div class="grid grid-cols-2 gap-4 text-sm">
-        <div>
-          <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Reference No</span>
-          <span class="font-mono text-slate-800 dark:text-slate-200 font-bold">{{ selectedStockTransaction.referenceNo || '-' }}</span>
+
+      <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-3">
+        <div class="font-bold text-sm text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-1">
+          Audit & Metadata
         </div>
-        <div>
-          <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Recorded Date</span>
-          <span class="text-slate-800 dark:text-slate-200">{{ selectedStockTransaction.transactionDate | date:'dd/MM/yyyy HH:mm:ss' }}</span>
-        </div>
-        <div>
-          <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Recorded By</span>
-          <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStockTransaction.createdBy || selectedStockTransaction.userId || '-' }}</span>
-        </div>
-        <div>
-          <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Transaction ID</span>
-          <span class="font-mono text-slate-800 dark:text-slate-200">#{{ selectedStockTransaction.id }}</span>
-        </div>
-        <div class="col-span-2">
-          <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Notes / Remarks</span>
-          <span class="italic font-medium text-slate-700 dark:text-slate-300">{{ selectedStockTransaction.note || 'No remarks provided.' }}</span>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Reference No</span>
+            <span class="font-mono text-slate-800 dark:text-slate-200 font-bold">{{ selectedStockTransaction.referenceNo || '-' }}</span>
+          </div>
+          <div>
+            <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Recorded Date</span>
+            <span class="text-slate-800 dark:text-slate-200">{{ selectedStockTransaction.transactionDate | date: 'dd/MM/yyyy HH:mm:ss' }}</span>
+          </div>
+          <div>
+            <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Recorded By</span>
+            <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStockTransaction.createdBy || selectedStockTransaction.userId || '-' }}</span>
+          </div>
+          <div>
+            <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Transaction ID</span>
+            <span class="font-mono text-slate-800 dark:text-slate-200">#{{ selectedStockTransaction.id }}</span>
+          </div>
+          <div class="col-span-2">
+            <span class="text-xs block font-semibold text-slate-500 dark:text-slate-400">Notes / Remarks</span>
+            <span class="italic font-medium text-slate-700 dark:text-slate-300">{{ selectedStockTransaction.note || 'No remarks provided.' }}</span>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  }
 
   <ng-template #footer>
     <div class="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
