@@ -23,8 +23,21 @@ public class UpdateStockTransactionsCommandValidator : AbstractValidator<UpdateS
 
         RuleFor(x => x.TransactionType)
             .NotEmpty().WithMessage("Transaction Type is required.")
-            .Must(t => t == "IN" || t == "OUT" || t == "ADJUSTMENT")
-            .WithMessage("Transaction Type must be either 'IN', 'OUT', or 'ADJUSTMENT'.");
+            .Must(t => t == "IN" || t == "OUT" || t == "ADJUSTMENT" || t == "TRANSFER")
+            .WithMessage("Transaction Type must be either 'IN', 'OUT', 'ADJUSTMENT', or 'TRANSFER'.");
+
+        When(x => string.Equals(x.TransactionType, "TRANSFER", System.StringComparison.OrdinalIgnoreCase), () =>
+        {
+            RuleFor(x => x.ToWarehouseId)
+                .NotNull().WithMessage("Destination Warehouse is required for stock transfer.")
+                .GreaterThan(0).WithMessage("Destination Warehouse is required for stock transfer.")
+                .Must((cmd, toWhId) => toWhId != cmd.WarehouseId)
+                .WithMessage("Destination Warehouse must be different from Source Warehouse.");
+
+            RuleFor(x => x.ToWarehouseLocationId)
+                .NotNull().WithMessage("Destination Warehouse Location is required for stock transfer.")
+                .GreaterThan(0).WithMessage("Destination Warehouse Location is required for stock transfer.");
+        });
 
         RuleFor(x => x.TransactionDate)
             .NotEmpty().WithMessage("Transaction Date is required.");
