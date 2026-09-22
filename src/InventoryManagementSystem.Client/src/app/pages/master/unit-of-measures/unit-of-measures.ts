@@ -1,8 +1,8 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { ChangeDetectorRef, Component, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { UnitOfMeasureModel } from '../../../core/models/unit-of-measure.model';
-import { UomCategoryModel } from '../../../core/models/uom-category.model';
+import { UnitOfMeasureModel } from '../../../core/models/master/unit-of-measure.model';
+import { UomCategoryModel } from '../../../core/models/master/uom-category.model';
 import { ExportService } from '../../../core/services/export.service';
 import { LoggerService } from '../../../core/services/logger.service';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
