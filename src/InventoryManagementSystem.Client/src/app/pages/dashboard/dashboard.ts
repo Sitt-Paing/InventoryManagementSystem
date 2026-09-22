@@ -3,7 +3,7 @@ import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SharedService } from '../../core/services/shared.service';
 import { ProductModel } from '../../core/models/master/product.model';
-import { StockTransactionModel } from '../../core/models/stock-transaction.model';
+import { StockTransactionModel } from '../../core/models/process/stock-transaction.model';
 
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
