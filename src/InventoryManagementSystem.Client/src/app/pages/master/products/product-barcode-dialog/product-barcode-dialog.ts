@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
-import { ProductModel } from '../../../../core/models/product.model';
+import { ProductModel } from '../../../../core/models/master/product.model';
 import { Barcode } from '../../../../shared/components/barcode/barcode';
 
 export interface StickerPreset {
