@@ -8,6 +8,8 @@ namespace InventoryManagementSystem.Application.Process.StockTransactions.Querie
 public record class GetStockTransactionsQuery(
     string? TransactionType = null,
     DateTime? Date = null,
+    DateTime? StartDate = null,
+    DateTime? EndDate = null,
     Guid? ProductId = null,
     int? WarehouseId = null
 ) : IRequest<List<StockTransactionsDto>>;
