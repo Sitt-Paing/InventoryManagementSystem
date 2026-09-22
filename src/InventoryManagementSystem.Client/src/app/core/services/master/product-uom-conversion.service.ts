@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { ProductUomConversionModel } from '../../models/product-uom-conversion.model';
+import { ProductUomConversionModel } from '../../models/master/product-uom-conversion.model';
 import { RootModel } from '../../models/root.model';
 
 
