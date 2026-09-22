@@ -74,7 +74,8 @@ export class StockTransactionsComponent implements OnInit {
   // Filter toolbar state
   selectedType: string | null = null;
   selectedWarehouseFilter: number | null = null;
-  filterDate: Date | null = null;
+  startDate: Date | null = new Date();
+  endDate: Date | null = new Date();
 
   typeOptions = [
     { label: 'All Movement Types', value: null },
@@ -171,10 +172,12 @@ export class StockTransactionsComponent implements OnInit {
 
   loadData(): void {
     this.isLoading = true;
-    const dateParam = this.filterDate ? this.datePipe.transform(this.filterDate, 'yyyy-MM-dd') : null;
+    const startDateParam = this.startDate ? this.datePipe.transform(this.startDate, 'yyyy-MM-dd') : null;
+    const endDateParam = this.endDate ? this.datePipe.transform(this.endDate, 'yyyy-MM-dd') : null;
     this.stockTransactionService.get({
       transactionType: this.selectedType,
-      date: dateParam,
+      startDate: startDateParam,
+      endDate: endDateParam,
       warehouseId: this.selectedWarehouseFilter
     }).subscribe({
       next: (res) => {
@@ -520,7 +523,8 @@ export class StockTransactionsComponent implements OnInit {
   resetState(): void {
     this.selectedType = null;
     this.selectedWarehouseFilter = null;
-    this.filterDate = null;
+    this.startDate = new Date();
+    this.endDate = new Date();
     this.loadData();
   }
 
