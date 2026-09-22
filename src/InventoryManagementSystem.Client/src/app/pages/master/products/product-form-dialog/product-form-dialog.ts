@@ -8,9 +8,9 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
-import { CategoryModel } from '../../../../core/models/category.model';
-import { ProductModel } from '../../../../core/models/product.model';
-import { UnitOfMeasureModel } from '../../../../core/models/unit-of-measure.model';
+import { CategoryModel } from '../../../../core/models/master/category.model';
+import { ProductModel } from '../../../../core/models/master/product.model';
+import { UnitOfMeasureModel } from '../../../../core/models/master/unit-of-measure.model';
 import { ProductService } from '../../../../core/services/master/product.service';
 
 @Component({
