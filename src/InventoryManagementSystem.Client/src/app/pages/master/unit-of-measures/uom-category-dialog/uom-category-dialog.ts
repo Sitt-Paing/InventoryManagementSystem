@@ -8,7 +8,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
-import { UomCategoryModel } from '../../../../core/models/uom-category.model';
+import { UomCategoryModel } from '../../../../core/models/master/uom-category.model';
 import { UomCategoryService } from '../../../../core/services/master/uom-category.service';
 
 @Component({
