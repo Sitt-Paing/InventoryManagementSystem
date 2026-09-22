@@ -283,12 +283,22 @@
           <small class="text-xs text-red-500">Product is required.</small>
         }
         @if (selectedProductForForm) {
-          <div class="text-xs p-2 rounded bg-slate-100 dark:bg-slate-800 flex flex-wrap items-center justify-between gap-2 mt-1">
-            <span class="font-mono text-slate-600 dark:text-slate-400">SKU: {{ selectedProductForForm.sku || '-' }}</span>
-            <div class="flex items-center gap-4">
-              <span class="text-slate-600 dark:text-slate-300">Total Stock: <span class="font-mono font-bold text-slate-900 dark:text-slate-100">{{ selectedProductForForm.currentStock }}</span></span>
-              @if (warehouseStock !== null) {
-                <span class="text-slate-600 dark:text-slate-300">Warehouse Stock: <span class="font-mono font-bold" [ngClass]="warehouseStock > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">{{ warehouseStock }}</span></span>
+          <div class="text-xs p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2 mt-1">
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-slate-500 dark:text-slate-400 font-semibold">SKU: {{ selectedProductForForm.sku || '-' }}</span>
+              <span class="text-slate-300 dark:text-slate-600">|</span>
+              <span class="text-slate-700 dark:text-slate-300 font-medium">Total: <strong class="font-mono text-slate-900 dark:text-slate-100">{{ selectedProductForForm.currentStock }}</strong></span>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">📌 Stocks:</span>
+              @for (wh of productWarehouseStocks; track wh.warehouseId) {
+                <span
+                  class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-mono font-semibold"
+                  [ngClass]="wh.quantity > 0 
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' 
+                    : 'bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900'">
+                  {{ wh.warehouseName }}: {{ wh.quantity }}
+                </span>
               }
             </div>
           </div>
@@ -336,14 +346,28 @@
         </label>
         <p-select
           formControlName="warehouseId"
-          [options]="warehouses"
+          [options]="warehouseOptionsWithStock.length > 0 ? warehouseOptionsWithStock : warehouses"
           (onChange)="onWarehouseChange($event)"
-          optionLabel="name"
+          optionLabel="label"
           optionValue="id"
           placeholder="Select Warehouse"
           appendTo="body"
           size="small"
           class="w-full">
+          <ng-template #item let-item>
+            <div class="flex justify-between items-center w-full py-0.5">
+              <span class="text-xs font-medium text-slate-800 dark:text-slate-200">{{ item.name }}</span>
+              @if (item.stock !== undefined) {
+                <span
+                  class="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full"
+                  [ngClass]="item.stock > 0 
+                    ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800' 
+                    : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-900'">
+                  Stock: {{ item.stock }}
+                </span>
+              }
+            </div>
+          </ng-template>
         </p-select>
         @if (stockTransactionForm.get('warehouseId')?.invalid && (stockTransactionForm.get('warehouseId')?.dirty || stockTransactionForm.get('warehouseId')?.touched)) {
           <small class="text-xs text-red-500">Warehouse is required.</small>
@@ -376,14 +400,28 @@
           <label class="text-xs font-bold text-sky-800 dark:text-sky-300">To Warehouse (Destination) *</label>
           <p-select
             formControlName="toWarehouseId"
-            [options]="warehouses"
+            [options]="warehouseOptionsWithStock.length > 0 ? warehouseOptionsWithStock : warehouses"
             (onChange)="onToWarehouseChange($event)"
-            optionLabel="name"
+            optionLabel="label"
             optionValue="id"
             placeholder="Select Destination Warehouse"
             appendTo="body"
             size="small"
             class="w-full">
+            <ng-template #item let-item>
+              <div class="flex justify-between items-center w-full py-0.5">
+                <span class="text-xs font-medium text-slate-800 dark:text-slate-200">{{ item.name }}</span>
+                @if (item.stock !== undefined) {
+                  <span
+                    class="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full"
+                    [ngClass]="item.stock > 0 
+                      ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800' 
+                      : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'">
+                    Stock: {{ item.stock }}
+                  </span>
+                }
+              </div>
+            </ng-template>
           </p-select>
           @if (stockTransactionForm.get('toWarehouseId')?.invalid && (stockTransactionForm.get('toWarehouseId')?.dirty || stockTransactionForm.get('toWarehouseId')?.touched)) {
             <small class="text-xs text-red-500">Destination warehouse is required.</small>
