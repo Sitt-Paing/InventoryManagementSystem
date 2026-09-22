@@ -257,6 +257,13 @@ export class StockTransactionsComponent implements OnInit {
     });
   }
 
+  get calculatedTotalStock(): number {
+    if (this.productWarehouseStocks && this.productWarehouseStocks.length > 0) {
+      return this.productWarehouseStocks.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+    }
+    return this.selectedProductForForm ? Number(this.selectedProductForForm.currentStock) || 0 : 0;
+  }
+
   buildWarehouseOptionsWithStock(): void {
     this.warehouseOptionsWithStock = this.warehouses.map(w => {
       const match = this.productWarehouseStocks.find(s => s.warehouseId === w.id);
