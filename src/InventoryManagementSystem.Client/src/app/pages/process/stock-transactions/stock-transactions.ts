@@ -72,6 +72,8 @@ export class StockTransactionsComponent implements OnInit {
   filteredToLocations: WarehouseLocationModel[] = [];
   selectedProductForForm: ProductModel | null = null;
   warehouseStock: number | null = null;
+  productWarehouseStocks: { warehouseId: number; warehouseName: string; quantity: number }[] = [];
+  warehouseOptionsWithStock: any[] = [];
 
   // Filter toolbar state
   selectedType: string = '_';
@@ -227,10 +229,43 @@ export class StockTransactionsComponent implements OnInit {
     this.warehouseService.get().subscribe({
       next: (res) => {
         this.warehouses = (res.data || []) as WarehouseModel[];
+        this.buildWarehouseOptionsWithStock();
       },
       error: () => {
         this.warehouses = [];
+        this.buildWarehouseOptionsWithStock();
       }
+    });
+  }
+
+  loadProductWarehouseStocks(productId: string): void {
+    if (!productId) {
+      this.productWarehouseStocks = [];
+      this.buildWarehouseOptionsWithStock();
+      return;
+    }
+    this.stockTransactionService.getProductWarehouseStocks(productId).subscribe({
+      next: (res) => {
+        this.productWarehouseStocks = (res.data || []) as { warehouseId: number; warehouseName: string; quantity: number }[];
+        this.buildWarehouseOptionsWithStock();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.productWarehouseStocks = [];
+        this.buildWarehouseOptionsWithStock();
+      }
+    });
+  }
+
+  buildWarehouseOptionsWithStock(): void {
+    this.warehouseOptionsWithStock = this.warehouses.map(w => {
+      const match = this.productWarehouseStocks.find(s => s.warehouseId === w.id);
+      const stock = match ? Number(match.quantity) : 0;
+      return {
+        ...w,
+        stock: stock,
+        label: `${w.name} (Stock: ${stock})`
+      };
     });
   }
 
@@ -280,9 +315,12 @@ export class StockTransactionsComponent implements OnInit {
     if (!productId) {
       this.selectedProductForForm = null;
       this.warehouseStock = null;
+      this.productWarehouseStocks = [];
+      this.buildWarehouseOptionsWithStock();
       return;
     }
     this.selectedProductForForm = this.products.find(p => p.id === productId) || null;
+    this.loadProductWarehouseStocks(productId);
     this.loadWarehouseBalance();
   }
 
@@ -309,6 +347,8 @@ export class StockTransactionsComponent implements OnInit {
     this.selectedStockTransaction = null;
     this.selectedProductForForm = null;
     this.isEdit = false;
+    this.productWarehouseStocks = [];
+    this.buildWarehouseOptionsWithStock();
   }
 
   create(): void {
@@ -317,6 +357,8 @@ export class StockTransactionsComponent implements OnInit {
     this.selectedStockTransaction = null;
     this.selectedProductForForm = null;
     this.warehouseStock = null;
+    this.productWarehouseStocks = [];
+    this.buildWarehouseOptionsWithStock();
 
     const defaultWarehouseId = this.warehouses.length > 0 ? this.warehouses[0].id : 0;
     this.updateFilteredLocations(defaultWarehouseId);
@@ -463,6 +505,12 @@ export class StockTransactionsComponent implements OnInit {
         this.filteredToLocations = [];
       }
       this.selectedProductForForm = this.products.find(p => p.id === txn.productId) || null;
+      if (txn.productId) {
+        this.loadProductWarehouseStocks(txn.productId);
+      } else {
+        this.productWarehouseStocks = [];
+        this.buildWarehouseOptionsWithStock();
+      }
 
       this.stockTransactionForm.patchValue({
         id: txn.id,
