@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { RootModel } from '../../models/root.model';
-import { UnitOfMeasureModel } from '../../models/unit-of-measure.model';
+import { UnitOfMeasureModel } from '../../models/master/unit-of-measure.model';
 
 @Injectable({
   providedIn: 'root'
