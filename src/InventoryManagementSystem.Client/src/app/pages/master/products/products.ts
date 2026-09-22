@@ -1,10 +1,10 @@
 ﻿import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CategoryModel } from '../../../core/models/category.model';
+import { CategoryModel } from '../../../core/models/master/category.model';
 import { ExportColumnModel } from '../../../core/models/export-column.model';
-import { ProductModel } from '../../../core/models/product.model';
-import { UnitOfMeasureModel } from '../../../core/models/unit-of-measure.model';
+import { ProductModel } from '../../../core/models/master/product.model';
+import { UnitOfMeasureModel } from '../../../core/models/master/unit-of-measure.model';
 import { ExportService } from '../../../core/services/export.service';
 import { LoggerService } from '../../../core/services/logger.service';
 import { SharedService } from '../../../core/services/shared.service';
