@@ -12,9 +12,9 @@ import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
-import { ProductModel } from '../../../../core/models/product.model';
-import { ProductUomConversionModel } from '../../../../core/models/product-uom-conversion.model';
-import { UnitOfMeasureModel } from '../../../../core/models/unit-of-measure.model';
+import { ProductModel } from '../../../../core/models/master/product.model';
+import { ProductUomConversionModel } from '../../../../core/models/master/product-uom-conversion.model';
+import { UnitOfMeasureModel } from '../../../../core/models/master/unit-of-measure.model';
 import { Barcode } from '../../../../shared/components/barcode/barcode';
 import { ProductUomConversionService } from '../../../../core/services/master/product-uom-conversion.service';
 
