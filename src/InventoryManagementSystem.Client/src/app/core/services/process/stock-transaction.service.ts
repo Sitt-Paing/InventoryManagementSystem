@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { RootModel } from '../../models/root.model';
-import { StockTransactionModel } from '../../models/stock-transaction.model';
+import { StockTransactionModel } from '../../models/process/stock-transaction.model';
 
 
 @Injectable({
