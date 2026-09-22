@@ -11,13 +11,26 @@ import { StockTransactionModel } from '../models/stock-transaction.model';
 export class StockTransactionService {
   constructor(private http: HttpClient) {}
 
-  get(filter?: { transactionType?: string | null; date?: string | null; productId?: string | null; warehouseId?: number | null }): Observable<RootModel> {
+  get(filter?: {
+    transactionType?: string | null;
+    date?: string | null;
+    startDate?: string | null;
+    endDate?: string | null;
+    productId?: string | null;
+    warehouseId?: number | null;
+  }): Observable<RootModel> {
     let params = new HttpParams();
     if (filter?.transactionType) {
       params = params.set('transactionType', filter.transactionType);
     }
     if (filter?.date) {
       params = params.set('date', filter.date);
+    }
+    if (filter?.startDate) {
+      params = params.set('startDate', filter.startDate);
+    }
+    if (filter?.endDate) {
+      params = params.set('endDate', filter.endDate);
     }
     if (filter?.productId) {
       params = params.set('productId', filter.productId);
