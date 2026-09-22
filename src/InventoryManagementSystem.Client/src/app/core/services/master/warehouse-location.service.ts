@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { RootModel } from '../../models/root.model';
-import { WarehouseLocationModel } from '../../models/warehouse-location.model';
+import { WarehouseLocationModel } from '../../models/master/warehouse-location.model';
 
 @Injectable({
   providedIn: 'root',
