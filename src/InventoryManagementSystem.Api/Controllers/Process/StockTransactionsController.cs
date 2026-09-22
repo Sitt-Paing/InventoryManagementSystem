@@ -25,10 +25,12 @@ public class StockTransactionsController : ApiControllerBase
     public async Task<IActionResult> GetStockTransactions(
         [FromQuery] string? transactionType,
         [FromQuery] DateTime? date,
+        [FromQuery] DateTime? startDate,
+        [FromQuery] DateTime? endDate,
         [FromQuery] Guid? productId,
         [FromQuery] int? warehouseId)
     {
-        var result = await Mediator.Send(new GetStockTransactionsQuery(transactionType, date, productId, warehouseId));
+        var result = await Mediator.Send(new GetStockTransactionsQuery(transactionType, date, startDate, endDate, productId, warehouseId));
         return Ok(new DefaultResponseModel
         {
             StatusCode = StatusCodes.Status200OK,
