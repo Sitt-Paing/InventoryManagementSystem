@@ -41,7 +41,19 @@ public class GetStockTransactionsQueryHandler : IRequestHandler<GetStockTransact
             query = query.Where(t => t.WarehouseId == request.WarehouseId.Value);
         }
 
-        if (request.Date.HasValue)
+        if (request.StartDate.HasValue)
+        {
+            var start = request.StartDate.Value.Date;
+            query = query.Where(t => t.TransactionDate >= start);
+        }
+
+        if (request.EndDate.HasValue)
+        {
+            var end = request.EndDate.Value.Date.AddDays(1);
+            query = query.Where(t => t.TransactionDate < end);
+        }
+
+        if (!request.StartDate.HasValue && !request.EndDate.HasValue && request.Date.HasValue)
         {
             var startDate = request.Date.Value.Date;
             var endDate = startDate.AddDays(1);
