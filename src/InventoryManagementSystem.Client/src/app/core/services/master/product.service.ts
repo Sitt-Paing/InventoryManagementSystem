@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { ProductModel } from '../../models/product.model';
+import { ProductModel } from '../../models/master/product.model';
 import { RootModel } from '../../models/root.model';
 
 @Injectable({
