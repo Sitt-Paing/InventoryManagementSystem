@@ -4,27 +4,42 @@
 
 .login-wrapper {
   min-height: 100vh;
-  background-color: var(--bg-page);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.65), rgba(30, 41, 59, 0.75)), url('/images/login-bg.jpg') no-repeat center center / cover;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
   padding: 1.5rem;
+  transition: background 0.3s ease;
+
+  &.dark {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(2, 6, 23, 0.9)), url('/images/login-bg.jpg') no-repeat center center / cover;
+  }
 }
 
-/* Elevated Login Card */
+/* Elevated Glassmorphism Login Card */
 .login-card {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: 1.5rem;
-  box-shadow: var(--card-shadow);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
   padding: 3rem 2.5rem;
   width: 100%;
   max-width: 480px;
   position: relative;
   z-index: 10;
   animation: slideUpFade 0.4s ease-out;
+}
+
+.dark .login-card {
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65);
 }
 
 @keyframes slideUpFade {
