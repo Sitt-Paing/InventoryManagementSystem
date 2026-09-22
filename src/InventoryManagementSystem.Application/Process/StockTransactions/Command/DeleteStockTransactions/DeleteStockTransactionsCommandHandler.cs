@@ -34,20 +34,34 @@ public class DeleteStockTransactionsCommandHandler : IRequestHandler<DeleteStock
 
         var product = transaction.Product ?? await _context.Products.FirstOrDefaultAsync(p => p.Id == transaction.ProductId, cancellationToken);
 
-        if (product != null)
+        var normalizedType = transaction.TransactionType.Trim().ToUpperInvariant();
+
+        // Revert stock impact on WarehouseStocks
+        var sourceStock = await _context.WarehouseStocks
+            .FirstOrDefaultAsync(x => x.ProductId == transaction.ProductId && x.WarehouseId == transaction.WarehouseId && !x.DeletedOn.HasValue, cancellationToken);
+
+        if (sourceStock != null)
         {
-            // Revert stock impact
-            if (string.Equals(transaction.TransactionType, "IN", StringComparison.OrdinalIgnoreCase))
+            if (normalizedType == "IN")
             {
-                if (product.CurrentStock < transaction.Quantity)
-                {
-                    throw new InvalidOperationException($"Cannot delete this Stock Intake (IN) transaction because current stock ({product.CurrentStock}) is lower than the movement quantity ({transaction.Quantity}).");
-                }
-                product.CurrentStock -= transaction.Quantity;
+                sourceStock.Quantity -= transaction.Quantity;
             }
-            else if (string.Equals(transaction.TransactionType, "OUT", StringComparison.OrdinalIgnoreCase))
+            else if (normalizedType == "OUT")
             {
-                product.CurrentStock += transaction.Quantity;
+                sourceStock.Quantity += transaction.Quantity;
+            }
+            else if (normalizedType == "TRANSFER")
+            {
+                sourceStock.Quantity += transaction.Quantity;
+                if (transaction.ToWarehouseId.HasValue && transaction.ToWarehouseId.Value > 0)
+                {
+                    var destStock = await _context.WarehouseStocks
+                        .FirstOrDefaultAsync(x => x.ProductId == transaction.ProductId && x.WarehouseId == transaction.ToWarehouseId.Value && !x.DeletedOn.HasValue, cancellationToken);
+                    if (destStock != null)
+                    {
+                        destStock.Quantity -= transaction.Quantity;
+                    }
+                }
             }
         }
 
@@ -60,6 +74,15 @@ public class DeleteStockTransactionsCommandHandler : IRequestHandler<DeleteStock
         transaction.DeletedBy = effectiveUserId;
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        if (product != null)
+        {
+            // Always sync Product.CurrentStock to the sum of all its warehouse stocks
+            product.CurrentStock = await _context.WarehouseStocks
+                .Where(w => w.ProductId == product.Id && !w.DeletedOn.HasValue)
+                .SumAsync(w => w.Quantity, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
 
         return new StockTransactionsDto
         {
