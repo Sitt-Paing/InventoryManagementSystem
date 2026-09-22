@@ -18,15 +18,15 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { TextareaModule } from 'primeng/textarea';
 
 import { StockTransactionModel } from '../../../core/models/stock-transaction.model';
-import { ProductModel } from '../../../core/models/product.model';
-import { WarehouseModel } from '../../../core/models/warehouse.model';
-import { WarehouseLocationModel } from '../../../core/models/warehouse-location.model';
+import { ProductModel } from '../../../core/models/master/product.model';
+import { WarehouseModel } from '../../../core/models/master/warehouse.model';
+import { WarehouseLocationModel } from '../../../core/models/master/warehouse-location.model';
 
-import { StockTransactionService } from '../../../core/services/stock-transaction.service';
 import { ProductService } from '../../../core/services/master/product.service';
 import { WarehouseService } from '../../../core/services/master/warehouse.service';
 import { WarehouseLocationService } from '../../../core/services/master/warehouse-location.service';
 import { ExportService } from '../../../core/services/export.service';
+import { StockTransactionService } from '../../../core/services/process/stock-transaction.service';
 
 @Component({
   selector: 'app-stock-transactions',
