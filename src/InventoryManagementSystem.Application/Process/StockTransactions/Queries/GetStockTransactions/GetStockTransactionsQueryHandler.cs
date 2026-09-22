@@ -25,11 +25,15 @@ public class GetStockTransactionsQueryHandler : IRequestHandler<GetStockTransact
             .AsNoTracking()
             .Where(t => !t.DeletedOn.HasValue);
 
-        if (!string.IsNullOrWhiteSpace(request.TransactionType))
+        var movementType = request.TransactionType?.Trim().ToUpperInvariant();
+        query = movementType switch
         {
-            var normalizedType = request.TransactionType.Trim().ToUpperInvariant();
-            query = query.Where(t => t.TransactionType == normalizedType);
-        }
+            "IN" => query.Where(t => t.TransactionType == "IN"),
+            "OUT" => query.Where(t => t.TransactionType == "OUT"),
+            "TRANSFER" => query.Where(t => t.TransactionType == "TRANSFER"),
+            "ADJUSTMENT" => query.Where(t => t.TransactionType == "ADJUSTMENT"),
+            _ => query
+        };
 
         if (request.ProductId.HasValue && request.ProductId.Value != Guid.Empty)
         {
@@ -41,23 +45,32 @@ public class GetStockTransactionsQueryHandler : IRequestHandler<GetStockTransact
             query = query.Where(t => t.WarehouseId == request.WarehouseId.Value);
         }
 
-        if (request.StartDate.HasValue)
+        if (request.StartDate.HasValue || request.EndDate.HasValue)
         {
-            var start = request.StartDate.Value.Date;
-            query = query.Where(t => t.TransactionDate >= start);
-        }
+            if (request.StartDate.HasValue)
+            {
+                var start = request.StartDate.Value.Date;
+                query = query.Where(t => t.TransactionDate >= start);
+            }
 
-        if (request.EndDate.HasValue)
-        {
-            var end = request.EndDate.Value.Date.AddDays(1);
-            query = query.Where(t => t.TransactionDate < end);
+            if (request.EndDate.HasValue)
+            {
+                var end = request.EndDate.Value.Date.AddDays(1);
+                query = query.Where(t => t.TransactionDate < end);
+            }
         }
-
-        if (!request.StartDate.HasValue && !request.EndDate.HasValue && request.Date.HasValue)
+        else if (request.Date.HasValue)
         {
             var startDate = request.Date.Value.Date;
             var endDate = startDate.AddDays(1);
             query = query.Where(t => t.TransactionDate >= startDate && t.TransactionDate < endDate);
+        }
+        else
+        {
+            // Default to today's movement data (not all)
+            var today = DateTime.Today;
+            var tomorrow = today.AddDays(1);
+            query = query.Where(t => t.TransactionDate >= today && t.TransactionDate < tomorrow);
         }
 
         return await (from t in query
