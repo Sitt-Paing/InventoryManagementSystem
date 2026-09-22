@@ -55,7 +55,6 @@ public class CreateStockTransactionsCommandHandler : IRequestHandler<CreateStock
 
         if (string.Equals(normalizedType, "IN", StringComparison.OrdinalIgnoreCase))
         {
-            product.CurrentStock += command.Quantity;
             sourceStock.Quantity += command.Quantity;
         }
         else if (string.Equals(normalizedType, "OUT", StringComparison.OrdinalIgnoreCase))
@@ -65,14 +64,11 @@ public class CreateStockTransactionsCommandHandler : IRequestHandler<CreateStock
                 throw new InvalidOperationException(
                     $"Insufficient stock in the selected warehouse for '{product.Name}'. Available warehouse stock is {sourceStock.Quantity}, but requested quantity is {command.Quantity}.");
             }
-            product.CurrentStock -= command.Quantity;
             sourceStock.Quantity -= command.Quantity;
         }
         else if (string.Equals(normalizedType, "ADJUSTMENT", StringComparison.OrdinalIgnoreCase))
         {
-            var diff = command.Quantity - sourceStock.Quantity;
             sourceStock.Quantity = command.Quantity;
-            product.CurrentStock += diff;
         }
         else if (string.Equals(normalizedType, "TRANSFER", StringComparison.OrdinalIgnoreCase))
         {
@@ -110,7 +106,6 @@ public class CreateStockTransactionsCommandHandler : IRequestHandler<CreateStock
 
             sourceStock.Quantity -= command.Quantity;
             destStock.Quantity += command.Quantity;
-            // Product.CurrentStock is preserved (net zero change across warehouses)
         }
 
         var transactionDate = command.TransactionDate != default 
@@ -135,6 +130,12 @@ public class CreateStockTransactionsCommandHandler : IRequestHandler<CreateStock
         };
 
         _context.StockTransactions.Add(transaction);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Always sync product's CurrentStock to the total of all its warehouse stocks
+        product.CurrentStock = await _context.WarehouseStocks
+            .Where(w => w.ProductId == product.Id && !w.DeletedOn.HasValue)
+            .SumAsync(w => w.Quantity, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         var warehouse = await _context.Warehouses.AsNoTracking()
