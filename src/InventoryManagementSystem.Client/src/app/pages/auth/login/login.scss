@@ -4,7 +4,7 @@
 
 .login-wrapper {
   min-height: 100vh;
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.65), rgba(30, 41, 59, 0.75)), url('/images/login-bg.jpg') no-repeat center center / cover;
+  background: url('/images/login-bg.jpg') no-repeat center center / cover;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -14,18 +14,20 @@
   transition: background 0.3s ease;
 
   &.dark {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(2, 6, 23, 0.9)), url('/images/login-bg.jpg') no-repeat center center / cover;
+    background: linear-gradient(rgba(15, 23, 42, 0.35), rgba(15, 23, 42, 0.45)), url('/images/login-bg.jpg') no-repeat center center / cover;
   }
 }
 
-/* Elevated Glassmorphism Login Card */
+/* Authentic Glassmorphism Login Card */
 .login-card {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1.5px solid rgba(255, 255, 255, 0.75);
   border-radius: 1.5rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 
+              inset 0 1px 1px rgba(255, 255, 255, 0.9),
+              inset 0 -1px 1px rgba(0, 0, 0, 0.05);
   padding: 3rem 2.5rem;
   width: 100%;
   max-width: 480px;
@@ -35,11 +37,12 @@
 }
 
 .dark .login-card {
-  background: rgba(15, 23, 42, 0.82);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65);
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.55), 
+              inset 0 1px 1px rgba(255, 255, 255, 0.2);
 }
 
 @keyframes slideUpFade {
@@ -56,21 +59,27 @@
 .login-brand-header h1 {
   font-size: 1.5rem;
   font-weight: 900;
-  color: #059669;
+  color: #047857;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
   margin: 0 0 0.35rem;
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
 .dark .login-brand-header h1 {
-  color: #10b981;
+  color: #34d399;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
 }
 
 .login-brand-header p {
-  font-size: 0.8125rem;
-  color: var(--text-muted);
+  font-size: 0.875rem;
+  color: #1e293b;
   margin: 0;
-  font-weight: 500;
+  font-weight: 600;
+}
+
+.dark .login-brand-header p {
+  color: #cbd5e1;
 }
 
 /* Error message */
@@ -78,14 +87,19 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background-color: rgba(239, 68, 68, 0.1);
+  background-color: rgba(239, 68, 68, 0.15);
+  backdrop-filter: blur(8px);
   border: 1px solid #ef4444;
   border-radius: 8px;
   padding: 0.75rem 1rem;
   margin-bottom: 1.25rem;
-  color: #ef4444;
+  color: #b91c1c;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 700;
+}
+
+.dark .login-error {
+  color: #fca5a5;
 }
 
 /* Form */
@@ -104,8 +118,12 @@
 .form-label {
   font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--text-main);
+  color: #0f172a;
   letter-spacing: 0.01em;
+}
+
+.dark .form-label {
+  color: #f1f5f9;
 }
 
 .input-wrapper {
@@ -117,28 +135,47 @@
   left: 0.875rem;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-faint);
+  color: #64748b;
   font-size: 0.9rem;
   z-index: 2;
   pointer-events: none;
 }
 
+.dark .input-icon {
+  color: #94a3b8;
+}
+
 .login-input {
   width: 100%;
   padding: 0.7rem 0.875rem 0.7rem 2.5rem !important;
-  border: 1px solid var(--border-color) !important;
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
   border-radius: 10px !important;
   font-size: 0.9rem !important;
-  color: var(--text-main) !important;
-  background-color: var(--bg-card) !important;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  font-weight: 500 !important;
+  color: #0f172a !important;
+  background-color: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(10px);
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
   box-sizing: border-box;
 }
 
 .login-input:focus {
+  background-color: rgba(255, 255, 255, 0.95) !important;
   border-color: #059669 !important;
-  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15) !important;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.25) !important;
   outline: none;
+}
+
+.dark .login-input {
+  background-color: rgba(30, 41, 59, 0.65) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #f8fafc !important;
+}
+
+.dark .login-input:focus {
+  background-color: rgba(30, 41, 59, 0.9) !important;
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25) !important;
 }
 
 /* PrimeNG Password overrides */
@@ -148,16 +185,31 @@
 ::ng-deep .login-password .p-password-input {
   width: 100%;
   padding: 0.7rem 2.75rem 0.7rem 2.5rem !important;
-  border: 1px solid var(--border-color) !important;
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
   border-radius: 10px !important;
   font-size: 0.9rem !important;
-  color: var(--text-main) !important;
-  background-color: var(--bg-card) !important;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  font-weight: 500 !important;
+  color: #0f172a !important;
+  background-color: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(10px);
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
 }
 ::ng-deep .login-password .p-password-input:focus {
+  background-color: rgba(255, 255, 255, 0.95) !important;
   border-color: #059669 !important;
-  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15) !important;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.25) !important;
+}
+
+.dark ::ng-deep .login-password .p-password-input {
+  background-color: rgba(30, 41, 59, 0.65) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #f8fafc !important;
+}
+
+.dark ::ng-deep .login-password .p-password-input:focus {
+  background-color: rgba(30, 41, 59, 0.9) !important;
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25) !important;
 }
 
 /* Field error */
@@ -179,18 +231,21 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text-muted);
+  color: #1e293b;
   font-weight: 600;
+}
+.dark .form-remember {
+  color: #e2e8f0;
 }
 
 .forgot-link {
-  color: #059669;
-  font-weight: 600;
+  color: #047857;
+  font-weight: 700;
   text-decoration: none;
   transition: opacity 0.2s;
 }
 .dark .forgot-link {
-  color: #10b981;
+  color: #34d399;
 }
 .forgot-link:hover {
   text-decoration: underline;
