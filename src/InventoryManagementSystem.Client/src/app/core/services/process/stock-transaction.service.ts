@@ -67,4 +67,9 @@ export class StockTransactionService {
     const url = `${environment.main_url}/process/stock-transactions/warehouse-balance?productId=${productId}&warehouseId=${warehouseId}`;
     return this.http.get<RootModel>(url);
   }
+
+  getProductWarehouseStocks(productId: string): Observable<RootModel> {
+    const url = `${environment.main_url}/process/stock-transactions/product-warehouse-stocks/${productId}`;
+    return this.http.get<RootModel>(url);
+  }
 }
