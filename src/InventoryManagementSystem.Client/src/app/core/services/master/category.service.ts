@@ -2,7 +2,7 @@ import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { environment } from "../../../../environments/environment";
-import { CategoryModel } from "../../models/category.model";
+import { CategoryModel } from "../../models/master/category.model";
 import { RootModel } from "../../models/root.model";
 
 @Injectable({
