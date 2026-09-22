@@ -13,6 +13,7 @@ import { DialogModule } from 'primeng/dialog';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
+import { SelectButtonModule } from 'primeng/selectbutton';
 import { DatePickerModule } from 'primeng/datepicker';
 import { TextareaModule } from 'primeng/textarea';
 
@@ -45,6 +46,7 @@ import { ExportService } from '../../../core/services/export.service';
     DialogModule,
     ButtonModule,
     SelectModule,
+    SelectButtonModule,
     DatePickerModule,
     TextareaModule
   ],
@@ -72,17 +74,17 @@ export class StockTransactionsComponent implements OnInit {
   warehouseStock: number | null = null;
 
   // Filter toolbar state
-  selectedType: string | null = null;
+  selectedType: string = '_';
   selectedWarehouseFilter: number | null = null;
-  startDate: Date | null = new Date();
-  endDate: Date | null = new Date();
+  sDate: Date | null = null;
+  eDate: Date | null = null;
 
-  typeOptions = [
-    { label: 'All Movement Types', value: null },
-    { label: 'Stock Intake (IN)', value: 'IN' },
-    { label: 'Stock Issue / Dispatch (OUT)', value: 'OUT' },
-    { label: 'Stock Transfer (TRANSFER)', value: 'TRANSFER' },
-    { label: 'Stock Adjustment (ADJUSTMENT)', value: 'ADJUSTMENT' }
+  movementTypeOptions = [
+    { label: 'All', value: '_' },
+    { label: 'IN', value: 'IN' },
+    { label: 'OUT', value: 'OUT' },
+    { label: 'TRANSFER', value: 'TRANSFER' },
+    { label: 'ADJUSTMENT', value: 'ADJUSTMENT' }
   ];
 
   formTypeOptions = [
@@ -172,12 +174,14 @@ export class StockTransactionsComponent implements OnInit {
 
   loadData(): void {
     this.isLoading = true;
-    const startDateParam = this.startDate ? this.datePipe.transform(this.startDate, 'yyyy-MM-dd') : null;
-    const endDateParam = this.endDate ? this.datePipe.transform(this.endDate, 'yyyy-MM-dd') : null;
+    const sdate = this.sDate ? this.datePipe.transform(this.sDate, 'yyyy-MM-dd') : null;
+    const edate = this.eDate ? this.datePipe.transform(this.eDate, 'yyyy-MM-dd') : null;
+    const type = this.selectedType === '_' ? null : this.selectedType;
+
     this.stockTransactionService.get({
-      transactionType: this.selectedType,
-      startDate: startDateParam,
-      endDate: endDateParam,
+      transactionType: type,
+      startDate: sdate,
+      endDate: edate,
       warehouseId: this.selectedWarehouseFilter
     }).subscribe({
       next: (res) => {
@@ -191,6 +195,24 @@ export class StockTransactionsComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  // onMovementTypeChange(): void {
+  //   this.loadData();
+  // }
+
+  onStartDateChange(date: Date): void {
+    this.sDate = date;
+    if (this.sDate && (!this.eDate || this.eDate < this.sDate)) {
+      this.eDate = new Date(this.sDate);
+    }
+  }
+
+  onEndDateChange(date: Date): void {
+    this.eDate = date;
+    if (this.eDate && (!this.sDate || this.sDate > this.eDate)) {
+      this.sDate = new Date(this.eDate);
+    }
   }
 
   loadProducts(): void {
@@ -521,10 +543,10 @@ export class StockTransactionsComponent implements OnInit {
   }
 
   resetState(): void {
-    this.selectedType = null;
+    this.selectedType = '_';
     this.selectedWarehouseFilter = null;
-    this.startDate = new Date();
-    this.endDate = new Date();
+    this.sDate = null;
+    this.eDate = null;
     this.loadData();
   }
 
