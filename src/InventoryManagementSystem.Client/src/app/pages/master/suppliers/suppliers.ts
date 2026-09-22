@@ -6,7 +6,7 @@ import { IconFieldModule } from "primeng/iconfield";
 import { InputIconModule } from "primeng/inputicon";
 import { Table, TableModule } from "primeng/table";
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
-import { SuppliersModel } from '../../../core/models/suppliers.model';
+import { SuppliersModel } from '../../../core/models/master/suppliers.model';
 import { InputTextModule } from 'primeng/inputtext';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Tag } from "primeng/tag";
