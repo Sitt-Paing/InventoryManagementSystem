@@ -287,7 +287,7 @@
             <div class="flex items-center gap-2">
               <span class="font-mono text-slate-500 dark:text-slate-400 font-semibold">SKU: {{ selectedProductForForm.sku || '-' }}</span>
               <span class="text-slate-300 dark:text-slate-600">|</span>
-              <span class="text-slate-700 dark:text-slate-300 font-medium">Total: <strong class="font-mono text-slate-900 dark:text-slate-100">{{ selectedProductForForm.currentStock }}</strong></span>
+              <span class="text-slate-700 dark:text-slate-300 font-medium">Total: <strong class="font-mono text-slate-900 dark:text-slate-100">{{ calculatedTotalStock }}</strong></span>
             </div>
             <div class="flex flex-wrap items-center gap-1.5">
               <span class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">📌 Stocks:</span>
