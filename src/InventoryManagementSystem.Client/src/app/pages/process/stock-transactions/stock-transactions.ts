@@ -17,7 +17,7 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { DatePickerModule } from 'primeng/datepicker';
 import { TextareaModule } from 'primeng/textarea';
 
-import { StockTransactionModel } from '../../../core/models/stock-transaction.model';
+import { StockTransactionModel } from '../../../core/models/process/stock-transaction.model';
 import { ProductModel } from '../../../core/models/master/product.model';
 import { WarehouseModel } from '../../../core/models/master/warehouse.model';
 import { WarehouseLocationModel } from '../../../core/models/master/warehouse-location.model';
