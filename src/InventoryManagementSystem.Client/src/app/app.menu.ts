@@ -110,7 +110,7 @@ export const NAVIGATION_MENU: Readonly<NavigationMenuGroup[]> = [
       {
         label: 'Stock Transactions',
         transKey: 'NAV.STOCK_TRANSACTIONS',
-        icon: 'pi-arrow-right-arrow-left',
+        icon: 'pi pi-arrow-right-arrow-left',
         routerLink: '/process/stock-transactions',
         // data: { roles: MANAGER_PROCESS },
       },
