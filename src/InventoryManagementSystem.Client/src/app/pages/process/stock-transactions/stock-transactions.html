@@ -59,18 +59,32 @@
       class="w-48">
     </p-select>
 
-    <!-- Date Filter -->
+    <!-- Start Date Filter -->
     <p-datepicker
-      [(ngModel)]="filterDate"
+      [(ngModel)]="startDate"
       dateFormat="dd/mm/yy"
       [showIcon]="true"
       iconDisplay="input"
       [showClear]="true"
-      placeholder="Select Date"
+      placeholder="Start Date"
       size="small"
       appendTo="body"
       [fluid]="true"
-      class="inline-block w-48">
+      class="inline-block w-44">
+    </p-datepicker>
+
+    <!-- End Date Filter -->
+    <p-datepicker
+      [(ngModel)]="endDate"
+      dateFormat="dd/mm/yy"
+      [showIcon]="true"
+      iconDisplay="input"
+      [showClear]="true"
+      placeholder="End Date"
+      size="small"
+      appendTo="body"
+      [fluid]="true"
+      class="inline-block w-44">
     </p-datepicker>
 
     <!-- View & Reset Buttons -->
