@@ -34,17 +34,15 @@
 
   <!-- Row 2: Filter Toolbar (Movement Type, Warehouse, Date, View, Reset) -->
   <div class="flex flex-wrap items-center gap-3 pt-1 border-t border-slate-100 dark:border-slate-800">
-    <!-- Movement Type Filter -->
-    <p-select
-      [options]="typeOptions"
+    <!-- Movement Type SelectButton -->
+    <p-selectbutton
+      [options]="movementTypeOptions"
       [(ngModel)]="selectedType"
       optionLabel="label"
       optionValue="value"
-      placeholder="All Movement Types"
-      size="small"
-      appendTo="body"
-      class="w-56">
-    </p-select>
+      [allowEmpty]="false"
+      size="small">
+    </p-selectbutton>
 
     <!-- Warehouse Filter -->
     <p-select
@@ -61,7 +59,8 @@
 
     <!-- Start Date Filter -->
     <p-datepicker
-      [(ngModel)]="startDate"
+      [(ngModel)]="sDate"
+      (ngModelChange)="onStartDateChange($event)"
       dateFormat="dd/mm/yy"
       [showIcon]="true"
       iconDisplay="input"
@@ -70,12 +69,13 @@
       size="small"
       appendTo="body"
       [fluid]="true"
-      class="inline-block w-44">
+      class="inline-block w-40">
     </p-datepicker>
 
     <!-- End Date Filter -->
     <p-datepicker
-      [(ngModel)]="endDate"
+      [(ngModel)]="eDate"
+      (ngModelChange)="onEndDateChange($event)"
       dateFormat="dd/mm/yy"
       [showIcon]="true"
       iconDisplay="input"
@@ -84,7 +84,7 @@
       size="small"
       appendTo="body"
       [fluid]="true"
-      class="inline-block w-44">
+      class="inline-block w-40">
     </p-datepicker>
 
     <!-- View & Reset Buttons -->
