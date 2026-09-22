@@ -34,129 +34,112 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
             return null;
         }
 
-        var normalizedNewType = request.TransactionType.Trim().ToUpperInvariant();
-        Product activeProduct;
-
-        // Check if product changed
-        if (transaction.ProductId != request.ProductId)
-        {
-            // Revert old product stock
-            var oldProduct = transaction.Product ?? await _context.Products.FirstOrDefaultAsync(p => p.Id == transaction.ProductId, cancellationToken);
-            if (oldProduct != null)
-            {
-                if (transaction.TransactionType == "IN")
-                {
-                    oldProduct.CurrentStock -= transaction.Quantity;
-                }
-                else if (transaction.TransactionType == "OUT")
-                {
-                    oldProduct.CurrentStock += transaction.Quantity;
-                }
-            }
-
-            // Apply new product stock
-            var newProduct = await _context.Products.FirstOrDefaultAsync(p => p.Id == request.ProductId && !p.DeletedOn.HasValue, cancellationToken);
-            if (newProduct == null)
-            {
-                throw new KeyNotFoundException($"Product with ID {request.ProductId} not found.");
-            }
-
-            if (normalizedNewType == "IN")
-            {
-                newProduct.CurrentStock += request.Quantity;
-            }
-            else if (normalizedNewType == "OUT")
-            {
-                if (newProduct.CurrentStock < request.Quantity)
-                {
-                    throw new InvalidOperationException($"Insufficient stock available for product '{newProduct.Name}'. Current stock: {newProduct.CurrentStock}, Requested: {request.Quantity}.");
-                }
-                newProduct.CurrentStock -= request.Quantity;
-            }
-            else if (normalizedNewType == "ADJUSTMENT")
-            {
-                newProduct.CurrentStock = request.Quantity;
-            }
-            else if (normalizedNewType == "TRANSFER")
-            {
-                if (!request.ToWarehouseId.HasValue || request.ToWarehouseId.Value <= 0)
-                {
-                    throw new InvalidOperationException("Destination Warehouse is required for stock transfer.");
-                }
-                if (request.WarehouseId == request.ToWarehouseId.Value)
-                {
-                    throw new InvalidOperationException("Source warehouse and Destination warehouse cannot be the same.");
-                }
-                if (newProduct.CurrentStock < request.Quantity)
-                {
-                    throw new InvalidOperationException($"Insufficient stock available for product '{newProduct.Name}'. Current stock: {newProduct.CurrentStock}, Requested: {request.Quantity}.");
-                }
-            }
-
-            activeProduct = newProduct;
-        }
-        else
-        {
-            // Same product: revert old transaction impact, then apply new transaction impact
-            var product = transaction.Product ?? await _context.Products.FirstOrDefaultAsync(p => p.Id == request.ProductId, cancellationToken);
-            if (product == null)
-            {
-                throw new KeyNotFoundException($"Product with ID {request.ProductId} not found.");
-            }
-
-            // Step 1: Revert previous movement
-            if (transaction.TransactionType == "IN")
-            {
-                product.CurrentStock -= transaction.Quantity;
-            }
-            else if (transaction.TransactionType == "OUT")
-            {
-                product.CurrentStock += transaction.Quantity;
-            }
-
-            // Step 2: Apply updated movement
-            if (normalizedNewType == "IN")
-            {
-                product.CurrentStock += request.Quantity;
-            }
-            else if (normalizedNewType == "OUT")
-            {
-                if (product.CurrentStock < request.Quantity)
-                {
-                    throw new InvalidOperationException($"Insufficient stock available for product '{product.Name}'. Available stock after reverting previous movement: {product.CurrentStock}, Requested: {request.Quantity}.");
-                }
-                product.CurrentStock -= request.Quantity;
-            }
-            else if (normalizedNewType == "ADJUSTMENT")
-            {
-                product.CurrentStock = request.Quantity;
-            }
-            else if (normalizedNewType == "TRANSFER")
-            {
-                if (!request.ToWarehouseId.HasValue || request.ToWarehouseId.Value <= 0)
-                {
-                    throw new InvalidOperationException("Destination Warehouse is required for stock transfer.");
-                }
-                if (request.WarehouseId == request.ToWarehouseId.Value)
-                {
-                    throw new InvalidOperationException("Source warehouse and Destination warehouse cannot be the same.");
-                }
-                if (product.CurrentStock < request.Quantity)
-                {
-                    throw new InvalidOperationException($"Insufficient stock available for product '{product.Name}'. Available stock: {product.CurrentStock}, Requested: {request.Quantity}.");
-                }
-            }
-
-            activeProduct = product;
-        }
-
         var effectiveUserId = !string.IsNullOrWhiteSpace(request.UserId)
             ? request.UserId
             : (_currentUserService.UserId ?? _currentUserService.UserName ?? "system");
 
+        var normalizedOldType = transaction.TransactionType.Trim().ToUpperInvariant();
+        var normalizedNewType = request.TransactionType.Trim().ToUpperInvariant();
+
+        // 1. Fetch products
+        var oldProduct = transaction.Product ?? await _context.Products.FirstOrDefaultAsync(p => p.Id == transaction.ProductId, cancellationToken);
+        if (oldProduct == null)
+        {
+            throw new KeyNotFoundException($"Product with ID {transaction.ProductId} not found.");
+        }
+
+        Product newProduct;
+        if (transaction.ProductId != request.ProductId)
+        {
+            newProduct = await _context.Products.FirstOrDefaultAsync(p => p.Id == request.ProductId && !p.DeletedOn.HasValue, cancellationToken)
+                ?? throw new KeyNotFoundException($"Product with ID {request.ProductId} not found.");
+        }
+        else
+        {
+            newProduct = oldProduct;
+        }
+
+        // 2. Fetch WarehouseStocks
+        var oldSourceStock = await GetOrCreateWarehouseStockAsync(transaction.ProductId, transaction.WarehouseId, effectiveUserId, cancellationToken);
+        WarehouseStocks? oldDestStock = null;
+        if (transaction.ToWarehouseId.HasValue && transaction.ToWarehouseId.Value > 0)
+        {
+            oldDestStock = await GetOrCreateWarehouseStockAsync(transaction.ProductId, transaction.ToWarehouseId.Value, effectiveUserId, cancellationToken);
+        }
+
+        var newSourceStock = (transaction.ProductId == request.ProductId && transaction.WarehouseId == request.WarehouseId)
+            ? oldSourceStock
+            : await GetOrCreateWarehouseStockAsync(request.ProductId, request.WarehouseId, effectiveUserId, cancellationToken);
+
+        WarehouseStocks? newDestStock = null;
+        if (request.ToWarehouseId.HasValue && request.ToWarehouseId.Value > 0)
+        {
+            newDestStock = (transaction.ProductId == request.ProductId && transaction.ToWarehouseId == request.ToWarehouseId)
+                ? oldDestStock
+                : await GetOrCreateWarehouseStockAsync(request.ProductId, request.ToWarehouseId.Value, effectiveUserId, cancellationToken);
+        }
+
+        // 3. Revert old transaction impact on warehouse stocks
+        if (normalizedOldType == "IN")
+        {
+            oldSourceStock.Quantity -= transaction.Quantity;
+        }
+        else if (normalizedOldType == "OUT")
+        {
+            oldSourceStock.Quantity += transaction.Quantity;
+        }
+        else if (normalizedOldType == "TRANSFER")
+        {
+            oldSourceStock.Quantity += transaction.Quantity;
+            if (oldDestStock != null)
+            {
+                oldDestStock.Quantity -= transaction.Quantity;
+            }
+        }
+
+        // 4. Apply new transaction impact on warehouse stocks
+        if (normalizedNewType == "IN")
+        {
+            newSourceStock.Quantity += request.Quantity;
+        }
+        else if (normalizedNewType == "OUT")
+        {
+            if (newSourceStock.Quantity < request.Quantity)
+            {
+                throw new InvalidOperationException($"Insufficient stock available in selected warehouse for product '{newProduct.Name}'. Available: {newSourceStock.Quantity}, Requested: {request.Quantity}.");
+            }
+            newSourceStock.Quantity -= request.Quantity;
+        }
+        else if (normalizedNewType == "TRANSFER")
+        {
+            if (!request.ToWarehouseId.HasValue || request.ToWarehouseId.Value <= 0)
+            {
+                throw new InvalidOperationException("Destination Warehouse is required for stock transfer.");
+            }
+            if (request.WarehouseId == request.ToWarehouseId.Value)
+            {
+                throw new InvalidOperationException("Source warehouse and Destination warehouse cannot be the same.");
+            }
+            if (newSourceStock.Quantity < request.Quantity)
+            {
+                throw new InvalidOperationException($"Insufficient stock available in source warehouse for product '{newProduct.Name}'. Available: {newSourceStock.Quantity}, Requested: {request.Quantity}.");
+            }
+            if (newDestStock == null)
+            {
+                newDestStock = await GetOrCreateWarehouseStockAsync(request.ProductId, request.ToWarehouseId.Value, effectiveUserId, cancellationToken);
+            }
+
+            newSourceStock.Quantity -= request.Quantity;
+            newDestStock.Quantity += request.Quantity;
+        }
+        else if (normalizedNewType == "ADJUSTMENT")
+        {
+            newSourceStock.Quantity = request.Quantity;
+        }
+
         var isTransfer = string.Equals(normalizedNewType, "TRANSFER", StringComparison.OrdinalIgnoreCase);
 
-        // Update transaction entity properties
+        // Update transaction record
         transaction.ProductId = request.ProductId;
         transaction.WarehouseId = request.WarehouseId;
         transaction.WarehouseLocationId = request.WarehouseLocationId;
@@ -171,6 +154,20 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
         transaction.Note = request.Note?.Trim();
         transaction.UpdatedOn = DateTime.Now;
         transaction.UpdatedBy = effectiveUserId;
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Always sync Product.CurrentStock to the sum of all warehouse stocks for that product
+        newProduct.CurrentStock = await _context.WarehouseStocks
+            .Where(w => w.ProductId == newProduct.Id && !w.DeletedOn.HasValue)
+            .SumAsync(w => w.Quantity, cancellationToken);
+
+        if (oldProduct.Id != newProduct.Id)
+        {
+            oldProduct.CurrentStock = await _context.WarehouseStocks
+                .Where(w => w.ProductId == oldProduct.Id && !w.DeletedOn.HasValue)
+                .SumAsync(w => w.Quantity, cancellationToken);
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -196,8 +193,8 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
         {
             Id = transaction.Id,
             ProductId = transaction.ProductId,
-            ProductName = activeProduct.Name,
-            ProductSku = activeProduct.Sku,
+            ProductName = newProduct.Name,
+            ProductSku = newProduct.Sku,
             UserId = transaction.UserId,
             WarehouseId = transaction.WarehouseId,
             WarehouseName = warehouse?.Name,
@@ -219,5 +216,26 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
             DeletedOn = transaction.DeletedOn,
             DeletedBy = transaction.DeletedBy
         };
+    }
+
+    private async Task<WarehouseStocks> GetOrCreateWarehouseStockAsync(Guid productId, int warehouseId, string effectiveUserId, CancellationToken cancellationToken)
+    {
+        var stock = await _context.WarehouseStocks
+            .FirstOrDefaultAsync(x => x.ProductId == productId && x.WarehouseId == warehouseId && !x.DeletedOn.HasValue, cancellationToken);
+
+        if (stock == null)
+        {
+            stock = new WarehouseStocks
+            {
+                ProductId = productId,
+                WarehouseId = warehouseId,
+                Quantity = 0,
+                CreatedOn = DateTime.Now,
+                CreatedBy = effectiveUserId
+            };
+            _context.WarehouseStocks.Add(stock);
+        }
+
+        return stock;
     }
 }
