@@ -92,7 +92,7 @@
       <p-button
         label="View"
         icon="pi pi-search"
-        severity="info"
+        severity="success"
         (click)="view()"
         size="small">
       </p-button>
@@ -146,17 +146,19 @@
     <ng-template #body let-txn>
       <tr [pSelectableRow]="txn" style="white-space: nowrap">
         <td>
-          <span class="pi pi-circle" [class.pi-check-circle]="selectedStockTransaction?.id === txn.id"></span>
+          <span class="pi transition-colors text-xs" [ngClass]="selectedStockTransaction?.id === txn.id ? 'pi-check-circle text-emerald-600 dark:text-emerald-400 font-bold' : 'pi-circle text-slate-300 dark:text-slate-600'"></span>
         </td>
-        <td class="font-mono text-xs font-semibold text-slate-600 dark:text-slate-400">#{{ txn.id }}</td>
         <td>
-          <div class="font-bold text-slate-900 dark:text-slate-100">{{ txn.productName || 'N/A' }}</div>
-          <div class="text-[11px] font-mono text-slate-500 dark:text-slate-400">{{ txn.productSku || '-' }}</div>
+          <span class="px-2 py-0.5 rounded font-mono text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60">#{{ txn.id }}</span>
+        </td>
+        <td>
+          <div class="font-bold text-slate-900 dark:text-slate-100 text-xs">{{ txn.productName || 'N/A' }}</div>
+          <div class="text-[10px] font-mono text-slate-500 dark:text-slate-400 tracking-tight">{{ txn.productSku || '-' }}</div>
         </td>
         <td>
           <p-tag [value]="txn.transactionType" [severity]="getTxnSeverity(txn.transactionType)" [rounded]="true"></p-tag>
         </td>
-        <td class="text-right font-mono font-bold text-slate-900 dark:text-slate-100">
+        <td class="text-right font-mono font-bold text-xs text-slate-900 dark:text-slate-100">
           <span [ngClass]="{
             'text-emerald-600 dark:text-emerald-400': txn.transactionType === 'IN',
             'text-rose-600 dark:text-rose-400': txn.transactionType === 'OUT',
@@ -168,31 +170,34 @@
         </td>
         <td class="text-xs">
           @if (txn.transactionType === 'TRANSFER') {
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1.5">
               <span class="font-medium text-slate-800 dark:text-slate-200">{{ txn.warehouseName || getWarehouseName(txn.warehouseId) }}</span>
-              <i class="pi pi-arrow-right text-[10px] text-sky-500"></i>
-              <span class="font-medium text-sky-700 dark:text-sky-300">{{ txn.toWarehouseName || (txn.toWarehouseId ? getWarehouseName(txn.toWarehouseId) : 'N/A') }}</span>
+              <span class="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 text-[9px]">
+                <i class="pi pi-arrow-right text-[8px]"></i>
+              </span>
+              <span class="font-medium text-slate-800 dark:text-slate-200">{{ txn.toWarehouseName || (txn.toWarehouseId ? getWarehouseName(txn.toWarehouseId) : 'N/A') }}</span>
             </div>
-            <div class="text-[11px] font-mono text-slate-400 dark:text-slate-500">
+            <div class="text-[10px] font-mono text-slate-400 dark:text-slate-500 mt-0.5">
               {{ txn.warehouseLocationName || getLocationName(txn.warehouseLocationId) }} → {{ txn.toWarehouseLocationName || (txn.toWarehouseLocationId ? getLocationName(txn.toWarehouseLocationId) : '-') }}
             </div>
           } @else {
             <span class="font-medium text-slate-800 dark:text-slate-200">{{ txn.warehouseName || getWarehouseName(txn.warehouseId) }}</span>
-            <span class="text-slate-400 dark:text-slate-500 mx-1">/</span>
-            <span class="font-mono text-slate-600 dark:text-slate-400">{{ txn.warehouseLocationName || getLocationName(txn.warehouseLocationId) }}</span>
+            <span class="text-slate-300 dark:text-slate-600 mx-1">/</span>
+            <span class="font-mono text-slate-500 dark:text-slate-400">{{ txn.warehouseLocationName || getLocationName(txn.warehouseLocationId) }}</span>
           }
         </td>
-        <td class="font-mono text-xs">{{ txn.referenceNo || '-' }}</td>
-        <td class="text-xs">{{ txn.transactionDate | date: 'dd/MM/yyyy HH:mm' }}</td>
+        <td class="font-mono text-xs text-slate-600 dark:text-slate-400">{{ txn.referenceNo || '-' }}</td>
+        <td class="text-xs text-slate-600 dark:text-slate-400">{{ txn.transactionDate | date: 'dd/MM/yyyy HH:mm' }}</td>
         <td class="text-xs font-medium text-slate-600 dark:text-slate-400">{{ txn.createdBy || txn.userId || '-' }}</td>
         <td class="text-center">
-          <div class="flex items-center justify-center gap-1">
+          <div class="flex items-center justify-center gap-0.5">
             <p-button
               icon="pi pi-eye"
               [rounded]="true"
               [text]="true"
-              severity="info"
+              severity="secondary"
               size="small"
+              class="hover:text-emerald-600 dark:hover:text-emerald-400"
               (click)="openDetail(txn)"
               title="View Details">
             </p-button>
@@ -200,8 +205,9 @@
               icon="pi pi-pencil"
               [rounded]="true"
               [text]="true"
-              severity="warn"
+              severity="secondary"
               size="small"
+              class="hover:text-amber-600 dark:hover:text-amber-400"
               (click)="editRow(txn)"
               title="Edit Transaction">
             </p-button>
@@ -209,8 +215,9 @@
               icon="pi pi-trash"
               [rounded]="true"
               [text]="true"
-              severity="danger"
+              severity="secondary"
               size="small"
+              class="hover:text-rose-600 dark:hover:text-rose-400"
               (click)="deleteRow(txn)"
               title="Delete Transaction">
             </p-button>
@@ -313,6 +320,7 @@
           [options]="formTypeOptions"
           optionLabel="label"
           optionValue="value"
+          placeholder="Select Movement Type"
           appendTo="body"
           size="small"
           class="w-full">
