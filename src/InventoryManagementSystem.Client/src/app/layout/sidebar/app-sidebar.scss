@@ -59,10 +59,21 @@ a:not(.active-nav-item) {
 
 /* Active navigation item */
 a.active-nav-item {
-  color: #ffffff !important;
+  background-color: #ecfdf5 !important;
+  color: #047857 !important;
+  font-weight: 600 !important;
 
   i {
-    font-size: 0.875rem !important;
-    color: #ffffff !important;
+    font-size: 0.8125rem !important;
+    color: #059669 !important;
+  }
+}
+
+:host-context(.dark) a.active-nav-item {
+  background-color: rgba(6, 78, 59, 0.45) !important;
+  color: #34d399 !important;
+
+  i {
+    color: #34d399 !important;
   }
 }

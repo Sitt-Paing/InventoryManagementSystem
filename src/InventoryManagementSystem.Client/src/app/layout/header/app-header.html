@@ -1,4 +1,4 @@
-<header class="app-header h-14 sticky top-0 z-40 px-4 flex items-center justify-between shadow-xs transition-colors duration-200">
+<header class="app-header h-14 sticky top-0 z-40 px-4 flex items-center justify-between transition-colors duration-200">
   <!-- Left Section: Sidebar Toggle & Brand Logo -->
   <div class="flex items-center gap-3">
     <button 
@@ -13,26 +13,32 @@
     </button>
 
     <!-- Brand Logo -->
-    <div class="flex items-center gap-2">
-      <div class="w-7 h-7 rounded-md flex items-center justify-center text-white font-bold shadow-xs"
-           style="background: var(--accent-gradient);">
-        <i class="pi pi-box text-xs"></i>
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold shadow-xs bg-gradient-to-br from-emerald-500 to-emerald-700 ring-1 ring-emerald-600/20">
+        <i class="pi pi-box text-sm"></i>
       </div>
       <div class="leading-tight">
-        <h1 class="text-sm font-bold tracking-tight">{{ 'APP.NAME' | translate }}</h1>
+        <div class="flex items-center gap-1.5">
+          <h1 class="text-sm font-bold tracking-tight text-slate-900 dark:text-white">{{ 'APP.NAME' | translate }}</h1>
+          <span class="text-[9px] font-mono font-bold tracking-wider px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/40">v1.0</span>
+        </div>
       </div>
     </div>
 
     <!-- Breadcrumb (Center-Left) -->
-    <div class="hidden md:flex items-center gap-1.5 text-xs font-medium opacity-70 ml-3">
-      <i class="pi pi-home text-xs"></i>
-      <span>/</span>
-      <span>{{ breadcrumb.parentTransKey ? (breadcrumb.parentTransKey | translate) : breadcrumb.parent }}</span>
-      <span>/</span>
-      <span class="font-semibold text-emerald-600 dark:text-emerald-400">
+    <nav class="hidden md:flex items-center gap-2 text-xs font-medium ml-4 pl-4 border-l border-slate-200 dark:border-slate-800" aria-label="Breadcrumb">
+      <span class="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors flex items-center">
+        <i class="pi pi-home text-[11px]"></i>
+      </span>
+      <i class="pi pi-angle-right text-[10px] text-slate-400 dark:text-slate-600"></i>
+      <span class="text-slate-500 dark:text-slate-400">
+        {{ breadcrumb.parentTransKey ? (breadcrumb.parentTransKey | translate) : breadcrumb.parent }}
+      </span>
+      <i class="pi pi-angle-right text-[10px] text-slate-400 dark:text-slate-600"></i>
+      <span class="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-200/60 dark:border-emerald-800/40">
         {{ breadcrumb.childTransKey ? (breadcrumb.childTransKey | translate) : breadcrumb.child }}
       </span>
-    </div>
+    </nav>
   </div>
 
   <!-- Right Section: Global Search, Language, Theme Toggle & User -->
