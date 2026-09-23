@@ -44,6 +44,10 @@ public partial class InventoryManagementDbContext : DbContext
 
     public virtual DbSet<WarehouseStocks> WarehouseStocks { get; set; }
 
+    public virtual DbSet<PurchaseOrder> PurchaseOrders { get; set; }
+
+    public virtual DbSet<PurchaseOrderItem> PurchaseOrderItems { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AspNetRole>(entity =>
@@ -319,6 +323,49 @@ public partial class InventoryManagementDbContext : DbContext
                 .HasForeignKey(d => d.WarehouseId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Warehouse_Locations_Warehouses");
+        });
+
+        modelBuilder.Entity<PurchaseOrder>(entity =>
+        {
+            entity.ToTable("PurchaseOrders");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.PurchaseOrderNo).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.TotalAmount).HasColumnType("decimal(18,2)");
+            entity.HasOne(d => d.Supplier)
+             .WithMany()
+             .HasForeignKey(d => d.SupplierId)
+             .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(d => d.Warehouse)
+                  .WithMany()
+                  .HasForeignKey(d => d.WarehouseId)
+                  .OnDelete(DeleteBehavior.Restrict);
+            entity.Property(e => e.CreatedBy).HasMaxLength(50);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedBy).HasMaxLength(50);
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+            entity.Property(e => e.DeletedBy).HasMaxLength(50);
+            entity.Property(e => e.DeletedOn).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<PurchaseOrderItem>(entity =>
+        {
+            entity.ToTable("PurchaseOrderItems");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Quantity).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.ReceivedQuantity).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 2)");
+            entity.HasOne(d => d.PurchaseOrder)
+                  .WithMany(p => p.Items)
+                  .HasForeignKey(d => d.PurchaseOrderId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(d => d.Product)
+                  .WithMany()
+                  .HasForeignKey(d => d.ProductId)
+                  .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(d => d.Uom)
+                  .WithMany()
+                  .HasForeignKey(d => d.UomId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         OnModelCreatingPartial(modelBuilder);
