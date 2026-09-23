@@ -24,9 +24,10 @@
           #search
           pInputText
           type="text"
-          (input)="tblStockTransactions.filterGlobal(search.value, 'contains')"
+          [(ngModel)]="searchKeyword"
+          (keydown.enter)="onSearch()"
           pSize="small"
-          placeholder="Search keyword"
+          placeholder="Search keyword (Press Enter)"
           class="w-full text-xs" />
       </p-iconfield>
     </div>
@@ -116,17 +117,19 @@
     dataKey="id"
     selectionMode="single"
     [stripedRows]="true"
+    [lazy]="true"
+    (onLazyLoad)="onLazyLoad($event)"
+    [totalRecords]="totalRecords"
     sortField="createdOn"
     [sortOrder]="-1"
     [paginator]="true"
     paginatorDropdownAppendTo="body"
     [tableStyle]="{ 'min-width': '65rem', 'white-space': 'nowrap' }"
-    [rows]="20"
+    [rows]="pageSize"
     [rowsPerPageOptions]="[20, 50, 100]"
     [showCurrentPageReport]="true"
     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-    [loading]="isLoading"
-    [globalFilterFields]="['id', 'productName', 'productSku', 'transactionType', 'warehouseName', 'warehouseLocationName', 'toWarehouseName', 'toWarehouseLocationName', 'referenceNo', 'note', 'createdBy']">
+    [loading]="isLoading">
 
     <ng-template #header>
       <tr style="white-space: nowrap">
