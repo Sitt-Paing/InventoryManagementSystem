@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
@@ -88,6 +89,7 @@ export class PurchaseOrdersComponent implements OnInit {
 
   // Line items state for the dialog form
   formItems: PurchaseOrderItemModel[] = [];
+  formTotalAmount: number = 0;
 
   private formBuilder = inject(FormBuilder);
   public purchaseOrderForm = this.formBuilder.group({
@@ -136,27 +138,18 @@ export class PurchaseOrdersComponent implements OnInit {
   }
 
   loadDropdownData(): void {
-    this.suppliersService.get().subscribe({
+    forkJoin({
+      suppliers: this.suppliersService.get(),
+      warehouses: this.warehouseService.get(),
+      products: this.productService.get(),
+      uoms: this.uomService.get()
+    }).subscribe({
       next: (res) => {
-        this.suppliers = (res.data || []) as SuppliersModel[];
-      }
-    });
-
-    this.warehouseService.get().subscribe({
-      next: (res) => {
-        this.warehouses = (res.data || []) as WarehouseModel[];
-      }
-    });
-
-    this.productService.get().subscribe({
-      next: (res) => {
-        this.products = (res.data || []) as ProductModel[];
-      }
-    });
-
-    this.uomService.get().subscribe({
-      next: (res) => {
-        this.uoms = (res.data || []) as UnitOfMeasureModel[];
+        this.suppliers = (res.suppliers?.data || []) as SuppliersModel[];
+        this.warehouses = (res.warehouses?.data || []) as WarehouseModel[];
+        this.products = (res.products?.data || []) as ProductModel[];
+        this.uoms = (res.uoms?.data || []) as UnitOfMeasureModel[];
+        this.cdr.markForCheck();
       }
     });
   }
@@ -200,8 +193,10 @@ export class PurchaseOrdersComponent implements OnInit {
     });
   }
 
-  onSearch(keyword: string): void {
-    this.searchKeyword = keyword;
+  onSearch(keyword?: string): void {
+    if (keyword !== undefined) {
+      this.searchKeyword = keyword;
+    }
     this.pageNumber = 1;
     if (this.tblPurchaseOrders) {
       this.tblPurchaseOrders.first = 0;
@@ -222,6 +217,7 @@ export class PurchaseOrdersComponent implements OnInit {
       status: true
     });
     this.formItems = [this.createEmptyItem()];
+    this.recalculateTotalAmount();
     this.modalVisible = true;
   }
 
@@ -266,6 +262,7 @@ export class PurchaseOrdersComponent implements OnInit {
       this.formItems = [this.createEmptyItem()];
     }
 
+    this.recalculateTotalAmount();
     this.modalVisible = true;
   }
 
@@ -358,11 +355,13 @@ export class PurchaseOrdersComponent implements OnInit {
 
   addItem(): void {
     this.formItems.push(this.createEmptyItem());
+    this.recalculateTotalAmount();
   }
 
   removeItem(index: number): void {
     if (this.formItems.length > 1) {
       this.formItems.splice(index, 1);
+      this.recalculateTotalAmount();
     } else {
       this.messageService.add({
         key: 'globalMessage',
@@ -389,10 +388,15 @@ export class PurchaseOrdersComponent implements OnInit {
 
   calculateSubTotal(item: PurchaseOrderItemModel): void {
     item.subTotal = (item.quantity || 0) * (item.unitPrice || 0);
+    this.recalculateTotalAmount();
+  }
+
+  recalculateTotalAmount(): void {
+    this.formTotalAmount = this.formItems.reduce((acc, curr) => acc + ((curr.quantity || 0) * (curr.unitPrice || 0)), 0);
   }
 
   getTotalAmount(): number {
-    return this.formItems.reduce((acc, curr) => acc + ((curr.quantity || 0) * (curr.unitPrice || 0)), 0);
+    return this.formTotalAmount;
   }
 
   onSubmit(): void {
