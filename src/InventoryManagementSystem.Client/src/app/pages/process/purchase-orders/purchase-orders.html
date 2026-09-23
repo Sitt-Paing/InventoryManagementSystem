@@ -1,0 +1,315 @@
+<p-toast key="globalMessage" position="top-right"></p-toast>
+<p-confirmDialog key="positionDialog" position="bottom" rejectButtonStyleClass="p-button-outlined"></p-confirmDialog>
+
+<div class="table-card p-4 space-y-2">
+    <!-- Top Action Bar -->
+    <div class="flex justify-between items-center">
+        <div>
+            <p-splitbutton label="Create" icon="pi pi-plus" [model]="items" (onClick)="create()" size="small">
+            </p-splitbutton>
+        </div>
+
+        <div class="flex ml-auto">
+            <p-iconfield iconPosition="left" class="xl:ml-auto 2xl:ml-auto">
+                <p-inputicon>
+                    <i class="pi pi-search"></i>
+                </p-inputicon>
+                <input #search pInputText type="text" (input)="onSearch(search.value)"
+                    placeholder="Search PO, Supplier, Warehouse..." pSize="small" [style]="{ width: '280px' }" />
+            </p-iconfield>
+        </div>
+    </div>
+
+    <!-- Purchase Orders Table (API Paging, Search, Sorting) -->
+    <p-table #tblPurchaseOrders [value]="purchaseOrders" [(selection)]="selectedPurchaseOrder" dataKey="id"
+        selectionMode="single" stripedRows="true" [lazy]="true" (onLazyLoad)="onLazyLoad($event)"
+        [totalRecords]="totalRecords" [rows]="pageSize" [paginator]="true" paginatorDropdownAppendTo="body"
+        [rowsPerPageOptions]="[10, 20, 50, 100]" [showCurrentPageReport]="true"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [loading]="isLoading"
+        [tableStyle]="{ 'min-width': '65rem', 'white-space': 'nowrap' }">
+
+        <ng-template #header let-po>
+            <tr style="white-space:nowrap" [pSelectableRow]="po">
+                <th pFrozenColumn [style]="{ width: '40px' }">#</th>
+                <th pSortableColumn="purchaseOrderNo">PO Number <p-sortIcon field="purchaseOrderNo"></p-sortIcon></th>
+                <th pSortableColumn="supplierName">Supplier <p-sortIcon field="supplierName"></p-sortIcon></th>
+                <th pSortableColumn="warehouseName">Warehouse <p-sortIcon field="warehouseName"></p-sortIcon></th>
+                <th pSortableColumn="orderDate">Order Date <p-sortIcon field="orderDate"></p-sortIcon></th>
+                <th pSortableColumn="expectedDate">Expected Date <p-sortIcon field="expectedDate"></p-sortIcon></th>
+                <th>Total Items</th>
+                <th pSortableColumn="totalAmount">Total Amount <p-sortIcon field="totalAmount"></p-sortIcon></th>
+                <th [style]="{ width: '130px' }">Actions</th>
+                <th pSortableColumn="status">Status <p-sortIcon field="status"></p-sortIcon></th>
+                <th pSortableColumn="createdOn">Created On <p-sortIcon field="createdOn"></p-sortIcon></th>
+                <th pSortableColumn="createdBy">Created By <p-sortIcon field="createdBy"></p-sortIcon></th>
+            </tr>
+        </ng-template>
+
+        <ng-template #body let-po>
+            <tr [pSelectableRow]="po">
+                <td>
+                    <span class="pi pi-circle" [class.pi-check-circle]="selectedPurchaseOrder === po"></span>
+                </td>
+                <td class="font-medium text-blue-600 cursor-pointer"
+                    (click)="viewDetails(po); $event.stopPropagation()">{{ po.purchaseOrderNo }}</td>
+                <td>{{ po.supplierName }}</td>
+                <td>{{ po.warehouseName }}</td>
+                <td>{{ po.orderDate | date:'dd/MMM/yyyy' }}</td>
+                <td>{{ po.expectedDate | date:'dd/MMM/yyyy' }}</td>
+                <td class="text-center">{{ po.totalItems || po.items?.length || 0 }}</td>
+                <td class="font-semibold">{{ po.totalAmount | currency:'USD':'symbol':'1.2-2' }}</td>
+                <td>
+                    <div class="flex items-center gap-1">
+                        <p-button label="Detail" icon="pi pi-eye" size="small" [text]="true" severity="info"
+                            (onClick)="viewDetails(po); $event.stopPropagation()"></p-button>
+                        <p-button label="Print" icon="pi pi-print" size="small" [text]="true" severity="secondary"
+                            (onClick)="printOrder(po); $event.stopPropagation()"></p-button>
+                    </div>
+                </td>
+                <td>
+                    <p-tag [value]="po.status ? 'Active' : 'Closed'" size="small"
+                        icon="{{ po.status ? 'pi pi-check' : 'pi pi-minus-circle' }}"
+                        [severity]="po.status ? 'success' : 'secondary'"></p-tag>
+                </td>
+                <td>{{ po.createdOn | date:'dd/MMM/yyyy hh:mm a' }}</td>
+                <td>{{ po.createdBy || '-' }}</td>
+            </tr>
+        </ng-template>
+
+        <ng-template #emptymessage>
+            <tr>
+                <td colspan="12" class="text-center p-4 text-gray-500">
+                    No purchase orders found.
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <!-- Create / Edit Modal Dialog -->
+    <p-dialog [header]="isEdit ? 'Edit Purchase Order' : 'Create Purchase Order'" [(visible)]="modalVisible"
+        [breakpoints]="{
+        '1920px': '70vw',
+        '1440px': '75vw',
+        '1024px': '85vw',
+        '768px': '95vw',
+        '425px': '100vw'
+    }" [modal]="true" [style]="{ 'min-width': '65vw' }" [draggable]="false" [resizable]="false"
+        (onHide)="onDialogHide()">
+        <form [formGroup]="purchaseOrderForm" (ngSubmit)="onSubmit()">
+            <!-- Master Details Section -->
+            <div class="grid grid-cols-12 gap-3 mb-4">
+                <div class="col-span-12 lg:col-span-4 flex flex-col gap-1">
+                    <label for="purchaseOrderNo" class="text-xs font-semibold">PO Number *</label>
+                    <input type="text" id="purchaseOrderNo" formControlName="purchaseOrderNo" pInputText
+                        placeholder="PO Number" required>
+                    @if(purchaseOrderForm.controls['purchaseOrderNo'].invalid &&
+                    purchaseOrderForm.get('purchaseOrderNo')?.dirty){
+                    <small class="text-xs text-red-500">PO Number is required.</small>
+                    }
+                </div>
+
+                <div class="col-span-12 lg:col-span-4 flex flex-col gap-1">
+                    <label class="text-xs font-semibold">Supplier *</label>
+                    <p-select formControlName="supplierId" [options]="suppliers" optionLabel="companyName"
+                        optionValue="id" placeholder="Select Supplier" [filter]="true" filterBy="companyName"
+                        appendTo="body" [fluid]="true" class="w-full">
+                    </p-select>
+                    @if(purchaseOrderForm.controls['supplierId'].invalid && purchaseOrderForm.get('supplierId')?.dirty){
+                    <small class="text-xs text-red-500">Supplier is required.</small>
+                    }
+                </div>
+
+                <div class="col-span-12 lg:col-span-4 flex flex-col gap-1">
+                    <label class="text-xs font-semibold">Warehouse *</label>
+                    <p-select formControlName="warehouseId" [options]="warehouses" optionLabel="name" optionValue="id"
+                        placeholder="Select Warehouse" [filter]="true" filterBy="name" appendTo="body" [fluid]="true"
+                        class="w-full">
+                    </p-select>
+                    @if(purchaseOrderForm.controls['warehouseId'].invalid &&
+                    purchaseOrderForm.get('warehouseId')?.dirty){
+                    <small class="text-xs text-red-500">Warehouse is required.</small>
+                    }
+                </div>
+
+                <div class="col-span-12 lg:col-span-4 flex flex-col gap-1">
+                    <label class="text-xs font-semibold">Order Date *</label>
+                    <p-datepicker formControlName="orderDate" dateFormat="dd/mm/yy" [showIcon]="true"
+                        iconDisplay="input" appendTo="body" size="small" [fluid]="true" class="w-full"></p-datepicker>
+                </div>
+
+                <div class="col-span-12 lg:col-span-4 flex flex-col gap-1">
+                    <label class="text-xs font-semibold">Expected Date *</label>
+                    <p-datepicker formControlName="expectedDate" dateFormat="dd/mm/yy" [showIcon]="true"
+                        iconDisplay="input" appendTo="body" size="small" [fluid]="true" class="w-full"></p-datepicker>
+                </div>
+
+                <div class="col-span-12 lg:col-span-4 flex items-center gap-2 mt-4">
+                    <label for="status" class="text-xs font-semibold">Status (Active)</label>
+                    <p-toggleSwitch id="status" formControlName="status"></p-toggleSwitch>
+                </div>
+            </div>
+
+            <!-- Line Items Detail Section -->
+            <div class="border-t pt-3 space-y-2">
+                <div class="flex justify-between items-center">
+                    <span class="font-semibold text-sm">Purchase Order Items</span>
+                    <p-button type="button" icon="pi pi-plus" label="Add Item" size="small" severity="secondary"
+                        (onClick)="addItem()"></p-button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-left border border-gray-200 rounded">
+                        <thead class="bg-gray-50 text-gray-700 uppercase">
+                            <tr>
+                                <th class="p-2" style="width: 35%">Product *</th>
+                                <th class="p-2" style="width: 20%">UOM *</th>
+                                <th class="p-2" style="width: 15%">Quantity *</th>
+                                <th class="p-2" style="width: 15%">Unit Price *</th>
+                                <th class="p-2 text-right" style="width: 10%">Subtotal</th>
+                                <th class="p-2 text-center" style="width: 5%"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (item of formItems; track $index) {
+                            <tr class="border-b">
+                                <td class="p-1">
+                                    <p-select [(ngModel)]="item.productId" [ngModelOptions]="{standalone: true}"
+                                        [options]="products" optionLabel="name" optionValue="id"
+                                        placeholder="Select Product" [filter]="true" filterBy="name,sku"
+                                        (onChange)="onProductSelected(item)" appendTo="body" class="w-full text-xs">
+                                    </p-select>
+                                </td>
+                                <td class="p-1">
+                                    <p-select [(ngModel)]="item.uomId" [ngModelOptions]="{standalone: true}"
+                                        [options]="uoms" optionLabel="name" optionValue="id" placeholder="Select UOM"
+                                        appendTo="body" class="w-full text-xs">
+                                    </p-select>
+                                </td>
+                                <td class="p-1">
+                                    <input type="number" [(ngModel)]="item.quantity"
+                                        [ngModelOptions]="{standalone: true}" (input)="calculateSubTotal(item)"
+                                        min="0.0001" step="any" pInputText class="w-full p-1 text-xs" />
+                                </td>
+                                <td class="p-1">
+                                    <input type="number" [(ngModel)]="item.unitPrice"
+                                        [ngModelOptions]="{standalone: true}" (input)="calculateSubTotal(item)" min="0"
+                                        step="any" pInputText class="w-full p-1 text-xs" />
+                                </td>
+                                <td class="p-1 text-right font-medium">
+                                    {{ (item.quantity * item.unitPrice) | currency:'USD':'symbol':'1.2-2' }}
+                                </td>
+                                <td class="p-1 text-center">
+                                    <button pButton type="button" icon="pi pi-trash"
+                                        class="p-button-text p-button-danger p-button-sm p-0"
+                                        (click)="removeItem($index)"></button>
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex justify-end items-center gap-2 pt-2 pr-2">
+                    <span class="text-sm font-semibold text-gray-700">Total Amount:</span>
+                    <span class="text-base font-bold text-green-700">{{ getTotalAmount() |
+                        currency:'USD':'symbol':'1.2-2' }}</span>
+                </div>
+            </div>
+
+            <!-- Dialog Footer Buttons -->
+            <div class="col-span-12 mt-4 flex justify-end gap-2 border-t pt-3">
+                <p-button icon="pi pi-times" label="Cancel" severity="secondary" type="button"
+                    (onClick)="onDialogHide()"></p-button>
+                <p-button icon="pi pi-check" label="{{ isEdit ? 'Update' : 'Save' }}" type="submit"
+                    [severity]="isEdit ? 'info' : 'success'" [loading]="isSubmitting"></p-button>
+            </div>
+        </form>
+    </p-dialog>
+
+    <!-- View Details Modal Dialog -->
+    <p-dialog header="Purchase Order Details" [(visible)]="detailModalVisible" [modal]="true"
+        [breakpoints]="{ '960px': '75vw', '640px': '90vw' }" [style]="{ width: '60vw' }" [draggable]="false"
+        [resizable]="false">
+        @if (detailOrder) {
+        <div class="space-y-4 text-xs">
+            <div class="flex justify-end gap-2">
+                <p-button icon="pi pi-print" label="Print Voucher" size="small" severity="secondary" [outlined]="true"
+                    (onClick)="printOrder(detailOrder)"></p-button>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-gray-50 p-3 rounded border">
+                <div>
+                    <span class="text-gray-500 block">PO Number</span>
+                    <span class="font-bold text-sm text-blue-600">{{ detailOrder.purchaseOrderNo }}</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block">Supplier</span>
+                    <span class="font-semibold">{{ detailOrder.supplierName }}</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block">Warehouse</span>
+                    <span class="font-semibold">{{ detailOrder.warehouseName }}</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block">Status</span>
+                    <p-tag [value]="detailOrder.status ? 'Active' : 'Closed'" size="small"
+                        [severity]="detailOrder.status ? 'success' : 'secondary'"></p-tag>
+                </div>
+                <div>
+                    <span class="text-gray-500 block">Order Date</span>
+                    <span>{{ detailOrder.orderDate | date:'dd/MMM/yyyy' }}</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block">Expected Date</span>
+                    <span>{{ detailOrder.expectedDate | date:'dd/MMM/yyyy' }}</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block">Total Amount</span>
+                    <span class="font-bold text-sm text-green-700">{{ detailOrder.totalAmount |
+                        currency:'USD':'symbol':'1.2-2' }}</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block">Created By</span>
+                    <span>{{ detailOrder.createdBy || '-' }}</span>
+                </div>
+            </div>
+
+            <div>
+                <table class="w-full text-xs text-left border border-gray-200 rounded">
+                    <thead class="bg-gray-100 uppercase">
+                        <tr>
+                            <th class="p-2">#</th>
+                            <th class="p-2">Product</th>
+                            <th class="p-2">SKU</th>
+                            <th class="p-2">UOM</th>
+                            <th class="p-2 text-right">Qty</th>
+                            <th class="p-2 text-right">Unit Price</th>
+                            <th class="p-2 text-right">Subtotal</th>
+                            <th class="p-2 text-right">Received Qty</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (item of detailOrder.items; track $index) {
+                        <tr class="border-b">
+                            <td class="p-2">{{ $index + 1 }}</td>
+                            <td class="p-2 font-medium">{{ item.productName }}</td>
+                            <td class="p-2 text-gray-500">{{ item.productSku || '-' }}</td>
+                            <td class="p-2">{{ item.uomName }}</td>
+                            <td class="p-2 text-right">{{ item.quantity }}</td>
+                            <td class="p-2 text-right">{{ item.unitPrice | currency:'USD':'symbol':'1.2-2' }}</td>
+                            <td class="p-2 text-right font-semibold">{{ (item.quantity * item.unitPrice) |
+                                currency:'USD':'symbol':'1.2-2' }}</td>
+                            <td class="p-2 text-right">{{ item.receivedQuantity || 0 }}</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        }
+    </p-dialog>
+
+    <!-- Dedicated Separate Print Voucher Dialog Component -->
+    <app-purchase-order-print-dialog [(visible)]="printModalVisible" [order]="printOrderData">
+    </app-purchase-order-print-dialog>
+</div>
