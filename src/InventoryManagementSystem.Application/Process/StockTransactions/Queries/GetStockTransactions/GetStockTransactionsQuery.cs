@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using InventoryManagementSystem.Application.Common.Models;
 using InventoryManagementSystem.Application.Process.StockTransactions.DTOs;
 using MediatR;
 
@@ -10,6 +10,11 @@ public record class GetStockTransactionsQuery(
     DateTime? Date = null,
     DateTime? StartDate = null,
     DateTime? EndDate = null,
+    string? Q = null,
+    string? SortField = null,
+    int Order = -1,
     Guid? ProductId = null,
-    int? WarehouseId = null
-) : IRequest<List<StockTransactionsDto>>;
+    int? WarehouseId = null,
+    int PageNumber = 1,
+    int PageSize = 20
+) : IRequest<PagedResult<StockTransactionsDto>>;
