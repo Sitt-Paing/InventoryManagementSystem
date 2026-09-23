@@ -4,10 +4,11 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
-import { Table, TableModule } from 'primeng/table';
+import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { InputTextModule } from 'primeng/inputtext';
 import { CommonModule, DatePipe } from '@angular/common';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { Tag } from 'primeng/tag';
 import { DialogModule } from 'primeng/dialog';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -64,6 +65,14 @@ export class StockTransactionsComponent implements OnInit {
   modalVisible: boolean = false;
   detailModalVisible: boolean = false;
   isSubmitting: boolean = false;
+
+  // Server-side search, sorting, and pagination
+  totalRecords: number = 0;
+  pageNumber: number = 1;
+  pageSize: number = 20;
+  sortField: string = 'createdOn';
+  sortOrder: number = -1;
+  searchKeyword: string = '';
 
   products: ProductModel[] = [];
   warehouses: WarehouseModel[] = [];
@@ -155,6 +164,26 @@ export class StockTransactionsComponent implements OnInit {
     this.loadData();
   }
 
+  onSearch(): void {
+    this.pageNumber = 1;
+    if (this.tblStockTransactions) {
+      this.tblStockTransactions.first = 0;
+    }
+    this.loadData();
+  }
+
+  onLazyLoad(event: TableLazyLoadEvent): void {
+    if (event.first !== undefined && event.rows) {
+      this.pageNumber = Math.floor(event.first / event.rows) + 1;
+      this.pageSize = event.rows;
+    }
+    if (event.sortField) {
+      this.sortField = Array.isArray(event.sortField) ? event.sortField[0] : event.sortField;
+      this.sortOrder = event.sortOrder ?? -1;
+    }
+    this.loadData();
+  }
+
   setupTransactionTypeListener(): void {
     this.stockTransactionForm.get('transactionType')?.valueChanges.subscribe(type => {
       const toWhControl = this.stockTransactionForm.get('toWarehouseId');
@@ -184,15 +213,27 @@ export class StockTransactionsComponent implements OnInit {
       transactionType: type,
       startDate: sdate,
       endDate: edate,
-      warehouseId: this.selectedWarehouseFilter
+      warehouseId: this.selectedWarehouseFilter,
+      q: this.searchKeyword,
+      sortField: this.sortField,
+      order: this.sortOrder,
+      pageNumber: this.pageNumber,
+      pageSize: this.pageSize
     }).subscribe({
       next: (res) => {
-        this.stockTransactions = (res.data || []) as StockTransactionModel[];
+        if (res.data) {
+          this.stockTransactions = (res.data.items || []) as StockTransactionModel[];
+          this.totalRecords = res.data.totalRecords ?? 0;
+        } else {
+          this.stockTransactions = [];
+          this.totalRecords = 0;
+        }
         this.isLoading = false;
         this.cdr.detectChanges();
       },
       error: () => {
         this.stockTransactions = [];
+        this.totalRecords = 0;
         this.isLoading = false;
         this.cdr.detectChanges();
       }
@@ -587,6 +628,10 @@ export class StockTransactionsComponent implements OnInit {
   }
 
   view(): void {
+    this.pageNumber = 1;
+    if (this.tblStockTransactions) {
+      this.tblStockTransactions.first = 0;
+    }
     this.loadData();
   }
 
@@ -595,6 +640,13 @@ export class StockTransactionsComponent implements OnInit {
     this.selectedWarehouseFilter = null;
     this.sDate = new Date();
     this.eDate = new Date();
+    this.searchKeyword = '';
+    this.pageNumber = 1;
+    this.sortField = 'createdOn';
+    this.sortOrder = -1;
+    if (this.tblStockTransactions) {
+      this.tblStockTransactions.first = 0;
+    }
     this.loadData();
   }
 
