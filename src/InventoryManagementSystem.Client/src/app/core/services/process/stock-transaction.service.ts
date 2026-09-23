@@ -19,6 +19,11 @@ export class StockTransactionService {
     endDate?: string | null;
     productId?: string | null;
     warehouseId?: number | null;
+    q?: string | null;
+    sortField?: string | null;
+    order?: number | null;
+    pageNumber?: number | null;
+    pageSize?: number | null;
   }): Observable<RootModel> {
     let params = new HttpParams();
     if (filter?.transactionType) {
@@ -38,6 +43,21 @@ export class StockTransactionService {
     }
     if (filter?.warehouseId && filter.warehouseId > 0) {
       params = params.set('warehouseId', filter.warehouseId.toString());
+    }
+    if (filter?.q && filter.q.trim()) {
+      params = params.set('q', filter.q.trim());
+    }
+    if (filter?.sortField) {
+      params = params.set('sortField', filter.sortField);
+    }
+    if (filter?.order !== undefined && filter?.order !== null) {
+      params = params.set('order', filter.order.toString());
+    }
+    if (filter?.pageNumber && filter.pageNumber > 0) {
+      params = params.set('pageNumber', filter.pageNumber.toString());
+    }
+    if (filter?.pageSize && filter.pageSize > 0) {
+      params = params.set('pageSize', filter.pageSize.toString());
     }
     const url = `${environment.main_url}/process/stock-transactions`;
     return this.http.get<RootModel>(url, { params });
