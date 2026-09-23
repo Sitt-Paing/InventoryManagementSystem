@@ -11,95 +11,99 @@
     <!-- Preview Box (Styled as White A4 Paper with Clean Black & White Lines) -->
     <div class="voucher-preview-container">
         <div id="printable-po-voucher" class="voucher-paper">
-            <!-- Header -->
-            <table class="header-table" style="width: 100%; border: none;">
-                <tr>
-                    <td style="border: none; vertical-align: top;">
-                        <h1 class="company-title">INVENTORY MANAGEMENT SYSTEM</h1>
-                        <p class="company-sub">OFFICIAL PURCHASE ORDER</p>
-                    </td>
-                    <td style="border: none; text-align: right; vertical-align: top;">
-                        <h2 class="po-title">PURCHASE ORDER</h2>
-                        <p class="po-meta"><strong>PO No:</strong> {{ order.purchaseOrderNo }}</p>
-                        <p class="po-meta"><strong>Date:</strong> {{ order.orderDate | date:'dd-MMM-yyyy' }}</p>
-                    </td>
-                </tr>
-            </table>
+            <div class="voucher-content">
+                <!-- Header -->
+                <table class="header-table" style="width: 100%; border: none;">
+                    <tr>
+                        <td style="border: none; vertical-align: top;">
+                            <h1 class="company-title">INVENTORY MANAGEMENT SYSTEM</h1>
+                            <p class="company-sub">OFFICIAL PURCHASE ORDER</p>
+                        </td>
+                        <td style="border: none; text-align: right; vertical-align: top;">
+                            <h2 class="po-title">PURCHASE ORDER</h2>
+                            <p class="po-meta"><strong>PO No:</strong> {{ order.purchaseOrderNo }}</p>
+                            <p class="po-meta"><strong>Date:</strong> {{ order.orderDate | date:'dd-MMM-yyyy' }}</p>
+                        </td>
+                    </tr>
+                </table>
 
-            <!-- Parties Information -->
-            <table class="info-table" style="width: 100%; border: none; border-collapse: separate; border-spacing: 14px 0;">
-                <tr>
-                    <td class="info-box">
-                        <div class="info-box-title">VENDOR / SUPPLIER</div>
-                        <p><strong>{{ order.supplierName || '-' }}</strong></p>
-                        @if (order.supplierCode) {
-                            <p>Code: {{ order.supplierCode }}</p>
+                <!-- Parties Information -->
+                <table class="info-table" style="width: 100%; border: none; border-collapse: separate; border-spacing: 14px 0;">
+                    <tr>
+                        <td class="info-box">
+                            <div class="info-box-title">VENDOR / SUPPLIER</div>
+                            <p><strong>{{ order.supplierName || '-' }}</strong></p>
+                            @if (order.supplierCode) {
+                                <p>Code: {{ order.supplierCode }}</p>
+                            }
+                        </td>
+                        <td class="info-box">
+                            <div class="info-box-title">DELIVER TO / WAREHOUSE</div>
+                            <p><strong>{{ order.warehouseName || '-' }}</strong></p>
+                            <p>Expected Delivery: {{ order.expectedDate | date:'dd-MMM-yyyy' }}</p>
+                            <p>Status: {{ order.status ? 'Active' : 'Closed' }}</p>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Line Items Table -->
+                <table class="items-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="width: 35px; text-align: center;">#</th>
+                            <th>ITEM DESCRIPTION</th>
+                            <th style="width: 110px;">SKU</th>
+                            <th style="width: 75px; text-align: center;">UOM</th>
+                            <th style="width: 70px; text-align: right;">QTY</th>
+                            <th style="width: 90px; text-align: right;">UNIT PRICE</th>
+                            <th style="width: 105px; text-align: right;">SUBTOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (item of order.items; track $index) {
+                        <tr>
+                            <td style="text-align: center;">{{ $index + 1 }}</td>
+                            <td style="font-weight: 500;">{{ item.productName }}</td>
+                            <td>{{ item.productSku || '-' }}</td>
+                            <td style="text-align: center;">{{ item.uomName }}</td>
+                            <td style="text-align: right;">{{ item.quantity | number:'1.2-4' }}</td>
+                            <td style="text-align: right;">${{ item.unitPrice | number:'1.2-2' }}</td>
+                            <td style="text-align: right; font-weight: bold;">${{ (item.quantity * item.unitPrice) | number:'1.2-2' }}</td>
+                        </tr>
                         }
-                    </td>
-                    <td class="info-box">
-                        <div class="info-box-title">DELIVER TO / WAREHOUSE</div>
-                        <p><strong>{{ order.warehouseName || '-' }}</strong></p>
-                        <p>Expected Delivery: {{ order.expectedDate | date:'dd-MMM-yyyy' }}</p>
-                        <p>Status: {{ order.status ? 'Active' : 'Closed' }}</p>
-                    </td>
-                </tr>
-            </table>
+                    </tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td colspan="5" style="border: none;"></td>
+                            <td style="text-align: right; border: 1px solid #000; font-weight: bold;">TOTAL AMOUNT:</td>
+                            <td style="text-align: right; border: 1px solid #000; font-weight: bold; font-size: 11pt;">${{ order.totalAmount | number:'1.2-2' }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
 
-            <!-- Line Items Table -->
-            <table class="items-table" style="width: 100%; border-collapse: collapse;">
-                <thead>
+            <!-- Signatures Section (Default Footer at the bottom with breathing room) -->
+            <div class="voucher-footer">
+                <table class="sig-table" style="width: 100%; border: none;">
                     <tr>
-                        <th style="width: 35px; text-align: center;">#</th>
-                        <th>ITEM DESCRIPTION</th>
-                        <th style="width: 110px;">SKU</th>
-                        <th style="width: 75px; text-align: center;">UOM</th>
-                        <th style="width: 70px; text-align: right;">QTY</th>
-                        <th style="width: 90px; text-align: right;">UNIT PRICE</th>
-                        <th style="width: 105px; text-align: right;">SUBTOTAL</th>
+                        <td class="sig-cell" style="border: none; width: 33.33%; text-align: center;">
+                            <div class="sig-line"></div>
+                            <p style="margin: 2px 0; font-weight: bold;">Prepared By</p>
+                            <small>{{ order.createdBy || '-' }}</small>
+                        </td>
+                        <td class="sig-cell" style="border: none; width: 33.33%; text-align: center;">
+                            <div class="sig-line"></div>
+                            <p style="margin: 2px 0; font-weight: bold;">Authorized / Approved By</p>
+                            <small>Signature & Date</small>
+                        </td>
+                        <td class="sig-cell" style="border: none; width: 33.33%; text-align: center;">
+                            <div class="sig-line"></div>
+                            <p style="margin: 2px 0; font-weight: bold;">Received / Accepted By</p>
+                            <small>Supplier Signature</small>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @for (item of order.items; track $index) {
-                    <tr>
-                        <td style="text-align: center;">{{ $index + 1 }}</td>
-                        <td style="font-weight: 500;">{{ item.productName }}</td>
-                        <td>{{ item.productSku || '-' }}</td>
-                        <td style="text-align: center;">{{ item.uomName }}</td>
-                        <td style="text-align: right;">{{ item.quantity | number:'1.2-4' }}</td>
-                        <td style="text-align: right;">${{ item.unitPrice | number:'1.2-2' }}</td>
-                        <td style="text-align: right; font-weight: bold;">${{ (item.quantity * item.unitPrice) | number:'1.2-2' }}</td>
-                    </tr>
-                    }
-                </tbody>
-                <tfoot>
-                    <tr class="total-row">
-                        <td colspan="5" style="border: none;"></td>
-                        <td style="text-align: right; border: 1px solid #000; font-weight: bold;">TOTAL AMOUNT:</td>
-                        <td style="text-align: right; border: 1px solid #000; font-weight: bold; font-size: 11pt;">${{ order.totalAmount | number:'1.2-2' }}</td>
-                    </tr>
-                </tfoot>
-            </table>
-
-            <!-- Signatures Section -->
-            <table class="sig-table" style="width: 100%; border: none; margin-top: 50px;">
-                <tr>
-                    <td class="sig-cell" style="border: none; width: 33.33%; text-align: center;">
-                        <div class="sig-line"></div>
-                        <p style="margin: 2px 0; font-weight: bold;">Prepared By</p>
-                        <small>{{ order.createdBy || '-' }}</small>
-                    </td>
-                    <td class="sig-cell" style="border: none; width: 33.33%; text-align: center;">
-                        <div class="sig-line"></div>
-                        <p style="margin: 2px 0; font-weight: bold;">Authorized / Approved By</p>
-                        <small>Signature & Date</small>
-                    </td>
-                    <td class="sig-cell" style="border: none; width: 33.33%; text-align: center;">
-                        <div class="sig-line"></div>
-                        <p style="margin: 2px 0; font-weight: bold;">Received / Accepted By</p>
-                        <small>Supplier Signature</small>
-                    </td>
-                </tr>
-            </table>
+                </table>
+            </div>
         </div>
     </div>
     }
