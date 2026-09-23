@@ -9,13 +9,13 @@
             </p-splitbutton>
         </div>
 
-        <div class="flex ml-auto">
+        <div class="flex ml-auto items-center gap-2">
             <p-iconfield iconPosition="left" class="xl:ml-auto 2xl:ml-auto">
                 <p-inputicon>
-                    <i class="pi pi-search"></i>
+                    <i class="pi pi-search cursor-pointer text-gray-500 hover:text-gray-800" (click)="onSearch()" title="Search"></i>
                 </p-inputicon>
-                <input #search pInputText type="text" (input)="onSearch(search.value)"
-                    placeholder="Search PO, Supplier, Warehouse..." pSize="small" [style]="{ width: '280px' }" />
+                <input pInputText type="text" [(ngModel)]="searchKeyword" (keydown.enter)="onSearch()"
+                    placeholder="Search keyword (Press Enter)" pSize="small" [style]="{ width: '280px' }" />
             </p-iconfield>
         </div>
     </div>
@@ -211,7 +211,7 @@
 
                 <div class="flex justify-end items-center gap-2 pt-2 pr-2">
                     <span class="text-sm font-semibold text-gray-700">Total Amount:</span>
-                    <span class="text-base font-bold text-green-700">{{ getTotalAmount() |
+                    <span class="text-base font-bold text-green-700">{{ formTotalAmount |
                         currency:'USD':'symbol':'1.2-2' }}</span>
                 </div>
             </div>
