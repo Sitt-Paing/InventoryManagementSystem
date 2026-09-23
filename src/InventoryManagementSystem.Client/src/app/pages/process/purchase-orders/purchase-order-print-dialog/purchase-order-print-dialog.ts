@@ -56,14 +56,32 @@ export class PurchaseOrderPrintDialog {
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
+          html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+          }
           body {
             font-family: Arial, Helvetica, sans-serif;
             font-size: 10pt;
             color: #000000;
             background: #ffffff !important;
-            margin: 0;
-            padding: 10px;
             line-height: 1.4;
+          }
+          .voucher-paper {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: calc(100vh - 24mm);
+            box-sizing: border-box;
+          }
+          .voucher-content {
+            flex: 1 0 auto;
+          }
+          .voucher-footer {
+            margin-top: auto;
+            padding-top: 35px;
+            padding-bottom: 15mm;
           }
           .header-table {
             width: 100%;
@@ -136,7 +154,7 @@ export class PurchaseOrderPrintDialog {
           }
           .sig-table {
             width: 100%;
-            margin-top: 50px;
+            margin-top: 0;
             border-collapse: separate;
             border-spacing: 20px 0;
           }
@@ -161,7 +179,9 @@ export class PurchaseOrderPrintDialog {
         </style>
       </head>
       <body>
-        ${voucherEl.innerHTML}
+        <div class="voucher-paper">
+          ${voucherEl.innerHTML}
+        </div>
       </body>
       </html>
     `;
