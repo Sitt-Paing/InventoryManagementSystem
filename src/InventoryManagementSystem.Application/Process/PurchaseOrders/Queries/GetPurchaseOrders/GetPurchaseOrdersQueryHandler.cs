@@ -23,12 +23,6 @@ public class GetPurchaseOrdersQueryHandler : IRequestHandler<GetPurchaseOrdersQu
     {
         var query = _context.PurchaseOrders
             .AsNoTracking()
-            .Include(po => po.Supplier)
-            .Include(po => po.Warehouse)
-            .Include(po => po.Items)
-                .ThenInclude(i => i.Product)
-            .Include(po => po.Items)
-                .ThenInclude(i => i.Uom)
             .Where(po => !po.DeletedOn.HasValue);
 
         if (!string.IsNullOrWhiteSpace(request.Q))
