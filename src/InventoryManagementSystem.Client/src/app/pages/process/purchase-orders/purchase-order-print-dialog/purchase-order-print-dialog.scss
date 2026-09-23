@@ -1,0 +1,134 @@
+.voucher-preview-container {
+    background: #e5e7eb;
+    padding: 20px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    overflow-y: auto;
+    max-height: 70vh;
+}
+
+.voucher-paper {
+    background: #ffffff;
+    width: 100%;
+    max-width: 800px;
+    min-height: 900px;
+    padding: 30px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    color: #000000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10pt;
+    line-height: 1.4;
+}
+
+.header-table {
+    width: 100%;
+    border-bottom: 2px solid #000000;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+}
+
+.company-title {
+    font-size: 16pt;
+    font-weight: bold;
+    margin: 0;
+    color: #000000;
+}
+
+.company-sub {
+    font-size: 8.5pt;
+    margin: 2px 0 0 0;
+    color: #000000;
+}
+
+.po-title {
+    font-size: 15pt;
+    font-weight: bold;
+    margin: 0;
+    text-align: right;
+    color: #000000;
+}
+
+.po-meta {
+    text-align: right;
+    font-size: 9.5pt;
+    margin: 2px 0 0 0;
+    color: #000000;
+}
+
+.info-table {
+    width: 100%;
+    margin: 12px 0 16px 0;
+}
+
+.info-box {
+    width: 50%;
+    border: 1px solid #000000;
+    padding: 8px 10px;
+    vertical-align: top;
+}
+
+.info-box-title {
+    font-weight: bold;
+    font-size: 9pt;
+    border-bottom: 1px solid #000000;
+    padding-bottom: 3px;
+    margin-bottom: 5px;
+    color: #000000;
+}
+
+.info-box p {
+    margin: 2px 0;
+    font-size: 9.5pt;
+    color: #000000;
+}
+
+.items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    margin-bottom: 16px;
+    font-size: 9.5pt;
+}
+
+.items-table th, .items-table td {
+    border: 1px solid #000000;
+    padding: 6px 8px;
+    color: #000000;
+    background: transparent;
+}
+
+.items-table th {
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 8.5pt;
+}
+
+.sig-table {
+    width: 100%;
+    margin-top: 50px;
+}
+
+.sig-cell {
+    width: 33.33%;
+    text-align: center;
+    vertical-align: top;
+}
+
+.sig-line {
+    border-top: 1px solid #000000;
+    margin: 0 auto 5px auto;
+    width: 90%;
+}
+
+.sig-cell p {
+    font-weight: bold;
+    font-size: 9pt;
+    margin: 2px 0;
+    color: #000000;
+}
+
+.sig-cell small {
+    font-size: 8pt;
+    color: #000000;
+}
