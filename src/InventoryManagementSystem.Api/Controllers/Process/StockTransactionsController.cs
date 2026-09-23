@@ -22,16 +22,33 @@ namespace InventoryManagementSystem.Api.Controllers.Process;
 public class StockTransactionsController : ApiControllerBase
 {
     [HttpGet]
-    [EndpointSummary("Get all stock transactions with optional filters")]
+    [EndpointSummary("Get all stock transactions with server-side pagination, search, and sorting")]
     public async Task<IActionResult> GetStockTransactions(
         [FromQuery] string? transactionType,
         [FromQuery] DateTime? date,
         [FromQuery] DateTime? startDate,
         [FromQuery] DateTime? endDate,
-        [FromQuery] Guid? productId,
-        [FromQuery] int? warehouseId)
+        [FromQuery] string? q,
+        [FromQuery] string? sortField,
+        [FromQuery] int order = -1,
+        [FromQuery] Guid? productId = null,
+        [FromQuery] int? warehouseId = null,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20)
     {
-        var result = await Mediator.Send(new GetStockTransactionsQuery(transactionType, date, startDate, endDate, productId, warehouseId));
+        var result = await Mediator.Send(new GetStockTransactionsQuery(
+            transactionType,
+            date,
+            startDate,
+            endDate,
+            q,
+            sortField,
+            order,
+            productId,
+            warehouseId,
+            pageNumber,
+            pageSize));
+
         return Ok(new DefaultResponseModel
         {
             StatusCode = StatusCodes.Status200OK,
