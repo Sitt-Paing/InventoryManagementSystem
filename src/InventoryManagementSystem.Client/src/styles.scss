@@ -4,106 +4,108 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ═══════════════════════════════════════════════════════════
-   INVENTORY MANAGEMENT SYSTEM DESIGN SYSTEM
-   Emerald Green Primary Accent, Clean & Professional
+   INVENTRACK ENTERPRISE DESIGN SYSTEM
+   Clean, Professional, Modern Emerald Accent
    ═══════════════════════════════════════════════════════════ */
 
 :root {
-  /* LIGHT MODE */
-  --bg-page: #f0f4f3;              /* Cool Green-Gray Page Background */
-  --bg-header: #ffffff;            /* Solid Pure White Header */
-  --bg-sidebar: #ffffff;           /* Solid Pure White Sidebar */
-  --bg-card: #ffffff;              /* Elevated Pure White Card Surface */
-  --bg-table-hdr: #f8faf9;         /* Light Green-Tint Table Header */
-  --bg-hover: #f1f5f4;             /* Row Hover Background */
+  /* LIGHT MODE - Crisp Modern Slate & Pure White */
+  --bg-page: #f8fafc;              /* Crisp Slate-50 Page Background */
+  --bg-header: #ffffff;            /* Pure White Header */
+  --bg-sidebar: #ffffff;           /* Pure White Sidebar */
+  --bg-card: #ffffff;              /* Elevated Card Surface */
+  --bg-table-hdr: #f8fafc;         /* Crisp Table Header */
+  --bg-hover: #f1f5f9;             /* Row & Item Hover */
   
-  --border-color: #e2e8e5;         /* Card & Container Borders */
-  --border-subtle: #f1f5f4;        /* Table Dividers */
+  --border-color: #e2e8f0;         /* Refined Slate-200 Border */
+  --border-subtle: #f1f5f9;        /* Subtle Dividers */
 
-  --text-main: #1e293b;            /* Dark Slate Main Text */
-  --text-muted: #475569;           /* Secondary Text */
-  --text-faint: #94a3b8;           /* Muted Placeholder Text */
+  --text-main: #0f172a;            /* Slate-900 High Contrast Text */
+  --text-muted: #475569;           /* Slate-600 Secondary Text */
+  --text-faint: #94a3b8;           /* Slate-400 Faint/Placeholder Text */
 
-  /* Primary Accent — Emerald Green */
+  /* Primary Accent — Refined Emerald */
   --accent-color: #059669;         /* Emerald 600 */
   --accent-hover: #047857;         /* Emerald 700 */
+  --accent-light: #ecfdf5;         /* Emerald 50 */
   --accent-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  --sorted-col-bg: #ecfdf5;        /* Emerald 50 Sorted Column Highlight */
+  --sorted-col-bg: #ecfdf5;        /* Emerald 50 Highlight */
   --sorted-col-text: #059669;
 
-  /* Badges — Active Tag */
-  --badge-active-bg: #d1fae5;      /* Light Emerald Green */
-  --badge-active-text: #047857;     /* Dark Emerald Green Text */
+  /* Badges & Tags */
+  --badge-active-bg: #ecfdf5;
+  --badge-active-text: #047857;
   --badge-inactive-bg: #f1f5f9;
   --badge-inactive-text: #64748b;
 
   /* Shadows */
-  --header-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
-  --card-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.06), 0 2px 4px -1px rgba(15, 23, 42, 0.03);
+  --header-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --card-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05);
 }
 
 .dark {
-  /* DARK MODE */
-  --bg-page: #090d10;              /* Deep Dark Background */
-  --bg-header: #111816;            /* Dark Charcoal-Green Header */
-  --bg-sidebar: #12201a;           /* Rich Dark Green-Tint Sidebar */
-  --bg-card: #12201a;              /* Elevated Dark Card Surface */
-  --bg-table-hdr: #0c1612;         /* Dark Pitch Table Header */
-  --bg-hover: #1a2e26;           /* Row Hover Background */
+  /* DARK MODE - Obsidian Slate */
+  --bg-page: #090d16;              /* Deep Obsidian Page Background */
+  --bg-header: #0f172a;            /* Slate-900 Header */
+  --bg-sidebar: #0f172a;           /* Slate-900 Sidebar */
+  --bg-card: #0f172a;              /* Slate-900 Card Surface */
+  --bg-table-hdr: #0b1120;         /* Slate-950 Table Header */
+  --bg-hover: #1e293b;             /* Slate-800 Hover */
 
-  --border-color: #243d33;         /* Crisp Dark Green Border */
-  --border-subtle: #1a2e26;        /* Table Dividers */
+  --border-color: #1e293b;         /* Slate-800 Clean Border */
+  --border-subtle: #1e293b;
 
-  --text-main: #f8fafc;            /* High Contrast White Text */
-  --text-muted: #cbd5e1;           /* Slate 300 Secondary Text */
-  --text-faint: #64748b;           /* Slate 500 Muted Text */
+  --text-main: #f8fafc;            /* Slate-50 Crisp Text */
+  --text-muted: #94a3b8;           /* Slate-400 Secondary Text */
+  --text-faint: #64748b;           /* Slate-500 Faint Text */
 
-  /* Primary Accent — Emerald Green */
+  /* Primary Accent — Luminous Emerald */
   --accent-color: #10b981;         /* Emerald 500 */
   --accent-hover: #059669;         /* Emerald 600 */
+  --accent-light: #064e3b;         /* Emerald 900 */
   --accent-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  --sorted-col-bg: #1a3a2a;        /* Dark Green Sorted Header Highlight */
+  --sorted-col-bg: #132e22;
   --sorted-col-text: #34d399;
 
-  /* Badges — Active Tag */
-  --badge-active-bg: #064e3b;      /* Dark Green Badge */
-  --badge-active-text: #34d399;     /* Mint Green Text */
+  /* Badges & Tags */
+  --badge-active-bg: #064e3b;
+  --badge-active-text: #34d399;
   --badge-inactive-bg: #1e293b;
-  --badge-inactive-text: #cbd5e1;
+  --badge-inactive-text: #94a3b8;
 
   /* Shadows */
-  --header-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.4);
-  --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --header-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.35);
+  --card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
 }
 
 /* ═══════════════════════════════════════════════════════════
-   GLOBAL BASE
+   GLOBAL BASE & TYPOGRAPHY
    ═══════════════════════════════════════════════════════════ */
 body, html {
-  font-family: 'Inter', 'Pyidaungsu', 'Padauk', 'Noto Sans Myanmar', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--bg-page) !important;
   color: var(--text-main) !important;
   margin: 0;
   padding: 0;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 html.lang-mm, body.lang-mm {
-  font-family: 'Pyidaungsu', 'Padauk', 'Noto Sans Myanmar', 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Pyidaungsu', 'Padauk', 'Noto Sans Myanmar', 'Inter', system-ui, sans-serif;
 }
-
 
 main {
   background-color: var(--bg-page) !important;
   color: var(--text-main) !important;
 }
 
-/* Custom Scrollbars */
+/* Custom Sleek Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -114,6 +116,9 @@ main {
 }
 .dark ::-webkit-scrollbar-thumb {
   background: #334155;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -137,22 +142,298 @@ main {
 .table-card, .master-card, .glass-panel {
   background-color: var(--bg-card) !important;
   border: 1px solid var(--border-color) !important;
-  border-radius: 0.75rem !important;
+  border-radius: 0.875rem !important;
   box-shadow: var(--card-shadow) !important;
   overflow: hidden;
   transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Sidebar Active Item — Solid Emerald Green Pill */
+/* Refined Sidebar Active Item - Modern Airy Accent Pill */
 .active-nav-item {
-  background-color: #059669 !important;
-  color: #ffffff !important;
+  background-color: #ecfdf5 !important;
+  color: #047857 !important;
   font-weight: 600 !important;
   border-radius: 0.5rem !important;
-  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35) !important;
+  border-left: 3px solid #059669 !important;
 
   i {
+    color: #059669 !important;
+  }
+}
+
+.dark .active-nav-item {
+  background-color: rgba(6, 78, 59, 0.45) !important;
+  color: #34d399 !important;
+  border-left: 3px solid #10b981 !important;
+
+  i {
+    color: #34d399 !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PRIMENG COMPONENT ENHANCEMENTS
+   ═══════════════════════════════════════════════════════════ */
+
+/* Segmented Control / SelectButton Styling */
+.p-selectbutton {
+  display: inline-flex;
+  background-color: #f1f5f9;
+  padding: 3px;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+  gap: 2px;
+}
+.dark .p-selectbutton {
+  background-color: #0b1120;
+}
+
+.p-selectbutton .p-togglebutton {
+  border: none !important;
+  background: transparent !important;
+  color: var(--text-muted) !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  padding: 0.35rem 0.75rem !important;
+  border-radius: 0.375rem !important;
+  transition: all 0.15s ease-in-out !important;
+}
+
+.p-selectbutton .p-togglebutton:hover {
+  color: var(--text-main) !important;
+}
+
+.p-selectbutton .p-togglebutton.p-togglebutton-checked {
+  background: #ffffff !important;
+  color: #059669 !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.08) !important;
+}
+.dark .p-selectbutton .p-togglebutton.p-togglebutton-checked {
+  background: #1e293b !important;
+  color: #34d399 !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Form Controls: Inputs, Selects, Datepickers */
+.p-inputtext,
+.p-select,
+.p-datepicker input {
+  border-color: var(--border-color) !important;
+  border-radius: 0.5rem !important;
+  font-size: 0.8125rem !important;
+  transition: all 0.15s ease !important;
+}
+
+.p-inputtext:focus,
+.p-select:focus,
+.p-select.p-focus,
+.p-datepicker input:focus {
+  border-color: var(--accent-color) !important;
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15) !important;
+}
+
+/* SplitButton Modern Styling */
+.p-splitbutton {
+  .p-button {
+    background: var(--accent-color) !important;
+    border-color: var(--accent-color) !important;
     color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 0.8125rem !important;
+    transition: background-color 0.15s ease !important;
+
+    &:hover {
+      background: var(--accent-hover) !important;
+      border-color: var(--accent-hover) !important;
+    }
+  }
+}
+
+/* Data Table Clean Design */
+.p-datatable {
+  .p-datatable-header {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 0 1rem 0 !important;
+  }
+
+  .p-datatable-thead > tr > th {
+    background-color: var(--bg-table-hdr) !important;
+    color: var(--text-muted) !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    padding: 0.75rem 1rem !important;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .p-datatable-tbody > tr {
+    background-color: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    transition: background-color 0.15s ease;
+
+    &.p-datatable-row-striped {
+      background-color: rgba(248, 250, 252, 0.6) !important;
+    }
+
+    &:hover {
+      background-color: var(--bg-hover) !important;
+    }
+
+    &.p-highlight {
+      background-color: rgba(5, 150, 105, 0.06) !important;
+      color: var(--text-main) !important;
+    }
+
+    > td {
+      border-bottom: 1px solid var(--border-color) !important;
+      border-top: none !important;
+      border-left: none !important;
+      border-right: none !important;
+      padding: 0.75rem 1rem !important;
+      font-size: 0.8125rem !important;
+      vertical-align: middle;
+    }
+  }
+}
+
+.dark .p-datatable .p-datatable-tbody > tr.p-datatable-row-striped {
+  background-color: rgba(15, 23, 42, 0.4) !important;
+}
+.dark .p-datatable .p-datatable-tbody > tr.p-highlight {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+}
+
+/* Paginator Polishing */
+.p-paginator {
+  background: transparent !important;
+  border-top: 1px solid var(--border-color) !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  padding: 0.75rem 1rem !important;
+  gap: 0.25rem !important;
+
+  .p-paginator-page,
+  .p-paginator-next,
+  .p-paginator-prev,
+  .p-paginator-first,
+  .p-paginator-last {
+    border-radius: 0.5rem !important;
+    min-width: 2rem !important;
+    height: 2rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    color: var(--text-muted) !important;
+    transition: all 0.15s ease !important;
+
+    &:hover {
+      background-color: var(--bg-hover) !important;
+      color: var(--text-main) !important;
+    }
+
+    &.p-paginator-page-selected {
+      background-color: var(--accent-color) !important;
+      color: #ffffff !important;
+      font-weight: 700 !important;
+    }
+  }
+
+  .p-paginator-current {
+    font-size: 0.75rem !important;
+    color: var(--text-muted) !important;
+  }
+}
+
+/* Subtle Modern Tags */
+.p-tag {
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  padding: 0.2rem 0.65rem !important;
+  border-radius: 9999px !important;
+
+  &.p-tag-success {
+    background-color: #ecfdf5 !important;
+    color: #047857 !important;
+    border: 1px solid #a7f3d0 !important;
+  }
+  &.p-tag-danger {
+    background-color: #fff1f2 !important;
+    color: #be123c !important;
+    border: 1px solid #fecdd3 !important;
+  }
+  &.p-tag-info {
+    background-color: #f0f9ff !important;
+    color: #0369a1 !important;
+    border: 1px solid #bae6fd !important;
+  }
+  &.p-tag-warn {
+    background-color: #fffbeb !important;
+    color: #b45309 !important;
+    border: 1px solid #fde68a !important;
+  }
+}
+
+.dark {
+  .p-tag {
+    &.p-tag-success {
+      background-color: rgba(6, 78, 59, 0.45) !important;
+      color: #34d399 !important;
+      border: 1px solid rgba(16, 185, 129, 0.3) !important;
+    }
+    &.p-tag-danger {
+      background-color: rgba(136, 19, 55, 0.4) !important;
+      color: #fb7185 !important;
+      border: 1px solid rgba(244, 63, 94, 0.3) !important;
+    }
+    &.p-tag-info {
+      background-color: rgba(12, 74, 110, 0.4) !important;
+      color: #38bdf8 !important;
+      border: 1px solid rgba(56, 189, 248, 0.3) !important;
+    }
+    &.p-tag-warn {
+      background-color: rgba(120, 53, 15, 0.4) !important;
+      color: #fcd34d !important;
+      border: 1px solid rgba(251, 191, 36, 0.3) !important;
+    }
+  }
+}
+
+/* Dialog Overlay Modernization */
+.p-dialog-mask {
+  backdrop-filter: blur(4px);
+  background-color: rgba(15, 23, 42, 0.4) !important;
+}
+
+.p-dialog {
+  border-radius: 1rem !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid var(--border-color) !important;
+  background-color: var(--bg-card) !important;
+  overflow: hidden;
+
+  .p-dialog-header {
+    background-color: var(--bg-card) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    padding: 1.25rem 1.5rem !important;
+  }
+
+  .p-dialog-content {
+    background-color: var(--bg-card) !important;
+    padding: 1.5rem !important;
+  }
+
+  .p-dialog-footer {
+    background-color: var(--bg-card) !important;
+    border-top: 1px solid var(--border-color) !important;
+    padding: 1rem 1.5rem !important;
   }
 }
 
