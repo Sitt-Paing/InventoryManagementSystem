@@ -366,20 +366,16 @@ export class StockTransactionsComponent implements OnInit {
     this.warehouseStock = null;
     this.productWarehouseStocks = [];
     this.buildWarehouseOptionsWithStock();
-
-    const defaultWarehouseId = this.warehouses.length > 0 ? this.warehouses[0].id : 0;
-    this.updateFilteredLocations(defaultWarehouseId);
-    const defaultLocationId = this.filteredLocations.length > 0 ? this.filteredLocations[0].id : 0;
     this.filteredToLocations = [];
 
     this.stockTransactionForm.reset({
       id: 0,
       productId: '',
-      warehouseId: defaultWarehouseId,
-      warehouseLocationId: defaultLocationId,
+      warehouseId: 0,
+      warehouseLocationId: 0,
       toWarehouseId: null,
       toWarehouseLocationId: null,
-      transactionType: 'IN',
+      transactionType: '',
       quantity: 1,
       transactionDate: new Date(),
       referenceNo: Math.floor(100000 + Math.random() * 900000),
