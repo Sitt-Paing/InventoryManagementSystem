@@ -16,6 +16,7 @@ export const MM_DICTIONARY: Record<string, any> = {
     UNIT_OF_MEASURES: 'ယူနစ်များ (UOM)',
     PROCESS: 'လုပ်ငန်းစဉ်',
     STOCK_TRANSACTIONS: 'စတော့ လှုပ်ရှားမှုများ',
+    PURCHASE_ORDERS: 'အဝယ်များ',
     SETTINGS: 'ဆက်တင်များ',
     USER_MANAGEMENT: 'အသုံးပြုသူ စီမံခန့်ခွဲမှု'
   },
