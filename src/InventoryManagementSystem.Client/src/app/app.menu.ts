@@ -114,6 +114,12 @@ export const NAVIGATION_MENU: Readonly<NavigationMenuGroup[]> = [
         routerLink: '/process/stock-transactions',
         // data: { roles: MANAGER_PROCESS },
       },
+      {
+        label: 'Purchase Orders',
+        transKey: 'NAV.PURCHASE_ORDERS',
+        icon: 'pi pi-shopping-cart',
+        routerLink: '/process/purchase-orders',
+      },
     ],
   },
 ];
