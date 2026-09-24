@@ -3,19 +3,33 @@
 
 <div class="table-card p-4 space-y-2">
     <!-- Top Action Bar -->
-    <div class="flex justify-between items-center">
+    <div class="flex flex-wrap justify-between items-center gap-2">
         <div>
             <p-splitbutton label="Create" icon="pi pi-plus" [model]="items" (onClick)="create()" size="small">
             </p-splitbutton>
         </div>
 
-        <div class="flex ml-auto items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2 ml-auto">
+            <!-- Single Order Date Filter -->
+            <p-datepicker
+                [(ngModel)]="filterOrderDate"
+                (ngModelChange)="onDateChange()"
+                dateFormat="dd/mm/yy"
+                [showIcon]="true"
+                iconDisplay="input"
+                [showClear]="true"
+                [fluid]="true"
+                placeholder="Order Date"
+                appendTo="body"
+                class="w-44">
+            </p-datepicker>
+
             <p-iconfield iconPosition="left" class="xl:ml-auto 2xl:ml-auto">
                 <p-inputicon>
                     <i class="pi pi-search cursor-pointer text-gray-500 hover:text-gray-800" (click)="onSearch()" title="Search"></i>
                 </p-inputicon>
                 <input pInputText type="text" [(ngModel)]="searchKeyword" (keydown.enter)="onSearch()"
-                    placeholder="Search keyword (Press Enter)" pSize="small" [style]="{ width: '280px' }" />
+                    placeholder="Search keyword (Press Enter)" pSize="small" [style]="{ width: '240px' }" />
             </p-iconfield>
         </div>
     </div>
