@@ -80,8 +80,7 @@ export class PurchaseOrdersComponent implements OnInit {
   sortField: string = 'createdOn';
   sortOrder: number = -1;
   searchKeyword: string = '';
-  startDate: Date | null = null;
-  endDate: Date | null = null;
+  filterOrderDate: Date | null = null;
 
   // Dropdown master lists
   suppliers: SuppliersModel[] = [];
@@ -168,8 +167,13 @@ export class PurchaseOrdersComponent implements OnInit {
 
   loadData(): void {
     this.isLoading = true;
+    const orderDateStr = this.filterOrderDate
+      ? (this.datePipe.transform(this.filterOrderDate, 'yyyy-MM-dd') ?? undefined)
+      : undefined;
+
     this.purchaseOrdersService.getPaged({
       q: this.searchKeyword,
+      orderDate: orderDateStr,
       sortField: this.sortField,
       order: this.sortOrder,
       pageNumber: this.pageNumber,
@@ -204,6 +208,19 @@ export class PurchaseOrdersComponent implements OnInit {
       this.tblPurchaseOrders.first = 0;
     }
     this.loadData();
+  }
+
+  onDateChange(): void {
+    this.pageNumber = 1;
+    if (this.tblPurchaseOrders) {
+      this.tblPurchaseOrders.first = 0;
+    }
+    this.loadData();
+  }
+
+  clearSearch(): void {
+    this.searchKeyword = '';
+    this.onSearch();
   }
 
   create(): void {
@@ -504,8 +521,13 @@ export class PurchaseOrdersComponent implements OnInit {
   }
 
   excel(): void {
+    const orderDateStr = this.filterOrderDate
+      ? (this.datePipe.transform(this.filterOrderDate, 'yyyy-MM-dd') ?? undefined)
+      : undefined;
+
     this.purchaseOrdersService.export({
-      q: this.searchKeyword
+      q: this.searchKeyword,
+      orderDate: orderDateStr
     }).subscribe({
       next: (blob) => {
         this.exportService.excel_blob('Purchase_Orders', blob);
