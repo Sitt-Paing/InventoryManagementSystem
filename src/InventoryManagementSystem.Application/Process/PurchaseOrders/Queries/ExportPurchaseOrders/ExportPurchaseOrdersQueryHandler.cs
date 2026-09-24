@@ -65,6 +65,13 @@ public class ExportPurchaseOrdersQueryHandler : IRequestHandler<ExportPurchaseOr
             query = query.Where(po => po.OrderDate <= endOfDay);
         }
 
+        if (request.OrderDate.HasValue)
+        {
+            var date = request.OrderDate.Value.Date;
+            var nextDay = date.AddDays(1);
+            query = query.Where(po => po.OrderDate >= date && po.OrderDate < nextDay);
+        }
+
         var orders = await query
             .OrderByDescending(p => p.OrderDate)
             .Select(po => new
