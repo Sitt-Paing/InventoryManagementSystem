@@ -6,8 +6,6 @@ namespace InventoryManagementSystem.Application.Process.PurchaseOrders.Queries.E
 
 public record ExportPurchaseOrdersQuery(
     string? Q = null,
-    DateTime? StartDate = null,
-    DateTime? EndDate = null,
     DateTime? OrderDate = null,
     int? SupplierId = null,
     int? WarehouseId = null,
