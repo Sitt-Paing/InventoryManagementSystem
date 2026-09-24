@@ -23,8 +23,6 @@ public class PurchaseOrdersController : ApiControllerBase
     [EndpointSummary("Get all purchase orders with server-side pagination, search, and sorting")]
     public async Task<IActionResult> GetPurchaseOrders(
         [FromQuery] string? q,
-        [FromQuery] DateTime? startDate,
-        [FromQuery] DateTime? endDate,
         [FromQuery] DateTime? orderDate,
         [FromQuery] int? supplierId,
         [FromQuery] int? warehouseId,
@@ -36,8 +34,6 @@ public class PurchaseOrdersController : ApiControllerBase
     {
         var result = await Mediator.Send(new GetPurchaseOrdersQuery(
             q,
-            startDate,
-            endDate,
             orderDate,
             supplierId,
             warehouseId,
@@ -160,8 +156,6 @@ public class PurchaseOrdersController : ApiControllerBase
     [EndpointSummary("Export purchase orders to Excel or CSV")]
     public async Task<IActionResult> ExportPurchaseOrders(
         [FromQuery] string? q,
-        [FromQuery] DateTime? startDate,
-        [FromQuery] DateTime? endDate,
         [FromQuery] DateTime? orderDate,
         [FromQuery] int? supplierId,
         [FromQuery] int? warehouseId,
@@ -171,8 +165,6 @@ public class PurchaseOrdersController : ApiControllerBase
     {
         var result = await Mediator.Send(new ExportPurchaseOrdersQuery(
             q,
-            startDate,
-            endDate,
             orderDate,
             supplierId,
             warehouseId,
