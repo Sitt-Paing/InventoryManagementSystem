@@ -167,9 +167,10 @@ export class PurchaseOrdersComponent implements OnInit {
 
   loadData(): void {
     this.isLoading = true;
+    const todayStr = this.datePipe.transform(new Date(), 'yyyy-MM-dd') ?? undefined;
     const orderDateStr = this.filterOrderDate
       ? (this.datePipe.transform(this.filterOrderDate, 'yyyy-MM-dd') ?? undefined)
-      : undefined;
+      : todayStr;
 
     this.purchaseOrdersService.getPaged({
       q: this.searchKeyword,
@@ -521,9 +522,10 @@ export class PurchaseOrdersComponent implements OnInit {
   }
 
   excel(): void {
+    const todayStr = this.datePipe.transform(new Date(), 'yyyy-MM-dd') ?? undefined;
     const orderDateStr = this.filterOrderDate
       ? (this.datePipe.transform(this.filterOrderDate, 'yyyy-MM-dd') ?? undefined)
-      : undefined;
+      : todayStr;
 
     this.purchaseOrdersService.export({
       q: this.searchKeyword,
