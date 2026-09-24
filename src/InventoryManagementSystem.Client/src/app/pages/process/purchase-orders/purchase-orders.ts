@@ -80,7 +80,7 @@ export class PurchaseOrdersComponent implements OnInit {
   sortField: string = 'createdOn';
   sortOrder: number = -1;
   searchKeyword: string = '';
-  filterOrderDate: Date | null = null;
+  filterOrderDate: Date | null = new Date();
 
   // Dropdown master lists
   suppliers: SuppliersModel[] = [];
