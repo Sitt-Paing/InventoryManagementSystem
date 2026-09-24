@@ -186,15 +186,12 @@ export class PurchaseOrderPrintDialog {
       </html>
     `;
 
-    const doc = printFrame.contentWindow?.document || printFrame.contentDocument;
-    if (doc) {
-      doc.open();
-      doc.write(html);
-      doc.close();
-      setTimeout(() => {
-        printFrame.contentWindow?.focus();
-        printFrame.contentWindow?.print();
-      }, 300);
-    }
+    printFrame.onload = () => {
+      printFrame.contentWindow?.focus();
+      printFrame.contentWindow?.print();
+    };
+
+    // Modern HTML5 srcdoc attribute replaces deprecated document.open() / document.write()
+    printFrame.srcdoc = html;
   }
 }
