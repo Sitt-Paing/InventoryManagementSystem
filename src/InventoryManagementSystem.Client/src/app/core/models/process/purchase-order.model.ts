@@ -40,6 +40,7 @@ export interface PurchaseOrderFilterModel {
   q?: string | null;
   startDate?: string | null;
   endDate?: string | null;
+  orderDate?: string | null;
   supplierId?: number | null;
   warehouseId?: number | null;
   status?: boolean | null;
