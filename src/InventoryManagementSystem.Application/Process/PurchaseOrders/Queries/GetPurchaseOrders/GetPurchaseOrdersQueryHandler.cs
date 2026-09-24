@@ -60,6 +60,13 @@ public class GetPurchaseOrdersQueryHandler : IRequestHandler<GetPurchaseOrdersQu
             query = query.Where(po => po.OrderDate <= endOfDay);
         }
 
+        if (request.OrderDate.HasValue)
+        {
+            var date = request.OrderDate.Value.Date;
+            var nextDay = date.AddDays(1);
+            query = query.Where(po => po.OrderDate >= date && po.OrderDate < nextDay);
+        }
+
         // Sorting
         query = request.SortField?.ToLower() switch
         {
