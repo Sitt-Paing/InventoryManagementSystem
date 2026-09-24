@@ -9,6 +9,7 @@ public record GetPurchaseOrdersQuery(
     string? Q = null,
     DateTime? StartDate = null,
     DateTime? EndDate = null,
+    DateTime? OrderDate = null,
     int? SupplierId = null,
     int? WarehouseId = null,
     bool? Status = null,
