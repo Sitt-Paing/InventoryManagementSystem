@@ -7,8 +7,6 @@ namespace InventoryManagementSystem.Application.Process.PurchaseOrders.Queries.G
 
 public record GetPurchaseOrdersQuery(
     string? Q = null,
-    DateTime? StartDate = null,
-    DateTime? EndDate = null,
     DateTime? OrderDate = null,
     int? SupplierId = null,
     int? WarehouseId = null,
