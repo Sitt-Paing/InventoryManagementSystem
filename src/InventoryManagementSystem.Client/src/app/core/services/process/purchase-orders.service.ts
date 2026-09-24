@@ -24,6 +24,12 @@ export class PurchaseOrdersService {
     }
     if (filter?.orderDate) {
       params = params.set('orderDate', filter.orderDate);
+      if (!filter?.startDate) {
+        params = params.set('startDate', filter.orderDate);
+      }
+      if (!filter?.endDate) {
+        params = params.set('endDate', filter.orderDate);
+      }
     }
     if (filter?.supplierId && filter.supplierId > 0) {
       params = params.set('supplierId', filter.supplierId.toString());
@@ -84,6 +90,12 @@ export class PurchaseOrdersService {
     }
     if (filter?.orderDate) {
       params = params.set('orderDate', filter.orderDate);
+      if (!filter?.startDate) {
+        params = params.set('startDate', filter.orderDate);
+      }
+      if (!filter?.endDate) {
+        params = params.set('endDate', filter.orderDate);
+      }
     }
     if (filter?.supplierId && filter.supplierId > 0) {
       params = params.set('supplierId', filter.supplierId.toString());
