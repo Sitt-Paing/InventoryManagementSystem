@@ -49,16 +49,6 @@ public class GetPurchaseOrdersQueryHandler : IRequestHandler<GetPurchaseOrdersQu
             query = query.Where(po => po.Status == request.Status.Value);
         }
 
-        if (request.StartDate.HasValue)
-        {
-            query = query.Where(po => po.OrderDate >= request.StartDate.Value.Date);
-        }
-
-        if (request.EndDate.HasValue)
-        {
-            var endOfDay = request.EndDate.Value.Date.AddDays(1).AddTicks(-1);
-            query = query.Where(po => po.OrderDate <= endOfDay);
-        }
 
         if (request.OrderDate.HasValue)
         {
