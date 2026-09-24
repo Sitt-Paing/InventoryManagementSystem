@@ -22,6 +22,9 @@ export class PurchaseOrdersService {
     if (filter?.endDate) {
       params = params.set('endDate', filter.endDate);
     }
+    if (filter?.orderDate) {
+      params = params.set('orderDate', filter.orderDate);
+    }
     if (filter?.supplierId && filter.supplierId > 0) {
       params = params.set('supplierId', filter.supplierId.toString());
     }
@@ -78,6 +81,9 @@ export class PurchaseOrdersService {
     }
     if (filter?.endDate) {
       params = params.set('endDate', filter.endDate);
+    }
+    if (filter?.orderDate) {
+      params = params.set('orderDate', filter.orderDate);
     }
     if (filter?.supplierId && filter.supplierId > 0) {
       params = params.set('supplierId', filter.supplierId.toString());
