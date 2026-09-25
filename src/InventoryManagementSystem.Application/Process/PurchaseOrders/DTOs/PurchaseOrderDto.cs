@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using InventoryManagementSystem.Domain.Enums;
 
 namespace InventoryManagementSystem.Application.Process.PurchaseOrders.DTOs;
 
@@ -14,7 +15,7 @@ public class PurchaseOrderDto
     public string WarehouseName { get; set; } = string.Empty;
     public DateTime OrderDate { get; set; }
     public DateTime ExpectedDate { get; set; }
-    public bool Status { get; set; }
+    public PurchaseOrderStatus Status { get; set; }
     public decimal TotalAmount { get; set; }
     public int TotalItems => Items?.Count ?? 0;
     public DateTime? CreatedOn { get; set; }
