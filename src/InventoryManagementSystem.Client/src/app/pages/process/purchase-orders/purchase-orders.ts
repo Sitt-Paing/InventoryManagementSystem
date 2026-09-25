@@ -17,7 +17,7 @@ import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 
-import { PurchaseOrderModel, PurchaseOrderItemModel } from '../../../core/models/process/purchase-order.model';
+import { PurchaseOrderModel, PurchaseOrderItemModel, PurchaseOrderStatus, PURCHASE_ORDER_STATUS_OPTIONS } from '../../../core/models/process/purchase-order.model';
 import { SuppliersModel } from '../../../core/models/master/suppliers.model';
 import { WarehouseModel } from '../../../core/models/master/warehouse.model';
 import { ProductModel } from '../../../core/models/master/product.model';
@@ -81,6 +81,13 @@ export class PurchaseOrdersComponent implements OnInit {
   sortOrder: number = -1;
   searchKeyword: string = '';
   filterOrderDate: Date | null = null;
+  filterStatus: PurchaseOrderStatus | null = null;
+  statusOptions = PURCHASE_ORDER_STATUS_OPTIONS;
+  statusFilterOptions = [
+    { label: 'All Status', value: null },
+    ...PURCHASE_ORDER_STATUS_OPTIONS
+  ];
+  PurchaseOrderStatus = PurchaseOrderStatus;
 
   // Dropdown master lists
   suppliers: SuppliersModel[] = [];
@@ -100,7 +107,7 @@ export class PurchaseOrdersComponent implements OnInit {
     warehouseId: [null as number | null, [Validators.required, Validators.min(1)]],
     orderDate: [new Date(), Validators.required],
     expectedDate: [new Date(), Validators.required],
-    status: [true],
+    status: [PurchaseOrderStatus.Pending, Validators.required],
   });
 
   constructor(
@@ -175,6 +182,7 @@ export class PurchaseOrdersComponent implements OnInit {
     this.purchaseOrdersService.getPaged({
       q: this.searchKeyword,
       orderDate: orderDateStr,
+      status: this.filterStatus,
       sortField: this.sortField,
       order: this.sortOrder,
       pageNumber: this.pageNumber,
@@ -219,6 +227,14 @@ export class PurchaseOrdersComponent implements OnInit {
     this.loadData();
   }
 
+  onStatusChange(): void {
+    this.pageNumber = 1;
+    if (this.tblPurchaseOrders) {
+      this.tblPurchaseOrders.first = 0;
+    }
+    this.loadData();
+  }
+
   clearSearch(): void {
     this.searchKeyword = '';
     this.onSearch();
@@ -234,7 +250,7 @@ export class PurchaseOrdersComponent implements OnInit {
       warehouseId: null,
       orderDate: new Date(),
       expectedDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default 7 days later
-      status: true
+      status: PurchaseOrderStatus.Pending
     });
     this.formItems = [this.createEmptyItem()];
     this.recalculateTotalAmount();
@@ -450,7 +466,7 @@ export class PurchaseOrdersComponent implements OnInit {
       warehouseId: formVal.warehouseId!,
       orderDate: formVal.orderDate ? (this.datePipe.transform(formVal.orderDate, 'yyyy-MM-ddTHH:mm:ss') ?? new Date().toISOString()) : new Date().toISOString(),
       expectedDate: formVal.expectedDate ? (this.datePipe.transform(formVal.expectedDate, 'yyyy-MM-ddTHH:mm:ss') ?? new Date().toISOString()) : new Date().toISOString(),
-      status: formVal.status ?? true,
+      status: formVal.status ?? PurchaseOrderStatus.Pending,
       items: this.formItems.map(i => ({
         id: i.id,
         productId: i.productId,
@@ -514,6 +530,51 @@ export class PurchaseOrdersComponent implements OnInit {
     }
   }
 
+  getStatusSeverity(status: PurchaseOrderStatus): 'warn' | 'info' | 'success' | 'danger' | 'secondary' {
+    switch (status) {
+      case PurchaseOrderStatus.Pending:
+        return 'warn';
+      case PurchaseOrderStatus.PartiallyReceived:
+        return 'info';
+      case PurchaseOrderStatus.Completed:
+        return 'success';
+      case PurchaseOrderStatus.Cancelled:
+        return 'danger';
+      default:
+        return 'secondary';
+    }
+  }
+
+  getStatusIcon(status: PurchaseOrderStatus): string {
+    switch (status) {
+      case PurchaseOrderStatus.Pending:
+        return 'pi pi-clock';
+      case PurchaseOrderStatus.PartiallyReceived:
+        return 'pi pi-truck';
+      case PurchaseOrderStatus.Completed:
+        return 'pi pi-check-circle';
+      case PurchaseOrderStatus.Cancelled:
+        return 'pi pi-times-circle';
+      default:
+        return 'pi pi-info-circle';
+    }
+  }
+
+  getStatusLabel(status: PurchaseOrderStatus): string {
+    switch (status) {
+      case PurchaseOrderStatus.Pending:
+        return 'Pending';
+      case PurchaseOrderStatus.PartiallyReceived:
+        return 'Partially Received';
+      case PurchaseOrderStatus.Completed:
+        return 'Completed';
+      case PurchaseOrderStatus.Cancelled:
+        return 'Cancelled';
+      default:
+        return 'Unknown';
+    }
+  }
+
   onDialogHide(): void {
     this.modalVisible = false;
     this.selectedPurchaseOrder = null;
@@ -529,7 +590,8 @@ export class PurchaseOrdersComponent implements OnInit {
 
     this.purchaseOrdersService.export({
       q: this.searchKeyword,
-      orderDate: orderDateStr
+      orderDate: orderDateStr,
+      status: this.filterStatus
     }).subscribe({
       next: (blob) => {
         this.exportService.excel_blob('Purchase_Orders', blob);
