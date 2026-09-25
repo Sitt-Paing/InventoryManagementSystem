@@ -71,6 +71,18 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
                 ReceivedQuantity = item.ReceivedQuantity
             });
 
+            _context.StockTransactions.Add(new StockTransaction
+            {
+                ProductId = item.ProductId,
+                Quantity = item.ReceivedQuantity,
+                UserId = effectiveUserId,
+                WarehouseId = request.WarehouseId,
+                WarehouseLocationId = 0,
+                TransactionType = "IN",
+                TransactionDate = request.ReceiptDate,
+                Note = $"Goods Receipt: {receiptNo}"
+            });
+
             // Update PurchaseOrderItem received quantity
             var poItem = purchaseOrder.Items.FirstOrDefault(i => i.Id == item.PurchaseOrderItemId);
             if (poItem != null)
@@ -99,11 +111,12 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
         }
 
         // Update PO Status based on received quantities
-        if (purchaseOrder.Items.All(i => i.ReceivedQuantity >= i.Quantity))
+        var activePoItems = purchaseOrder.Items.Where(i => !i.DeletedOn.HasValue).ToList();
+        if (activePoItems.Count > 0 && activePoItems.All(i => i.ReceivedQuantity >= i.Quantity))
         {
             purchaseOrder.Status = PurchaseOrderStatus.Completed;
         }
-        else if (purchaseOrder.Items.Any(i => i.ReceivedQuantity > 0))
+        else if (activePoItems.Any(i => i.ReceivedQuantity > 0))
         {
             purchaseOrder.Status = PurchaseOrderStatus.PartiallyReceived;
         }
