@@ -31,6 +31,7 @@ import { WarehouseService } from '../../../core/services/master/warehouse.servic
 import { ProductService } from '../../../core/services/master/product.service';
 import { UnitOfMeasureService } from '../../../core/services/master/unit-of-measure.service';
 import { ExportService } from '../../../core/services/export.service';
+import { GoodReceiptPrintDialog } from './good-receipt-print-dialog/good-receipt-print-dialog';
 
 @Component({
   selector: 'app-good-receipts',
@@ -51,7 +52,8 @@ import { ExportService } from '../../../core/services/export.service';
     ToggleSwitchModule,
     ButtonModule,
     SelectModule,
-    DatePickerModule
+    DatePickerModule,
+    GoodReceiptPrintDialog
   ],
   providers: [ConfirmationService, MessageService, DatePipe, ExportService],
   templateUrl: './good-receipts.html',
@@ -66,10 +68,12 @@ export class GoodReceiptsComponent implements OnInit {
   isEdit: boolean = false;
   modalVisible: boolean = false;
   detailModalVisible: boolean = false;
+  printModalVisible: boolean = false;
 
   goodReceipts: GoodReceiptModel[] = [];
   selectedGoodReceipt: GoodReceiptModel | null = null;
   detailReceipt: GoodReceiptModel | null = null;
+  printReceiptData: GoodReceiptModel | null = null;
 
   // Server-side Pagination & Filter state
   totalRecords: number = 0;
@@ -369,6 +373,33 @@ export class GoodReceiptsComponent implements OnInit {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  printReceipt(receipt?: GoodReceiptModel): void {
+    const gr = receipt ?? this.detailReceipt ?? this.selectedGoodReceipt;
+    if (!gr) {
+      this.messageService.add({
+        key: 'globalMessage',
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'Please select a goods receipt to print.'
+      });
+      return;
+    }
+
+    if (gr.items && gr.items.length > 0) {
+      this.printReceiptData = gr;
+      this.printModalVisible = true;
+      this.cdr.markForCheck();
+    } else if (gr.id) {
+      this.goodReceiptsService.getById(gr.id).subscribe({
+        next: (res) => {
+          this.printReceiptData = res.data as GoodReceiptModel;
+          this.printModalVisible = true;
+          this.cdr.markForCheck();
+        }
+      });
+    }
   }
 
   onSubmit(): void {
