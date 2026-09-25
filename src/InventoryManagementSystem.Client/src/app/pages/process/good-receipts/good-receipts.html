@@ -51,8 +51,7 @@
                 <th pSortableColumn="warehouseName">Warehouse <p-sortIcon field="warehouseName"></p-sortIcon></th>
                 <th pSortableColumn="receiptDate">Receipt Date <p-sortIcon field="receiptDate"></p-sortIcon></th>
                 <th pSortableColumn="receivedBy">Received By <p-sortIcon field="receivedBy"></p-sortIcon></th>
-                <th>Total Items</th>
-                <th [style]="{ width: '100px' }">Actions</th>
+                <th [style]="{ width: '130px' }">Actions</th>
                 <th pSortableColumn="status">Status <p-sortIcon field="status"></p-sortIcon></th>
                 <th pSortableColumn="createdOn">Created On <p-sortIcon field="createdOn"></p-sortIcon></th>
                 <th pSortableColumn="createdBy">Created By <p-sortIcon field="createdBy"></p-sortIcon></th>
@@ -73,8 +72,12 @@
                 <td>{{ gr.receivedBy }}</td>
                 <td class="text-center">{{ gr.totalItems || gr.items?.length || 0 }}</td>
                 <td>
-                    <p-button label="Detail" icon="pi pi-eye" size="small" [text]="true" severity="info"
-                        (onClick)="viewDetails(gr); $event.stopPropagation()"></p-button>
+                    <div class="flex items-center gap-1">
+                        <p-button label="Detail" icon="pi pi-eye" size="small" [text]="true" severity="info"
+                            (onClick)="viewDetails(gr); $event.stopPropagation()"></p-button>
+                        <p-button label="Print" icon="pi pi-print" size="small" [text]="true" severity="secondary"
+                            (onClick)="printReceipt(gr); $event.stopPropagation()"></p-button>
+                    </div>
                 </td>
                 <td>
                     <p-tag [value]="gr.status ? 'Received' : 'Draft'" size="small"
@@ -270,6 +273,11 @@
         [style]="{ 'width': '55vw' }" [draggable]="false" [resizable]="false">
         @if (detailReceipt) {
         <div class="space-y-4 text-xs">
+            <div class="flex justify-end gap-2">
+                <p-button icon="pi pi-print" label="Print Voucher" size="small" severity="secondary" [outlined]="true"
+                    (onClick)="printReceipt(detailReceipt)"></p-button>
+            </div>
+
             <div class="grid grid-cols-2 gap-3  bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-lg border border-slate-200 dark:border-slate-700/80 text-slate-800 dark:text-slate-200">
                 <div><span class="text-slate-500 dark:text-slate-400 block font-medium">Receipt No:</span> <strong class="ml-1 text-blue-600">{{ detailReceipt.receiptNo }}</strong></div>
                 <div><span class="text-slate-500 dark:text-slate-400 block font-medium">PO Number:</span> <strong class="ml-1">{{ detailReceipt.purchaseOrderNo }}</strong></div>
@@ -310,4 +318,7 @@
         </div>
         }
     </p-dialog>
+
+    <app-good-receipt-print-dialog [(visible)]="printModalVisible" [receipt]="printReceiptData">
+    </app-good-receipt-print-dialog>
 </div>
