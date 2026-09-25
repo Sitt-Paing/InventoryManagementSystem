@@ -1,3 +1,17 @@
+export enum PurchaseOrderStatus {
+  Pending = 0,
+  PartiallyReceived = 1,
+  Completed = 2,
+  Cancelled = 3
+}
+
+export const PURCHASE_ORDER_STATUS_OPTIONS = [
+  { label: 'Pending', value: PurchaseOrderStatus.Pending },
+  { label: 'Partially Received', value: PurchaseOrderStatus.PartiallyReceived },
+  { label: 'Completed', value: PurchaseOrderStatus.Completed },
+  { label: 'Cancelled', value: PurchaseOrderStatus.Cancelled }
+];
+
 export interface PurchaseOrderItemModel {
   id?: number;
   purchaseOrderId?: string;
@@ -26,7 +40,7 @@ export interface PurchaseOrderModel {
   warehouseName?: string;
   orderDate: Date | string;
   expectedDate: Date | string;
-  status: boolean;
+  status: PurchaseOrderStatus;
   totalAmount?: number;
   totalItems?: number;
   items: PurchaseOrderItemModel[];
@@ -41,7 +55,7 @@ export interface PurchaseOrderFilterModel {
   orderDate?: string | null;
   supplierId?: number | null;
   warehouseId?: number | null;
-  status?: boolean | null;
+  status?: PurchaseOrderStatus | null;
   sortField?: string | null;
   order?: number | null;
   pageNumber?: number;
