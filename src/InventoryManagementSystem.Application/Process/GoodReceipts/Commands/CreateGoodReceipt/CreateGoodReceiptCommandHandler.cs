@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Application.Process.GoodReceipts.DTOs;
 using InventoryManagementSystem.Domain.Entities;
+using InventoryManagementSystem.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -97,10 +98,18 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
             stock.Quantity += item.ReceivedQuantity;
         }
 
-        // If all items in PO are fully received, mark PO as completed
+        // Update PO Status based on received quantities
         if (purchaseOrder.Items.All(i => i.ReceivedQuantity >= i.Quantity))
         {
-            purchaseOrder.Status = true;
+            purchaseOrder.Status = PurchaseOrderStatus.Completed;
+        }
+        else if (purchaseOrder.Items.Any(i => i.ReceivedQuantity > 0))
+        {
+            purchaseOrder.Status = PurchaseOrderStatus.PartiallyReceived;
+        }
+        else
+        {
+            purchaseOrder.Status = PurchaseOrderStatus.Pending;
         }
 
         _context.GoodReceipts.Add(goodReceipt);
