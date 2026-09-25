@@ -1,0 +1,313 @@
+<p-toast key="globalMessage" position="top-right"></p-toast>
+<p-confirmDialog key="positionDialog" position="bottom" rejectButtonStyleClass="p-button-outlined"></p-confirmDialog>
+
+<div class="table-card p-4 space-y-2">
+    <!-- Top Action Bar -->
+    <div class="flex flex-wrap justify-between items-center gap-2">
+        <div>
+            <p-splitbutton label="Create" icon="pi pi-plus" [model]="items" (onClick)="create()" size="small">
+            </p-splitbutton>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 ml-auto">
+            <!-- Receipt Date Filter -->
+            <p-datepicker
+                [(ngModel)]="filterReceiptDate"
+                (ngModelChange)="onDateChange()"
+                dateFormat="dd/mm/yy"
+                [showIcon]="true"
+                iconDisplay="input"
+                [showClear]="true"
+                [fluid]="true"
+                placeholder="Receipt Date"
+                appendTo="body"
+                class="w-44">
+            </p-datepicker>
+
+            <p-iconfield iconPosition="left" class="xl:ml-auto 2xl:ml-auto">
+                <p-inputicon>
+                    <i class="pi pi-search cursor-pointer text-gray-500 hover:text-gray-800" (click)="onSearch()" title="Search"></i>
+                </p-inputicon>
+                <input pInputText type="text" [(ngModel)]="searchKeyword" (keydown.enter)="onSearch()"
+                    placeholder="Search keyword (Press Enter)" pSize="small" [style]="{ width: '240px' }" />
+            </p-iconfield>
+        </div>
+    </div>
+
+    <!-- Goods Receipts Table (API Paging, Search, Sorting) -->
+    <p-table #tblGoodReceipts [value]="goodReceipts" [(selection)]="selectedGoodReceipt" dataKey="id"
+        selectionMode="single" stripedRows="true" [lazy]="true" (onLazyLoad)="onLazyLoad($event)"
+        [totalRecords]="totalRecords" [rows]="pageSize" [paginator]="true" paginatorDropdownAppendTo="body"
+        [rowsPerPageOptions]="[10, 20, 50, 100]" [showCurrentPageReport]="true"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [loading]="isLoading"
+        [tableStyle]="{ 'min-width': '65rem', 'white-space': 'nowrap' }">
+
+        <ng-template #header let-gr>
+            <tr style="white-space:nowrap" [pSelectableRow]="gr">
+                <th pFrozenColumn [style]="{ width: '40px' }">#</th>
+                <th pSortableColumn="receiptNo">Receipt No <p-sortIcon field="receiptNo"></p-sortIcon></th>
+                <th pSortableColumn="purchaseOrderNo">PO Number <p-sortIcon field="purchaseOrderNo"></p-sortIcon></th>
+                <th pSortableColumn="supplierName">Supplier <p-sortIcon field="supplierName"></p-sortIcon></th>
+                <th pSortableColumn="warehouseName">Warehouse <p-sortIcon field="warehouseName"></p-sortIcon></th>
+                <th pSortableColumn="receiptDate">Receipt Date <p-sortIcon field="receiptDate"></p-sortIcon></th>
+                <th pSortableColumn="receivedBy">Received By <p-sortIcon field="receivedBy"></p-sortIcon></th>
+                <th>Total Items</th>
+                <th [style]="{ width: '100px' }">Actions</th>
+                <th pSortableColumn="status">Status <p-sortIcon field="status"></p-sortIcon></th>
+                <th pSortableColumn="createdOn">Created On <p-sortIcon field="createdOn"></p-sortIcon></th>
+                <th pSortableColumn="createdBy">Created By <p-sortIcon field="createdBy"></p-sortIcon></th>
+            </tr>
+        </ng-template>
+
+        <ng-template #body let-gr>
+            <tr [pSelectableRow]="gr">
+                <td>
+                    <span class="pi pi-circle" [class.pi-check-circle]="selectedGoodReceipt === gr"></span>
+                </td>
+                <td class="font-medium text-blue-600 cursor-pointer"
+                    (click)="viewDetails(gr); $event.stopPropagation()">{{ gr.receiptNo }}</td>
+                <td>{{ gr.purchaseOrderNo }}</td>
+                <td>{{ gr.supplierName }}</td>
+                <td>{{ gr.warehouseName }}</td>
+                <td>{{ gr.receiptDate | date:'dd/MMM/yyyy' }}</td>
+                <td>{{ gr.receivedBy }}</td>
+                <td class="text-center">{{ gr.totalItems || gr.items?.length || 0 }}</td>
+                <td>
+                    <p-button label="Detail" icon="pi pi-eye" size="small" [text]="true" severity="info"
+                        (onClick)="viewDetails(gr); $event.stopPropagation()"></p-button>
+                </td>
+                <td>
+                    <p-tag [value]="gr.status ? 'Received' : 'Draft'" size="small"
+                        icon="{{ gr.status ? 'pi pi-check' : 'pi pi-minus-circle' }}"
+                        [severity]="gr.status ? 'success' : 'secondary'"></p-tag>
+                </td>
+                <td>{{ gr.createdOn | date:'dd/MMM/yyyy hh:mm a' }}</td>
+                <td>{{ gr.createdBy || '-' }}</td>
+            </tr>
+        </ng-template>
+
+        <ng-template #emptymessage>
+            <tr>
+                <td colspan="12" class="text-center p-4 text-gray-500">
+                    No goods receipts found.
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <!-- Create / Edit Modal Dialog -->
+    <p-dialog [header]="isEdit ? 'Edit Goods Receipt' : 'Create Goods Receipt'" [(visible)]="modalVisible"
+        [breakpoints]="{
+        '1920px': '70vw',
+        '1440px': '75vw',
+        '1024px': '85vw',
+        '768px': '95vw',
+        '425px': '100vw'
+    }" [modal]="true" [style]="{ 'min-width': '65vw' }" [draggable]="false" [resizable]="false"
+        (onHide)="onDialogHide()">
+        <form [formGroup]="goodReceiptForm" (ngSubmit)="onSubmit()">
+            <!-- Master Details Section -->
+            <div class="grid grid-cols-12 gap-3 mb-4">
+                <div class="col-span-12 lg:col-span-4 flex flex-col gap-1">
+                    <label for="receiptNo" class="text-xs font-semibold">Receipt No *</label>
+                    <input type="text" id="receiptNo" formControlName="receiptNo" pInputText
+                        placeholder="GRN Number" required>
+                    @if(goodReceiptForm.controls['receiptNo'].invalid &&
+                    goodReceiptForm.get('receiptNo')?.dirty){
+                    <small class="text-xs text-red-500">Receipt No is required.</small>
+                    }
+                </div>
+
+                <div class="col-span-12 lg:col-span-4 flex flex-col gap-1">
+                    <label class="text-xs font-semibold">Purchase Order *</label>
+                    <p-select formControlName="purchaseOrderId" [options]="purchaseOrders" optionLabel="purchaseOrderNo"
+                        optionValue="id" placeholder="Select Purchase Order" [filter]="true" filterBy="purchaseOrderNo"
+                        (onChange)="onPurchaseOrderSelected($event.value)" appendTo="body" [fluid]="true" class="w-full">
+                    </p-select>
+                    @if(goodReceiptForm.controls['purchaseOrderId'].invalid && goodReceiptForm.get('purchaseOrderId')?.dirty){
+                    <small class="text-xs text-red-500">Purchase Order is required.</small>
+                    }
+                </div>
+
+                <div class="col-span-12 lg:col-span-4 flex flex-col gap-1">
+                    <label class="text-xs font-semibold">Supplier *</label>
+                    <p-select formControlName="supplierId" [options]="suppliers" optionLabel="companyName"
+                        optionValue="id" placeholder="Select Supplier" [filter]="true" filterBy="companyName"
+                        appendTo="body" [fluid]="true" class="w-full">
+                    </p-select>
+                    @if(goodReceiptForm.controls['supplierId'].invalid && goodReceiptForm.get('supplierId')?.dirty){
+                    <small class="text-xs text-red-500">Supplier is required.</small>
+                    }
+                </div>
+
+                <div class="col-span-12 lg:col-span-4 flex flex-col gap-1">
+                    <label class="text-xs font-semibold">Warehouse *</label>
+                    <p-select formControlName="warehouseId" [options]="warehouses" optionLabel="name" optionValue="id"
+                        placeholder="Select Warehouse" [filter]="true" filterBy="name" appendTo="body" [fluid]="true"
+                        class="w-full">
+                    </p-select>
+                    @if(goodReceiptForm.controls['warehouseId'].invalid &&
+                    goodReceiptForm.get('warehouseId')?.dirty){
+                    <small class="text-xs text-red-500">Warehouse is required.</small>
+                    }
+                </div>
+
+                <div class="col-span-12 lg:col-span-4 flex flex-col gap-1">
+                    <label class="text-xs font-semibold">Receipt Date *</label>
+                    <p-datepicker formControlName="receiptDate" dateFormat="dd/mm/yy" [showIcon]="true"
+                        iconDisplay="input" appendTo="body" size="small" [fluid]="true" class="w-full"></p-datepicker>
+                </div>
+
+                <div class="col-span-12 lg:col-span-4 flex flex-col gap-1">
+                    <label for="receivedBy" class="text-xs font-semibold">Received By *</label>
+                    <input type="text" id="receivedBy" formControlName="receivedBy" pInputText
+                        placeholder="Person who received" required>
+                    @if(goodReceiptForm.controls['receivedBy'].invalid &&
+                    goodReceiptForm.get('receivedBy')?.dirty){
+                    <small class="text-xs text-red-500">Received By is required.</small>
+                    }
+                </div>
+
+                <div class="col-span-12 lg:col-span-8 flex flex-col gap-1">
+                    <label for="note" class="text-xs font-semibold">Note</label>
+                    <input type="text" id="note" formControlName="note" pInputText placeholder="Optional note...">
+                </div>
+
+                <div class="col-span-12 lg:col-span-4 flex items-center gap-2 mt-4">
+                    <label for="status" class="text-xs font-semibold">Status (Received)</label>
+                    <p-toggleSwitch id="status" formControlName="status"></p-toggleSwitch>
+                </div>
+            </div>
+
+            <!-- Line Items Detail Section -->
+            <div class="border-t pt-3 space-y-2">
+                <div class="flex justify-between items-center">
+                    <span class="font-semibold text-sm">Received Items</span>
+                    @if(!isEdit) {
+                    <p-button type="button" icon="pi pi-plus" label="Add Item" size="small" severity="secondary"
+                        (onClick)="addItem()"></p-button>
+                    }
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-left border border-gray-200 rounded">
+                        <thead class="bg-gray-50 text-gray-700 uppercase">
+                            <tr>
+                                <th class="p-2" style="width: 45%">Product *</th>
+                                <th class="p-2" style="width: 25%">UOM *</th>
+                                <th class="p-2" style="width: 25%">Received Quantity *</th>
+                                @if(!isEdit) {
+                                <th class="p-2 text-center" style="width: 5%"></th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (item of formItems; track $index) {
+                            <tr class="border-b">
+                                <td class="p-1">
+                                    @if(isEdit) {
+                                    <span class="font-medium">{{ item.productName }} ({{ item.productSku || '-' }})</span>
+                                    } @else {
+                                    <p-select [(ngModel)]="item.productId" [ngModelOptions]="{standalone: true}"
+                                        [options]="products" optionLabel="name" optionValue="id"
+                                        placeholder="Select Product" [filter]="true" filterBy="name,sku"
+                                        (onChange)="onProductSelected(item)" appendTo="body" class="w-full text-xs">
+                                    </p-select>
+                                    }
+                                </td>
+                                <td class="p-1">
+                                    @if(isEdit) {
+                                    <span>{{ item.uomName || '-' }}</span>
+                                    } @else {
+                                    <p-select [(ngModel)]="item.uomId" [ngModelOptions]="{standalone: true}"
+                                        [options]="uoms" optionLabel="name" optionValue="id" placeholder="Select UOM"
+                                        appendTo="body" class="w-full text-xs">
+                                    </p-select>
+                                    }
+                                </td>
+                                <td class="p-1">
+                                    @if(isEdit) {
+                                    <span>{{ item.receivedQuantity }}</span>
+                                    } @else {
+                                    <input type="number" [(ngModel)]="item.receivedQuantity"
+                                        [ngModelOptions]="{standalone: true}" min="0.0001" step="any"
+                                        pInputText class="w-full p-1 text-xs" />
+                                    }
+                                </td>
+                                @if(!isEdit) {
+                                <td class="p-1 text-center">
+                                    <button pButton type="button" icon="pi pi-trash"
+                                        class="p-button-text p-button-danger p-button-sm p-0"
+                                        (click)="removeItem($index)"></button>
+                                </td>
+                                }
+                            </tr>
+                            }
+                            @if(formItems.length === 0) {
+                            <tr>
+                                <td colspan="4" class="text-center p-3 text-gray-500">
+                                    Select a Purchase Order above to auto-populate items, or click "Add Item".
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Dialog Actions -->
+            <div class="flex justify-end gap-2 mt-4 pt-3 border-t">
+                <p-button type="button" label="Cancel" severity="secondary" (onClick)="modalVisible = false"
+                    size="small"></p-button>
+                <p-button type="submit" [label]="isEdit ? 'Update' : 'Save'" [loading]="isSubmitting"
+                    size="small"></p-button>
+            </div>
+        </form>
+    </p-dialog>
+
+    <!-- Details View Modal -->
+    <p-dialog header="Goods Receipt Details" [(visible)]="detailModalVisible" [modal]="true"
+        [style]="{ 'width': '55vw' }" [draggable]="false" [resizable]="false">
+        @if (detailReceipt) {
+        <div class="space-y-4 text-xs">
+            <div class="grid grid-cols-2 gap-3 p-3 bg-gray-50 rounded border">
+                <div><span class="text-gray-500">Receipt No:</span> <strong class="ml-1 text-blue-600">{{ detailReceipt.receiptNo }}</strong></div>
+                <div><span class="text-gray-500">PO Number:</span> <strong class="ml-1">{{ detailReceipt.purchaseOrderNo }}</strong></div>
+                <div><span class="text-gray-500">Supplier:</span> <span class="ml-1">{{ detailReceipt.supplierName }}</span></div>
+                <div><span class="text-gray-500">Warehouse:</span> <span class="ml-1">{{ detailReceipt.warehouseName }}</span></div>
+                <div><span class="text-gray-500">Receipt Date:</span> <span class="ml-1">{{ detailReceipt.receiptDate | date:'dd/MMM/yyyy' }}</span></div>
+                <div><span class="text-gray-500">Received By:</span> <span class="ml-1">{{ detailReceipt.receivedBy }}</span></div>
+                <div><span class="text-gray-500">Status:</span>
+                    <p-tag [value]="detailReceipt.status ? 'Received' : 'Draft'" size="small" class="ml-1"
+                        [severity]="detailReceipt.status ? 'success' : 'secondary'"></p-tag>
+                </div>
+                <div><span class="text-gray-500">Note:</span> <span class="ml-1">{{ detailReceipt.note || '-' }}</span></div>
+            </div>
+
+            <div>
+                <h4 class="font-semibold text-sm mb-2">Received Items ({{ detailReceipt.items.length || 0 }})</h4>
+                <table class="w-full text-xs text-left border border-gray-200 rounded">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="p-2">Product</th>
+                            <th class="p-2">SKU</th>
+                            <th class="p-2">UOM</th>
+                            <th class="p-2 text-right">Received Qty</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (item of detailReceipt.items; track item.id) {
+                        <tr class="border-b">
+                            <td class="p-2 font-medium">{{ item.productName }}</td>
+                            <td class="p-2 text-gray-500">{{ item.productSku || '-' }}</td>
+                            <td class="p-2">{{ item.uomName }}</td>
+                            <td class="p-2 text-right font-semibold">{{ item.receivedQuantity | number:'1.2-4' }}</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        }
+    </p-dialog>
+</div>
