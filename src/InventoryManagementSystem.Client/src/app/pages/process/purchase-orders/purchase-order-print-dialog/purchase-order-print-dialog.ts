@@ -2,7 +2,7 @@ import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
-import { PurchaseOrderModel } from '../../../../core/models/process/purchase-order.model';
+import { PurchaseOrderModel, PurchaseOrderStatus } from '../../../../core/models/process/purchase-order.model';
 
 @Component({
   selector: 'app-purchase-order-print-dialog',
@@ -15,6 +15,21 @@ export class PurchaseOrderPrintDialog {
   @Input() visible: boolean = false;
   @Input() order: PurchaseOrderModel | null = null;
   @Output() visibleChange = new EventEmitter<boolean>();
+
+  getStatusLabel(status?: PurchaseOrderStatus): string {
+    switch (status) {
+      case PurchaseOrderStatus.Pending:
+        return 'Pending';
+      case PurchaseOrderStatus.PartiallyReceived:
+        return 'Partially Received';
+      case PurchaseOrderStatus.Completed:
+        return 'Completed';
+      case PurchaseOrderStatus.Cancelled:
+        return 'Cancelled';
+      default:
+        return '-';
+    }
+  }
 
   close(): void {
     this.visible = false;
