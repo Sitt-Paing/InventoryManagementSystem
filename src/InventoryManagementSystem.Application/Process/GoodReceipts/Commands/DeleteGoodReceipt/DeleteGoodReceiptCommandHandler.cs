@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Application.Process.GoodReceipts.DTOs;
+using InventoryManagementSystem.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -62,8 +63,19 @@ public class DeleteGoodReceiptCommandHandler : IRequestHandler<DeleteGoodReceipt
 
         if (purchaseOrder != null)
         {
-            // If PO was marked complete, recalculate status
-            purchaseOrder.Status = purchaseOrder.Items.All(i => i.ReceivedQuantity >= i.Quantity);
+            // Recalculate PO status
+            if (purchaseOrder.Items.All(i => i.ReceivedQuantity >= i.Quantity))
+            {
+                purchaseOrder.Status = PurchaseOrderStatus.Completed;
+            }
+            else if (purchaseOrder.Items.Any(i => i.ReceivedQuantity > 0))
+            {
+                purchaseOrder.Status = PurchaseOrderStatus.PartiallyReceived;
+            }
+            else
+            {
+                purchaseOrder.Status = PurchaseOrderStatus.Pending;
+            }
         }
 
         await _context.SaveChangesAsync(cancellationToken);
