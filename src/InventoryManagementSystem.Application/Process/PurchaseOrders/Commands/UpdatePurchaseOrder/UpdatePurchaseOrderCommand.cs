@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.DTOs;
+using InventoryManagementSystem.Domain.Enums;
 using MediatR;
 
 namespace InventoryManagementSystem.Application.Process.PurchaseOrders.Commands.UpdatePurchaseOrder;
@@ -21,6 +22,6 @@ public record UpdatePurchaseOrderCommand(
     int WarehouseId,
     DateTime OrderDate,
     DateTime ExpectedDate,
-    bool Status,
+    PurchaseOrderStatus Status,
     List<UpdatePurchaseOrderItemInput> Items
 ) : IRequest<PurchaseOrderDto?>;
