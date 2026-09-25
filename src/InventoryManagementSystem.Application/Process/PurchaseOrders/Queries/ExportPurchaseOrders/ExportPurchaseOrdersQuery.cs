@@ -1,5 +1,6 @@
 using System;
 using InventoryManagementSystem.Application.Common.Models;
+using InventoryManagementSystem.Domain.Enums;
 using MediatR;
 
 namespace InventoryManagementSystem.Application.Process.PurchaseOrders.Queries.ExportPurchaseOrders;
@@ -9,7 +10,7 @@ public record ExportPurchaseOrdersQuery(
     DateTime? OrderDate = null,
     int? SupplierId = null,
     int? WarehouseId = null,
-    bool? Status = null,
+    PurchaseOrderStatus? Status = null,
     string Format = "excel",
     string FontName = "Pyidaungsu"
 ) : IRequest<ExportFileDto>;
