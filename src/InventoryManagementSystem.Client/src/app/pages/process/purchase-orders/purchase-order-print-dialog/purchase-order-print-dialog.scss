@@ -12,8 +12,8 @@
     background: #ffffff;
     width: 100%;
     max-width: 800px;
-    min-height: 1050px;
-    padding: 35px 35px 25px 35px;
+    min-height: auto;
+    padding: 35px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     color: #000000;
     font-family: Arial, Helvetica, sans-serif;
@@ -21,18 +21,11 @@
     line-height: 1.4;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     box-sizing: border-box;
 }
 
 .voucher-content {
-    flex: 1 0 auto;
-}
-
-.voucher-footer {
-    margin-top: auto;
-    padding-top: 40px;
-    padding-bottom: 150px; 
+    flex: 1 1 auto;
 }
 
 .header-table {
@@ -118,31 +111,4 @@
     font-size: 8.5pt;
 }
 
-.sig-table {
-    width: 100%;
-    margin-top: 0;
-}
 
-.sig-cell {
-    width: 33.33%;
-    text-align: center;
-    vertical-align: top;
-}
-
-.sig-line {
-    border-top: 1px solid #000000;
-    margin: 0 auto 5px auto;
-    width: 90%;
-}
-
-.sig-cell p {
-    font-weight: bold;
-    font-size: 9pt;
-    margin: 2px 0;
-    color: #000000;
-}
-
-.sig-cell small {
-    font-size: 8pt;
-    color: #000000;
-}
