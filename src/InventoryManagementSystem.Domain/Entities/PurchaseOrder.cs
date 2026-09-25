@@ -1,4 +1,5 @@
-﻿using InventoryManagementSystem.Domain.Common;
+using InventoryManagementSystem.Domain.Common;
+using InventoryManagementSystem.Domain.Enums;
 using System;
 using System.Text.Json.Serialization;
 
@@ -11,7 +12,7 @@ public class PurchaseOrder : BaseAuditableEntity<Guid>
     public int WarehouseId { get; set; }
     public DateTime OrderDate { get; set; }
     public DateTime ExpectedDate { get; set; }
-    public bool Status { get; set; }
+    public PurchaseOrderStatus Status { get; set; } = PurchaseOrderStatus.Pending;
     public decimal TotalAmount { get; set; }
 
     [JsonIgnore]
