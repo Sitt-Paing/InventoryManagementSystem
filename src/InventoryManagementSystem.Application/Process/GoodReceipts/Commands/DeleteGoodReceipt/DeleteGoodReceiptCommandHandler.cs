@@ -64,11 +64,12 @@ public class DeleteGoodReceiptCommandHandler : IRequestHandler<DeleteGoodReceipt
         if (purchaseOrder != null)
         {
             // Recalculate PO status
-            if (purchaseOrder.Items.All(i => i.ReceivedQuantity >= i.Quantity))
+            var activePoItems = purchaseOrder.Items.Where(i => !i.DeletedOn.HasValue).ToList();
+            if (activePoItems.Count > 0 && activePoItems.All(i => i.ReceivedQuantity >= i.Quantity))
             {
                 purchaseOrder.Status = PurchaseOrderStatus.Completed;
             }
-            else if (purchaseOrder.Items.Any(i => i.ReceivedQuantity > 0))
+            else if (activePoItems.Any(i => i.ReceivedQuantity > 0))
             {
                 purchaseOrder.Status = PurchaseOrderStatus.PartiallyReceived;
             }
