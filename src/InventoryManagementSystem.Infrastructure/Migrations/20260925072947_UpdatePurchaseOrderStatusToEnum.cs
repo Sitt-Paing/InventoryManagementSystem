@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -17,6 +17,18 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                 nullable: false,
                 oldClrType: typeof(bool),
                 oldType: "bit");
+
+            migrationBuilder.Sql(@"
+                UPDATE po
+                SET po.Status = CASE 
+                    WHEN NOT EXISTS (SELECT 1 FROM PurchaseOrderItems poi WHERE poi.PurchaseOrderId = po.Id AND poi.DeletedOn IS NULL AND poi.ReceivedQuantity < poi.Quantity)
+                         AND EXISTS (SELECT 1 FROM PurchaseOrderItems poi WHERE poi.PurchaseOrderId = po.Id AND poi.DeletedOn IS NULL)
+                    THEN 2
+                    WHEN EXISTS (SELECT 1 FROM PurchaseOrderItems poi WHERE poi.PurchaseOrderId = po.Id AND poi.DeletedOn IS NULL AND poi.ReceivedQuantity > 0)
+                    THEN 1
+                    ELSE 0
+                END
+                FROM PurchaseOrders po;");
         }
 
         /// <inheritdoc />
