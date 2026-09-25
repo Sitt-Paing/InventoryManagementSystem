@@ -8,6 +8,7 @@ using InventoryManagementSystem.Application.Process.PurchaseOrders.DTOs;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.Queries.ExportPurchaseOrders;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.Queries.GetPurchaseOrderById;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.Queries.GetPurchaseOrders;
+using InventoryManagementSystem.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -26,7 +27,7 @@ public class PurchaseOrdersController : ApiControllerBase
         [FromQuery] DateTime? orderDate,
         [FromQuery] int? supplierId,
         [FromQuery] int? warehouseId,
-        [FromQuery] bool? status,
+        [FromQuery] PurchaseOrderStatus? status,
         [FromQuery] string? sortField,
         [FromQuery] int order = -1,
         [FromQuery] int pageNumber = 1,
@@ -159,7 +160,7 @@ public class PurchaseOrdersController : ApiControllerBase
         [FromQuery] DateTime? orderDate,
         [FromQuery] int? supplierId,
         [FromQuery] int? warehouseId,
-        [FromQuery] bool? status,
+        [FromQuery] PurchaseOrderStatus? status,
         [FromQuery] string format = "excel",
         [FromQuery] string fontName = "Pyidaungsu")
     {
