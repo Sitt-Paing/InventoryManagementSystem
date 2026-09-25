@@ -17,6 +17,7 @@ export const EN_DICTIONARY: Record<string, any> = {
     PROCESS: 'Process',
     STOCK_TRANSACTIONS: 'Stock Transactions',
     PURCHASE_ORDERS: 'Purchase Orders',
+    GOOD_RECEIPTS: 'Goods Receipts',
     SETTINGS: 'Settings',
     USER_MANAGEMENT: 'User Management'
   },
