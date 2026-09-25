@@ -335,6 +335,7 @@ public partial class InventoryManagementDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.PurchaseOrderNo).HasMaxLength(50).IsRequired();
             entity.Property(e => e.TotalAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.Status).HasConversion<int>();
             entity.HasOne(d => d.Supplier)
              .WithMany()
              .HasForeignKey(d => d.SupplierId)
