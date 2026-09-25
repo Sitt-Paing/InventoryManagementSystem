@@ -84,19 +84,10 @@ export class PurchaseOrderPrintDialog {
             line-height: 1.4;
           }
           .voucher-paper {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: calc(100vh - 24mm);
             box-sizing: border-box;
           }
           .voucher-content {
-            flex: 1 0 auto;
-          }
-          .voucher-footer {
-            margin-top: auto;
-            padding-top: 35px;
-            padding-bottom: 15mm;
+            width: 100%;
           }
           .header-table {
             width: 100%;
@@ -167,30 +158,7 @@ export class PurchaseOrderPrintDialog {
           .total-row td {
             font-weight: bold;
           }
-          .sig-table {
-            width: 100%;
-            margin-top: 0;
-            border-collapse: separate;
-            border-spacing: 20px 0;
-          }
-          .sig-cell {
-            width: 33.33%;
-            text-align: center;
-            vertical-align: top;
-          }
-          .sig-line {
-            border-top: 1px solid #000000;
-            margin: 0 auto 5px auto;
-            width: 90%;
-          }
-          .sig-cell p {
-            font-weight: bold;
-            font-size: 9pt;
-            margin: 2px 0;
-          }
-          .sig-cell small {
-            font-size: 8pt;
-          }
+
         </style>
       </head>
       <body>
