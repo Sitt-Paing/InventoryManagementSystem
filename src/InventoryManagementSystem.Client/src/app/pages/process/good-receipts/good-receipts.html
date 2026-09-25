@@ -270,14 +270,14 @@
         [style]="{ 'width': '55vw' }" [draggable]="false" [resizable]="false">
         @if (detailReceipt) {
         <div class="space-y-4 text-xs">
-            <div class="grid grid-cols-2 gap-3 p-3 bg-gray-50 rounded border">
-                <div><span class="text-gray-500">Receipt No:</span> <strong class="ml-1 text-blue-600">{{ detailReceipt.receiptNo }}</strong></div>
-                <div><span class="text-gray-500">PO Number:</span> <strong class="ml-1">{{ detailReceipt.purchaseOrderNo }}</strong></div>
-                <div><span class="text-gray-500">Supplier:</span> <span class="ml-1">{{ detailReceipt.supplierName }}</span></div>
-                <div><span class="text-gray-500">Warehouse:</span> <span class="ml-1">{{ detailReceipt.warehouseName }}</span></div>
-                <div><span class="text-gray-500">Receipt Date:</span> <span class="ml-1">{{ detailReceipt.receiptDate | date:'dd/MMM/yyyy' }}</span></div>
-                <div><span class="text-gray-500">Received By:</span> <span class="ml-1">{{ detailReceipt.receivedBy }}</span></div>
-                <div><span class="text-gray-500">Status:</span>
+            <div class="grid grid-cols-2 gap-3  bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-lg border border-slate-200 dark:border-slate-700/80 text-slate-800 dark:text-slate-200">
+                <div><span class="text-slate-500 dark:text-slate-400 block font-medium">Receipt No:</span> <strong class="ml-1 text-blue-600">{{ detailReceipt.receiptNo }}</strong></div>
+                <div><span class="text-slate-500 dark:text-slate-400 block font-medium">PO Number:</span> <strong class="ml-1">{{ detailReceipt.purchaseOrderNo }}</strong></div>
+                <div><span class="text-slate-500 dark:text-slate-400 block font-medium">Supplier:</span> <span class="ml-1">{{ detailReceipt.supplierName }}</span></div>
+                <div><span class="text-slate-500 dark:text-slate-400 block font-medium">Warehouse:</span> <span class="ml-1">{{ detailReceipt.warehouseName }}</span></div>
+                <div><span class="text-slate-500 dark:text-slate-400 block font-medium">Receipt Date:</span> <span class="ml-1">{{ detailReceipt.receiptDate | date:'dd/MMM/yyyy' }}</span></div>
+                <div><span class="text-slate-500 dark:text-slate-400 block font-medium">Received By:</span> <span class="ml-1">{{ detailReceipt.receivedBy }}</span></div>
+                <div><span class="text-slate-500 dark:text-slate-400 block font-medium">Status:</span>
                     <p-tag [value]="detailReceipt.status ? 'Received' : 'Draft'" size="small" class="ml-1"
                         [severity]="detailReceipt.status ? 'success' : 'secondary'"></p-tag>
                 </div>
@@ -287,7 +287,7 @@
             <div>
                 <h4 class="font-semibold text-sm mb-2">Received Items ({{ detailReceipt.items.length || 0 }})</h4>
                 <table class="w-full text-xs text-left border border-gray-200 rounded">
-                    <thead class="bg-gray-50 text-gray-700">
+                    <thead class="bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-gray-50">
                         <tr>
                             <th class="p-2">Product</th>
                             <th class="p-2">SKU</th>
