@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using InventoryManagementSystem.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -47,6 +47,10 @@ public partial class InventoryManagementDbContext : DbContext
     public virtual DbSet<PurchaseOrder> PurchaseOrders { get; set; }
 
     public virtual DbSet<PurchaseOrderItem> PurchaseOrderItems { get; set; }
+
+    public virtual DbSet<GoodReceipt> GoodReceipts { get; set; }
+
+    public virtual DbSet<GoodReceiptItem> GoodReceiptItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -366,6 +370,106 @@ public partial class InventoryManagementDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(d => d.UomId)
                   .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<GoodReceipt>(entity => 
+        {
+            entity.ToTable("GoodReceipts");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ReceiptNo).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.ReceiptDate).HasColumnType("datetime");
+            entity.Property(e => e.ReceivedBy).HasMaxLength(100);
+            entity.Property(e => e.Note).HasMaxLength(500);
+
+            entity.Property(e => e.CreatedBy).HasMaxLength(50);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedBy).HasMaxLength(50);
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+            entity.Property(e => e.DeletedBy).HasMaxLength(50);
+            entity.Property(e => e.DeletedOn).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Supplier)
+                  .WithMany()
+                  .HasForeignKey(d => d.SupplierId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.Warehouse)
+                  .WithMany()
+                  .HasForeignKey(d => d.WarehouseId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.PurchaseOrder)
+                  .WithMany()
+                  .HasForeignKey(d => d.PurchaseOrderId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(d => d.Items)
+                  .WithOne(p => p.GoodReceipt)
+                  .HasForeignKey(p => p.GoodReceiptId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<GoodReceiptItem>(entity =>
+        {
+            entity.ToTable("GoodReceiptItems");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ReceivedQuantity).HasColumnType("decimal(18, 4)");
+
+            entity.Property(e => e.CreatedBy).HasMaxLength(50);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedBy).HasMaxLength(50);
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+            entity.Property(e => e.DeletedBy).HasMaxLength(50);
+            entity.Property(e => e.DeletedOn).HasColumnType("datetime");
+
+            entity.HasOne(d => d.GoodReceipt)
+                  .WithMany(p => p.Items)
+                  .HasForeignKey(d => d.GoodReceiptId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.PurchaseOrderItem)
+                  .WithMany()
+                  .HasForeignKey(d => d.PurchaseOrderItemId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.Product)
+                  .WithMany()
+                  .HasForeignKey(d => d.ProductId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.Uom)
+                  .WithMany()
+                  .HasForeignKey(d => d.UomId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<WarehouseStocks>(entity =>
+        {
+            entity.ToTable("WarehouseStocks");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Quantity).HasColumnType("decimal(18, 4)");
+
+            entity.Property(e => e.CreatedBy).HasMaxLength(256);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedBy).HasMaxLength(256);
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+            entity.Property(e => e.DeletedBy).HasMaxLength(256);
+            entity.Property(e => e.DeletedOn).HasColumnType("datetime");
+
+            entity.HasIndex(e => new { e.ProductId, e.WarehouseId }, "UQ_WarehouseStocks_Product_Warehouse")
+                  .IsUnique();
+
+            entity.HasOne(d => d.Product)
+                  .WithMany()
+                  .HasForeignKey(d => d.ProductId)
+                  .OnDelete(DeleteBehavior.ClientSetNull)
+                  .HasConstraintName("FK_WarehouseStocks_Products");
+
+            entity.HasOne(d => d.Warehouse)
+                  .WithMany()
+                  .HasForeignKey(d => d.WarehouseId)
+                  .OnDelete(DeleteBehavior.ClientSetNull)
+                  .HasConstraintName("FK_WarehouseStocks_Warehouses");
         });
 
         OnModelCreatingPartial(modelBuilder);
