@@ -180,16 +180,16 @@
             </div>
 
             <!-- Line Items Detail Section -->
-            <div class="border-t pt-3 space-y-2">
+            <div class="border-t border-slate-200 dark:border-slate-700 pt-3 space-y-2">
                 <div class="flex justify-between items-center">
-                    <span class="font-semibold text-sm">Purchase Order Items</span>
+                    <span class="font-semibold text-sm text-slate-800 dark:text-slate-200">Purchase Order Items</span>
                     <p-button type="button" icon="pi pi-plus" label="Add Item" size="small" severity="secondary"
                         (onClick)="addItem()"></p-button>
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-xs text-left border border-gray-200 rounded">
-                        <thead class="bg-gray-50 text-gray-700 uppercase">
+                    <table class="w-full text-xs text-left border border-slate-200 dark:border-slate-700/80 rounded-lg overflow-hidden">
+                        <thead class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 uppercase font-semibold">
                             <tr>
                                 <th class="p-2" style="width: 35%">Product *</th>
                                 <th class="p-2" style="width: 20%">UOM *</th>
@@ -199,9 +199,9 @@
                                 <th class="p-2 text-center" style="width: 5%"></th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-slate-200 dark:divide-slate-700/80">
                             @for (item of formItems; track $index) {
-                            <tr class="border-b">
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 text-slate-800 dark:text-slate-200">
                                 <td class="p-1">
                                     <p-select [(ngModel)]="item.productId" [ngModelOptions]="{standalone: true}"
                                         [options]="products" optionLabel="name" optionValue="id"
@@ -240,14 +240,14 @@
                 </div>
 
                 <div class="flex justify-end items-center gap-2 pt-2 pr-2">
-                    <span class="text-sm font-semibold text-gray-700">Total Amount:</span>
-                    <span class="text-base font-bold text-green-700">{{ formTotalAmount |
+                    <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Total Amount:</span>
+                    <span class="text-base font-bold text-emerald-600 dark:text-emerald-400">{{ formTotalAmount |
                         currency:'USD':'symbol':'1.2-2' }}</span>
                 </div>
             </div>
 
             <!-- Dialog Footer Buttons -->
-            <div class="col-span-12 mt-4 flex justify-end gap-2 border-t pt-3">
+            <div class="col-span-12 mt-4 flex justify-end gap-2 border-t border-slate-200 dark:border-slate-700 pt-3">
                 <p-button icon="pi pi-times" label="Cancel" severity="secondary" type="button"
                     (onClick)="onDialogHide()"></p-button>
                 <p-button icon="pi pi-check" label="{{ isEdit ? 'Update' : 'Save' }}" type="submit"
@@ -267,70 +267,76 @@
                     (onClick)="printOrder(detailOrder)"></p-button>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-gray-50 p-3 rounded border">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-lg border border-slate-200 dark:border-slate-700/80 text-slate-800 dark:text-slate-200">
                 <div>
-                    <span class="text-gray-500 block">PO Number</span>
-                    <span class="font-bold text-sm text-blue-600">{{ detailOrder.purchaseOrderNo }}</span>
+                    <span class="text-slate-500 dark:text-slate-400 block font-medium">PO Number</span>
+                    <span class="font-bold text-sm text-blue-600 dark:text-blue-400">{{ detailOrder.purchaseOrderNo }}</span>
                 </div>
                 <div>
-                    <span class="text-gray-500 block">Supplier</span>
-                    <span class="font-semibold">{{ detailOrder.supplierName }}</span>
+                    <span class="text-slate-500 dark:text-slate-400 block font-medium">Supplier</span>
+                    <span class="font-semibold text-slate-900 dark:text-slate-100">{{ detailOrder.supplierName }}</span>
                 </div>
                 <div>
-                    <span class="text-gray-500 block">Warehouse</span>
-                    <span class="font-semibold">{{ detailOrder.warehouseName }}</span>
+                    <span class="text-slate-500 dark:text-slate-400 block font-medium">Warehouse</span>
+                    <span class="font-semibold text-slate-900 dark:text-slate-100">{{ detailOrder.warehouseName }}</span>
                 </div>
                 <div>
-                    <span class="text-gray-500 block">Status</span>
+                    <span class="text-slate-500 dark:text-slate-400 block font-medium">Status</span>
                     <p-tag [value]="getStatusLabel(detailOrder.status)" size="small"
                         [icon]="getStatusIcon(detailOrder.status)"
                         [severity]="getStatusSeverity(detailOrder.status)"></p-tag>
                 </div>
                 <div>
-                    <span class="text-gray-500 block">Order Date</span>
-                    <span>{{ detailOrder.orderDate | date:'dd/MMM/yyyy' }}</span>
+                    <span class="text-slate-500 dark:text-slate-400 block font-medium">Order Date</span>
+                    <span class="text-slate-800 dark:text-slate-200">{{ detailOrder.orderDate | date:'dd/MMM/yyyy' }}</span>
                 </div>
                 <div>
-                    <span class="text-gray-500 block">Expected Date</span>
-                    <span>{{ detailOrder.expectedDate | date:'dd/MMM/yyyy' }}</span>
+                    <span class="text-slate-500 dark:text-slate-400 block font-medium">Expected Date</span>
+                    <span class="text-slate-800 dark:text-slate-200">{{ detailOrder.expectedDate | date:'dd/MMM/yyyy' }}</span>
                 </div>
                 <div>
-                    <span class="text-gray-500 block">Total Amount</span>
-                    <span class="font-bold text-sm text-green-700">{{ detailOrder.totalAmount |
+                    <span class="text-slate-500 dark:text-slate-400 block font-medium">Total Amount</span>
+                    <span class="font-bold text-sm text-emerald-600 dark:text-emerald-400">{{ detailOrder.totalAmount |
                         currency:'USD':'symbol':'1.2-2' }}</span>
                 </div>
                 <div>
-                    <span class="text-gray-500 block">Created By</span>
-                    <span>{{ detailOrder.createdBy || '-' }}</span>
+                    <span class="text-slate-500 dark:text-slate-400 block font-medium">Created By</span>
+                    <span class="text-slate-800 dark:text-slate-200">{{ detailOrder.createdBy || '-' }}</span>
                 </div>
             </div>
 
             <div>
-                <table class="w-full text-xs text-left border border-gray-200 rounded">
-                    <thead class="bg-gray-100 uppercase">
+                <table class="w-full text-xs text-left border border-slate-200 dark:border-slate-700/80 rounded-lg overflow-hidden">
+                    <thead class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 uppercase font-semibold">
                         <tr>
-                            <th class="p-2">#</th>
-                            <th class="p-2">Product</th>
-                            <th class="p-2">SKU</th>
-                            <th class="p-2">UOM</th>
-                            <th class="p-2 text-right">Qty</th>
-                            <th class="p-2 text-right">Unit Price</th>
-                            <th class="p-2 text-right">Subtotal</th>
-                            <th class="p-2 text-right">Received Qty</th>
+                            <th class="p-2.5">#</th>
+                            <th class="p-2.5">Product</th>
+                            <th class="p-2.5">SKU</th>
+                            <th class="p-2.5">UOM</th>
+                            <th class="p-2.5 text-right">Qty</th>
+                            <th class="p-2.5 text-right">Unit Price</th>
+                            <th class="p-2.5 text-right">Subtotal</th>
+                            <th class="p-2.5 text-right">Received Qty</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-slate-200 dark:divide-slate-700/80">
                         @for (item of detailOrder.items; track $index) {
-                        <tr class="border-b">
-                            <td class="p-2">{{ $index + 1 }}</td>
-                            <td class="p-2 font-medium">{{ item.productName }}</td>
-                            <td class="p-2 text-gray-500">{{ item.productSku || '-' }}</td>
-                            <td class="p-2">{{ item.uomName }}</td>
-                            <td class="p-2 text-right">{{ item.quantity }}</td>
-                            <td class="p-2 text-right">{{ item.unitPrice | currency:'USD':'symbol':'1.2-2' }}</td>
-                            <td class="p-2 text-right font-semibold">{{ (item.quantity * item.unitPrice) |
+                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 text-slate-800 dark:text-slate-200">
+                            <td class="p-2.5">{{ $index + 1 }}</td>
+                            <td class="p-2.5 font-medium text-slate-900 dark:text-slate-100">{{ item.productName }}</td>
+                            <td class="p-2.5 text-slate-500 dark:text-slate-400 font-mono">{{ item.productSku || '-' }}</td>
+                            <td class="p-2.5">{{ item.uomName }}</td>
+                            <td class="p-2.5 text-right font-semibold">{{ item.quantity }}</td>
+                            <td class="p-2.5 text-right">{{ item.unitPrice | currency:'USD':'symbol':'1.2-2' }}</td>
+                            <td class="p-2.5 text-right font-semibold">{{ (item.quantity * item.unitPrice) |
                                 currency:'USD':'symbol':'1.2-2' }}</td>
-                            <td class="p-2 text-right">{{ item.receivedQuantity || 0 }}</td>
+                            <td class="p-2.5 text-right font-semibold"
+                                [class.text-emerald-600]="(item.receivedQuantity ?? 0) >= item.quantity"
+                                [class.dark:text-emerald-400]="(item.receivedQuantity ?? 0) >= item.quantity"
+                                [class.text-amber-600]="(item.receivedQuantity ?? 0) > 0 && (item.receivedQuantity ?? 0) < item.quantity"
+                                [class.dark:text-amber-400]="(item.receivedQuantity ?? 0) > 0 && (item.receivedQuantity ?? 0) < item.quantity">
+                                {{ item.receivedQuantity || 0 }}
+                            </td>
                         </tr>
                         }
                     </tbody>
