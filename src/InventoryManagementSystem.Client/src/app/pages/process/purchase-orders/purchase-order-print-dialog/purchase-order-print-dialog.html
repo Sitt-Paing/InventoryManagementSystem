@@ -41,7 +41,7 @@
                             <div class="info-box-title">DELIVER TO / WAREHOUSE</div>
                             <p><strong>{{ order.warehouseName || '-' }}</strong></p>
                             <p>Expected Delivery: {{ order.expectedDate | date:'dd-MMM-yyyy' }}</p>
-                            <p>Status: {{ order.status ? 'Active' : 'Closed' }}</p>
+                            <p>Status: {{ getStatusLabel(order.status) }}</p>
                         </td>
                     </tr>
                 </table>
