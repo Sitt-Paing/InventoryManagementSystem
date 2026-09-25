@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Application.Common.Models;
+using InventoryManagementSystem.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -71,7 +72,9 @@ public class ExportPurchaseOrdersQueryHandler : IRequestHandler<ExportPurchaseOr
                 WarehouseName = po.Warehouse != null ? po.Warehouse.Name : "-",
                 OrderDate = po.OrderDate.ToString("yyyy-MM-dd"),
                 ExpectedDate = po.ExpectedDate.ToString("yyyy-MM-dd"),
-                Status = po.Status ? "Active" : "Closed",
+                Status = po.Status == PurchaseOrderStatus.Completed ? "Completed" :
+                         po.Status == PurchaseOrderStatus.PartiallyReceived ? "Partially Received" :
+                         po.Status == PurchaseOrderStatus.Cancelled ? "Cancelled" : "Pending",
                 TotalItems = po.Items.Count(i => !i.DeletedOn.HasValue),
                 TotalAmount = po.TotalAmount,
                 CreatedOn = po.CreatedOn.HasValue ? po.CreatedOn.Value.ToString("yyyy-MM-dd HH:mm") : "-",
