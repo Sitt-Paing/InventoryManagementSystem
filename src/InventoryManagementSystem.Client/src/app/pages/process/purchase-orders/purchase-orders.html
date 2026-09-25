@@ -24,6 +24,20 @@
                 class="w-44">
             </p-datepicker>
 
+            <!-- Status Filter -->
+            <p-select
+                [(ngModel)]="filterStatus"
+                (onChange)="onStatusChange()"
+                [options]="statusFilterOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="All Status"
+                [showClear]="true"
+                appendTo="body"
+                size="small"
+                class="w-44">
+            </p-select>
+
             <p-iconfield iconPosition="left" class="xl:ml-auto 2xl:ml-auto">
                 <p-inputicon>
                     <i class="pi pi-search cursor-pointer text-gray-500 hover:text-gray-800" (click)="onSearch()" title="Search"></i>
@@ -81,9 +95,9 @@
                     </div>
                 </td>
                 <td>
-                    <p-tag [value]="po.status ? 'Active' : 'Closed'" size="small"
-                        icon="{{ po.status ? 'pi pi-check' : 'pi pi-minus-circle' }}"
-                        [severity]="po.status ? 'success' : 'secondary'"></p-tag>
+                    <p-tag [value]="getStatusLabel(po.status)" size="small"
+                        [icon]="getStatusIcon(po.status)"
+                        [severity]="getStatusSeverity(po.status)"></p-tag>
                 </td>
                 <td>{{ po.createdOn | date:'dd/MMM/yyyy hh:mm a' }}</td>
                 <td>{{ po.createdBy || '-' }}</td>
@@ -157,9 +171,11 @@
                         iconDisplay="input" appendTo="body" size="small" [fluid]="true" class="w-full"></p-datepicker>
                 </div>
 
-                <div class="col-span-12 lg:col-span-4 flex items-center gap-2 mt-4">
-                    <label for="status" class="text-xs font-semibold">Status (Active)</label>
-                    <p-toggleSwitch id="status" formControlName="status"></p-toggleSwitch>
+                <div class="col-span-12 lg:col-span-4 flex flex-col gap-1">
+                    <label for="status" class="text-xs font-semibold">Status *</label>
+                    <p-select id="status" formControlName="status" [options]="statusOptions"
+                        optionLabel="label" optionValue="value" appendTo="body" size="small"
+                        [fluid]="true" class="w-full"></p-select>
                 </div>
             </div>
 
@@ -266,8 +282,9 @@
                 </div>
                 <div>
                     <span class="text-gray-500 block">Status</span>
-                    <p-tag [value]="detailOrder.status ? 'Active' : 'Closed'" size="small"
-                        [severity]="detailOrder.status ? 'success' : 'secondary'"></p-tag>
+                    <p-tag [value]="getStatusLabel(detailOrder.status)" size="small"
+                        [icon]="getStatusIcon(detailOrder.status)"
+                        [severity]="getStatusSeverity(detailOrder.status)"></p-tag>
                 </div>
                 <div>
                     <span class="text-gray-500 block">Order Date</span>
