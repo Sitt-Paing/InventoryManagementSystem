@@ -30,13 +30,20 @@ export const routes: Routes = [
         loadChildren: () => import('./pages/process/process.routes').then(m => m.default),
         canActivate: [authGuard]
       },
+
+      {
+        path: 'user-manage',
+        loadChildren: () => import('./pages/usermanage/management.routes').then(m => m.default),
+        canActivate: [authGuard]
+      },
       // Backward compatibility redirects
       { path: 'products', redirectTo: 'master/products', pathMatch: 'full' },
       { path: 'categories', redirectTo: 'master/categories', pathMatch: 'full' },
       { path: 'suppliers', redirectTo: 'master/suppliers', pathMatch: 'full' },
       { path: 'warehouses', redirectTo: 'master/warehouses', pathMatch: 'full' },
       { path: 'warehouse-locations', redirectTo: 'master/warehouse-locations', pathMatch: 'full' },
-      { path: 'stock-transactions', redirectTo: 'process/stock-transactions', pathMatch: 'full' }
+      { path: 'stock-transactions', redirectTo: 'process/stock-transactions', pathMatch: 'full' },
+      { path: 'companies', redirectTo: 'user-manage/company', pathMatch: 'full' },
     ]
   },
   {
