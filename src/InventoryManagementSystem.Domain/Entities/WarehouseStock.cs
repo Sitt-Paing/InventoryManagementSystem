@@ -1,4 +1,4 @@
-﻿using InventoryManagementSystem.Domain.Common;
+using InventoryManagementSystem.Domain.Common;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -6,8 +6,9 @@ using System.Text.Json.Serialization;
 
 namespace InventoryManagementSystem.Domain.Entities;
 
-public partial class WarehouseStocks : BaseAuditableEntity<long>
+public partial class WarehouseStocks : BaseAuditableEntity<long>, IMustHaveCompany
 {
+    public int? CompanyId { get; set; }
     public Guid ProductId { get; set; }
     public int WarehouseId { get; set; }
     public decimal Quantity { get; set; }
