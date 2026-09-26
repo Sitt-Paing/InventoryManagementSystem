@@ -19,6 +19,7 @@ public interface IApplicationDbContext
     DbSet<PurchaseOrderItem> PurchaseOrderItems { get; }
     DbSet<GoodReceipt> GoodReceipts { get; }
     DbSet<GoodReceiptItem> GoodReceiptItems { get; }
+    DbSet<Company> Companies { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
