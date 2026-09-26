@@ -4,7 +4,7 @@
 <div class="table-card">
   <!-- Top Toolbar: Create Button, Category Filter & Global Search -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 p-4 pb-0">
-    <div>
+    <div class="flex items-center gap-2">
       <p-splitbutton
         label="Create"
         icon="pi pi-plus"
@@ -12,6 +12,15 @@
         (onClick)="create()"
         size="small">
       </p-splitbutton>
+
+      <p-button
+        label="Scan / Locate"
+        icon="pi pi-barcode"
+        severity="secondary"
+        [outlined]="true"
+        (click)="openScanner()"
+        size="small">
+      </p-button>
     </div>
 
     <div class="flex flex-wrap gap-3 ml-auto">
@@ -130,13 +139,23 @@
           </div>
         </td>
         <td>
-          <p-button
-            label="Barcode"
-            icon="pi pi-eye"
-            size="small"
-            variant="text"
-            (click)="viewItemBarcode(prod)">
-          </p-button>
+          <div class="flex items-center gap-1">
+            <p-button
+              label="Barcode"
+              icon="pi pi-eye"
+              size="small"
+              variant="text"
+              (click)="viewItemBarcode(prod)">
+            </p-button>
+            <p-button
+              icon="pi pi-map-marker"
+              size="small"
+              severity="info"
+              variant="text"
+              title="Locate in Warehouse"
+              (click)="locateProduct(prod)">
+            </p-button>
+          </div>
         </td>
         <td>
           <p-button
@@ -210,3 +229,10 @@
   [availableUoms]="availableUoms"
   (printBarcode)="onPackagingPrintBarcode($event)">
 </app-product-packaging-dialog>
+
+<!-- 4. Barcode Scanner & Location Finder Dialog -->
+<app-barcode-scanner-dialog
+  [(visible)]="scannerModalVisible"
+  [initialCode]="scannerInitialCode">
+</app-barcode-scanner-dialog>
+
