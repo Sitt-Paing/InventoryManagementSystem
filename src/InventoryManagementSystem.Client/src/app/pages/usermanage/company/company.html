@@ -1,0 +1,166 @@
+<p-toast key="globalMessage" position="top-right"></p-toast>
+
+<div class="table-card p-4 space-y-4">
+    <!-- Top Action Bar -->
+    <div class="flex flex-wrap justify-between items-center gap-2">
+        <div>
+            <p-button label="Register Company & Admin" icon="pi pi-plus" size="small" severity="primary" (onClick)="openRegisterModal()">
+            </p-button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 ml-auto">
+            <p-iconfield iconPosition="left">
+                <p-inputicon>
+                    <i class="pi pi-search cursor-pointer text-gray-500 hover:text-gray-800" (click)="onSearch()" title="Search"></i>
+                </p-inputicon>
+                <input pInputText type="text" [(ngModel)]="searchKeyword" (keydown.enter)="onSearch()"
+                    placeholder="Search company (Press Enter)" pSize="small" [style]="{ width: '250px' }" />
+            </p-iconfield>
+        </div>
+    </div>
+
+    <!-- Companies Data Table -->
+    <p-table #tblCompanies [value]="filteredCompanies" [(selection)]="selectedCompany" dataKey="id"
+        selectionMode="single" stripedRows="true" [rows]="10" [paginator]="true"
+        [rowsPerPageOptions]="[10, 20, 50]" [showCurrentPageReport]="true"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} companies" [loading]="isLoading"
+        [tableStyle]="{ 'min-width': '65rem', 'white-space': 'nowrap' }">
+
+        <ng-template #header>
+            <tr style="white-space:nowrap">
+                <th [style]="{ width: '40px' }">#</th>
+                <th pSortableColumn="companyName">Company Name <p-sortIcon field="companyName"></p-sortIcon></th>
+                <th pSortableColumn="contactPerson">Contact Person <p-sortIcon field="contactPerson"></p-sortIcon></th>
+                <th pSortableColumn="email">Email <p-sortIcon field="email"></p-sortIcon></th>
+                <th pSortableColumn="phone">Phone <p-sortIcon field="phone"></p-sortIcon></th>
+                <th>Address</th>
+                <th class="text-center">Users</th>
+                <th pSortableColumn="isActive">Status <p-sortIcon field="isActive"></p-sortIcon></th>
+                <th pSortableColumn="createdOn">Registered On <p-sortIcon field="createdOn"></p-sortIcon></th>
+                <th [style]="{ width: '100px' }">Actions</th>
+            </tr>
+        </ng-template>
+
+        <ng-template #body let-company let-rowIndex="rowIndex">
+            <tr [pSelectableRow]="company">
+                <td>{{ rowIndex + 1 }}</td>
+                <td class="font-semibold text-slate-800 dark:text-slate-100">
+                    <i class="pi pi-building text-blue-600 mr-2"></i>{{ company.companyName }}
+                </td>
+                <td>{{ company.contactPerson || '-' }}</td>
+                <td>{{ company.email || '-' }}</td>
+                <td>{{ company.phone || '-' }}</td>
+                <td class="max-w-xs truncate" [title]="company.address">{{ company.address || '-' }}</td>
+                <td class="text-center">
+                    <p-tag [value]="(company.userCount || 0) + ' Users'" severity="info" size="small"></p-tag>
+                </td>
+                <td>
+                    <p-tag [value]="company.isActive ? 'Active' : 'Inactive'"
+                        [severity]="company.isActive ? 'success' : 'secondary'"
+                        [icon]="company.isActive ? 'pi pi-check' : 'pi pi-times'" size="small">
+                    </p-tag>
+                </td>
+                <td>{{ company.createdOn | date:'dd/MMM/yyyy hh:mm a' }}</td>
+                <td>
+                    <p-button [label]="company.isActive ? 'Deactivate' : 'Activate'"
+                        [icon]="company.isActive ? 'pi pi-ban' : 'pi pi-check'"
+                        [severity]="company.isActive ? 'warn' : 'success'"
+                        [text]="true" size="small"
+                        (onClick)="toggleCompanyStatus(company); $event.stopPropagation()">
+                    </p-button>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template #emptymessage>
+            <tr>
+                <td colspan="10" class="text-center p-4 text-gray-500">
+                    No client companies registered yet. Click "Register Company & Admin" to onboard a new company.
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <!-- Register Company & Admin Modal Dialog -->
+    <p-dialog header="Register Client Company & Admin" [(visible)]="modalVisible" [modal]="true"
+        [breakpoints]="{ '960px': '75vw', '640px': '92vw' }" [style]="{ width: '55vw' }" [draggable]="false"
+        [resizable]="false" (onHide)="onDialogHide()">
+        <form [formGroup]="companyForm" (ngSubmit)="onSubmit()" class="space-y-4 text-xs">
+            
+            <!-- Section 1: Company Profile -->
+            <div>
+                <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2 mb-3 flex items-center gap-2">
+                    <i class="pi pi-building text-blue-600"></i> Client Company Information
+                </h3>
+                <div class="grid grid-cols-12 gap-3">
+                    <div class="col-span-12 md:col-span-6 flex flex-col gap-1">
+                        <label for="companyName" class="font-semibold text-xs">Company Name *</label>
+                        <input id="companyName" type="text" formControlName="companyName" pInputText placeholder="e.g. ABC Logistics Co., Ltd." />
+                        @if (companyForm.get('companyName')?.invalid && companyForm.get('companyName')?.touched) {
+                            <small class="text-red-500 text-xs">Company Name is required.</small>
+                        }
+                    </div>
+
+                    <div class="col-span-12 md:col-span-6 flex flex-col gap-1">
+                        <label for="contactPerson" class="font-semibold text-xs">Contact Person</label>
+                        <input id="contactPerson" type="text" formControlName="contactPerson" pInputText placeholder="e.g. U Kyaw Kyaw" />
+                    </div>
+
+                    <div class="col-span-12 md:col-span-6 flex flex-col gap-1">
+                        <label for="companyEmail" class="font-semibold text-xs">Company Email</label>
+                        <input id="companyEmail" type="email" formControlName="companyEmail" pInputText placeholder="info@abclogistics.com" />
+                    </div>
+
+                    <div class="col-span-12 md:col-span-6 flex flex-col gap-1">
+                        <label for="phone" class="font-semibold text-xs">Phone Number</label>
+                        <input id="phone" type="text" formControlName="phone" pInputText placeholder="+95 9 xxxxxxxxx" />
+                    </div>
+
+                    <div class="col-span-12 flex flex-col gap-1">
+                        <label for="address" class="font-semibold text-xs">Company Address</label>
+                        <input id="address" type="text" formControlName="address" pInputText placeholder="Yangon, Myanmar" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Company Admin Account Credentials -->
+            <div class="pt-2">
+                <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2 mb-3 flex items-center gap-2">
+                    <i class="pi pi-user text-emerald-600"></i> Initial Company Admin Account
+                </h3>
+                <div class="grid grid-cols-12 gap-3">
+                    <div class="col-span-12 md:col-span-6 flex flex-col gap-1">
+                        <label for="adminUserName" class="font-semibold text-xs">Admin Username *</label>
+                        <input id="adminUserName" type="text" formControlName="adminUserName" pInputText placeholder="e.g. abc_admin" />
+                        @if (companyForm.get('adminUserName')?.invalid && companyForm.get('adminUserName')?.touched) {
+                            <small class="text-red-500 text-xs">Admin Username is required.</small>
+                        }
+                    </div>
+
+                    <div class="col-span-12 md:col-span-6 flex flex-col gap-1">
+                        <label for="adminEmail" class="font-semibold text-xs">Admin Email (Login) *</label>
+                        <input id="adminEmail" type="email" formControlName="adminEmail" pInputText placeholder="admin@abclogistics.com" />
+                        @if (companyForm.get('adminEmail')?.invalid && companyForm.get('adminEmail')?.touched) {
+                            <small class="text-red-500 text-xs">Valid Admin Email is required.</small>
+                        }
+                    </div>
+
+                    <div class="col-span-12 flex flex-col gap-1">
+                        <label for="adminPassword" class="font-semibold text-xs">Temporary Password *</label>
+                        <p-password id="adminPassword" formControlName="adminPassword" [toggleMask]="true" [fluid]="true"
+                            placeholder="Minimum 6 characters"></p-password>
+                        @if (companyForm.get('adminPassword')?.invalid && companyForm.get('adminPassword')?.touched) {
+                            <small class="text-red-500 text-xs">Password is required (minimum 6 characters).</small>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dialog Actions -->
+            <div class="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-700">
+                <p-button type="button" label="Cancel" severity="secondary" (onClick)="modalVisible = false" size="small"></p-button>
+                <p-button type="submit" label="Register Company & Admin" icon="pi pi-check" severity="success" [loading]="isSubmitting" size="small"></p-button>
+            </div>
+        </form>
+    </p-dialog>
+</div>
