@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementSystem.Application.Common.Interfaces;
@@ -71,6 +72,8 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
                 ReceivedQuantity = item.ReceivedQuantity
             });
 
+            var random = new Random();
+
             _context.StockTransactions.Add(new StockTransaction
             {
                 ProductId = item.ProductId,
@@ -78,6 +81,7 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
                 UserId = effectiveUserId,
                 WarehouseId = request.WarehouseId,
                 WarehouseLocationId = 0,
+                ReferenceNo = random.Next(100000, 1000000),
                 TransactionType = "IN",
                 TransactionDate = request.ReceiptDate,
                 Note = $"Goods Receipt: {receiptNo}"
