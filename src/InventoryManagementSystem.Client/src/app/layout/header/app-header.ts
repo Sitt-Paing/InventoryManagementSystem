@@ -12,6 +12,7 @@ import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { NAVIGATION_MENU, NavigationMenuGroup, NavigationMenuItem } from '../../app.menu';
+import { BarcodeScannerDialog } from '../../shared/components/barcode-scanner-dialog/barcode-scanner-dialog';
 
 export interface BreadcrumbInfo {
   parent: string;
@@ -28,7 +29,8 @@ export interface BreadcrumbInfo {
     FormsModule,
     ButtonModule,
     MenuModule,
-    TranslatePipe
+    TranslatePipe,
+    BarcodeScannerDialog
   ],
   templateUrl: './app-header.html',
   styleUrl: './app-header.scss'
@@ -44,6 +46,19 @@ export class AppHeader implements OnInit, OnDestroy {
   private elementRef = inject(ElementRef);
 
   isLangDropdownOpen = false;
+  isBarcodeScannerOpen = false;
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardShortcut(event: KeyboardEvent): void {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'b') {
+      event.preventDefault();
+      this.isBarcodeScannerOpen = true;
+    }
+  }
+
+  openBarcodeScanner(): void {
+    this.isBarcodeScannerOpen = true;
+  }
 
   constructor(
     public sharedService: SharedService,
