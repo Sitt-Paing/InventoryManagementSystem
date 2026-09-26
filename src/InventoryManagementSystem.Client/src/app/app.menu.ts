@@ -1,4 +1,4 @@
-const ADMIN: string[] = ['admin', 'administrator'];
+const ADMIN: string[] = ['admin', 'administrator', 'superadmin'];
 const ADMIN_COMPANY: string[] = ['admin', 'administrator', 'company'];
 const ADMIN_COMPANY_MANAGER: string[] = ['admin', 'administrator', 'company', 'manager'];
 const SELF_SERVICE: string[] = ['admin', 'administrator', 'company', 'manager', 'employee'];
@@ -125,6 +125,19 @@ export const NAVIGATION_MENU: Readonly<NavigationMenuGroup[]> = [
         transKey: 'NAV.GOOD_RECEIPTS',
         icon: 'pi pi-inbox',
         routerLink: '/process/good-receipts',
+      },
+    ],
+  },
+  {
+    label: 'USER MANAGEMENT',
+    transKey: 'NAV.USER_MANAGEMENT',
+    items: [
+      {
+        label: 'Client Companies',
+        transKey: 'NAV.COMPANIES',
+        icon: 'pi pi-building',
+        routerLink: '/user-manage/company',
+        // data: { roles: ADMIN },
       },
     ],
   },
