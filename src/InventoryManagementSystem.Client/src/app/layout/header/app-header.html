@@ -43,6 +43,17 @@
 
   <!-- Right Section: Global Search, Language, Theme Toggle & User -->
   <div class="flex items-center gap-2 sm:gap-3 ml-auto">
+    <!-- Barcode Scanner Quick Button -->
+    <button
+      type="button"
+      (click)="openBarcodeScanner()"
+      class="h-8 px-2.5 flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/80 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-emerald-500 dark:hover:border-emerald-500 transition-all cursor-pointer"
+      title="Barcode & Location Scanner (Ctrl+B)">
+      <i class="pi pi-barcode text-sm text-emerald-600 dark:text-emerald-400"></i>
+      <span class="hidden sm:inline">Scan</span>
+      <kbd class="hidden md:inline text-[9px] px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-mono text-slate-400">Ctrl+B</kbd>
+    </button>
+
     <!-- Language Selector Pill & Dropdown -->
     <div class="relative">
       <button
@@ -132,3 +143,7 @@
     </button>
   </div>
 </header>
+
+<!-- Global Barcode & Location Scanner Dialog -->
+<app-barcode-scanner-dialog [(visible)]="isBarcodeScannerOpen"></app-barcode-scanner-dialog>
+
