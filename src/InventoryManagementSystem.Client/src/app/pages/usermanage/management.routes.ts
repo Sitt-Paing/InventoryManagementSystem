@@ -10,7 +10,7 @@ export default [
       },
       {
         path: 'company',
-        loadComponent: () => import('../dashboard/dashboard').then(m => m.DashboardComponent)
+        loadComponent: () => import('./company/company').then(m => m.CompanyComponent)
       },
       {
         path: 'employee',
