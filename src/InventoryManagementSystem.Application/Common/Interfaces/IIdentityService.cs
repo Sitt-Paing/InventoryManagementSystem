@@ -11,4 +11,5 @@ public interface IIdentityService
     Task<string?> GeneratePasswordResetTokenAsync(string email);
     Task<ResultDto> ResetPasswordAsync(ResetPasswordRequest request);
     Task<ResultDto> ChangePasswordAsync(string userId, ChangePasswordRequest request);
+    Task<AuthResultDto> RegisterCompanyAdminAsync(string userName, string email, string password, int companyId, string companyName, string role);
 }
