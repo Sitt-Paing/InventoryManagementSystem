@@ -95,6 +95,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
+
                     b.Property<string>("ConcurrencyStamp")
                         .HasColumnType("nvarchar(max)");
 
@@ -141,6 +144,8 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex(new[] { "NormalizedEmail" }, "EmailIndex");
+
+                    b.HasIndex(new[] { "CompanyId" }, "IX_AspNetUsers_CompanyId");
 
                     b.HasIndex(new[] { "NormalizedUserName" }, "UserNameIndex")
                         .IsUnique()
@@ -259,6 +264,69 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.Company", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CompanyName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("ContactPerson")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime?>("CreatedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Company", (string)null);
                 });
 
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.GoodReceipt", b =>
@@ -1143,6 +1211,17 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.AspNetUser", b =>
+                {
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.Company", "Company")
+                        .WithMany("AspNetUsers")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_AspNetUsers_Company");
+
+                    b.Navigation("Company");
+                });
+
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.AspNetUserClaim", b =>
                 {
                     b.HasOne("InventoryManagementSystem.Domain.Entities.AspNetUser", "User")
@@ -1430,6 +1509,11 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.Category", b =>
                 {
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.Company", b =>
+                {
+                    b.Navigation("AspNetUsers");
                 });
 
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.GoodReceipt", b =>
