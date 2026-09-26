@@ -36,6 +36,8 @@ public partial class AspNetUser
 
     public int AccessFailedCount { get; set; }
 
+    public int? CompanyId { get; set; }
+
     [JsonIgnore]
     public virtual ICollection<AspNetUserClaim> AspNetUserClaims { get; set; } = new List<AspNetUserClaim>();
 
@@ -47,4 +49,7 @@ public partial class AspNetUser
 
     [JsonIgnore]
     public virtual ICollection<AspNetRole> Roles { get; set; } = new List<AspNetRole>();
+
+    [JsonIgnore]
+    public virtual Company? Company { get; set; }
 }
