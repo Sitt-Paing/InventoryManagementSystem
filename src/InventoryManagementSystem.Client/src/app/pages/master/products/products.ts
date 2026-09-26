@@ -1,4 +1,4 @@
-﻿import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CategoryModel } from '../../../core/models/master/category.model';
@@ -22,6 +22,7 @@ import { ToastModule } from 'primeng/toast';
 import { ProductBarcodeDialog } from './product-barcode-dialog/product-barcode-dialog';
 import { ProductFormDialog } from './product-form-dialog/product-form-dialog';
 import { ProductPackagingDialog } from './product-packaging-dialog/product-packaging-dialog';
+import { BarcodeScannerDialog } from '../../../shared/components/barcode-scanner-dialog/barcode-scanner-dialog';
 import { CategoryService } from '../../../core/services/master/category.service';
 import { ProductService } from '../../../core/services/master/product.service';
 import { UnitOfMeasureService } from '../../../core/services/master/unit-of-measure.service';
@@ -45,6 +46,7 @@ import { UnitOfMeasureService } from '../../../core/services/master/unit-of-meas
     ProductFormDialog,
     ProductBarcodeDialog,
     ProductPackagingDialog,
+    BarcodeScannerDialog,
   ],
   providers: [DatePipe, CurrencyPipe, ConfirmationService, ExportService, MessageService],
   templateUrl: './products.html',
@@ -73,6 +75,19 @@ export class Products implements OnInit {
 
   packagingModalVisible: boolean = false;
   selectedPackagingProduct: ProductModel | null = null;
+
+  scannerModalVisible: boolean = false;
+  scannerInitialCode: string = '';
+
+  openScanner(initialCode: string = ''): void {
+    this.scannerInitialCode = initialCode;
+    this.scannerModalVisible = true;
+  }
+
+  locateProduct(prod: ProductModel): void {
+    const code = prod.barcode || prod.sku || '';
+    this.openScanner(code);
+  }
 
   constructor(
     private shareService: SharedService,
