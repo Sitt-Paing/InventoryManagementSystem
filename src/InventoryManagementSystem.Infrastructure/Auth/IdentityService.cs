@@ -246,6 +246,85 @@ public class IdentityService : IIdentityService
         return ResultDto.Success("Password changed successfully.");
     }
 
+    public async Task<AuthResultDto> RegisterCompanyAdminAsync(string userName, string email, string password, int companyId, string companyName, string role)
+    {
+        _logger.LogInformation("Company Admin registration attempt for: {UserName}, Email: {Email}, CompanyId: {CompanyId}", userName, email, companyId);
+
+        IdentityUser? existingUser = await _userManager.FindByEmailAsync(email);
+        if (existingUser != null)
+        {
+            return new AuthResultDto
+            {
+                Succeeded = false,
+                Message = "User already exists with this email.",
+                Errors = new List<string> { "Email is already registered." }
+            };
+        }
+
+        existingUser = await _userManager.FindByNameAsync(userName);
+        if (existingUser != null)
+        {
+            return new AuthResultDto
+            {
+                Succeeded = false,
+                Message = "User already exists with this username.",
+                Errors = new List<string> { "Username is already taken." }
+            };
+        }
+
+        IdentityUser user = new IdentityUser
+        {
+            UserName = userName,
+            Email = email,
+            EmailConfirmed = true
+        };
+
+        IdentityResult result = await _userManager.CreateAsync(user, password);
+        if (!result.Succeeded)
+        {
+            return new AuthResultDto
+            {
+                Succeeded = false,
+                Message = "User registration failed.",
+                Errors = result.Errors.Select(e => e.Description).ToList()
+            };
+        }
+
+        string roleName = string.IsNullOrWhiteSpace(role) ? "CompanyAdmin" : role;
+        if (!await _roleManager.RoleExistsAsync(roleName))
+        {
+            await _roleManager.CreateAsync(new IdentityRole(roleName));
+        }
+
+        await _userManager.AddToRoleAsync(user, roleName);
+
+        // Add claims for tenant identification
+        await _userManager.AddClaimAsync(user, new Claim("company_id", companyId.ToString()));
+        await _userManager.AddClaimAsync(user, new Claim("company_name", companyName));
+
+        // Update the CompanyId column in AspNetUsers table
+        try
+        {
+            await _context.Database.ExecuteSqlInterpolatedAsync($"UPDATE AspNetUsers SET CompanyId = {companyId} WHERE Id = {user.Id}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not set CompanyId column directly in AspNetUsers table. Claims are still set.");
+        }
+
+        _logger.LogInformation("Company Admin registered successfully: {Email} for Company: {Company}", user.Email, companyName);
+
+        return new AuthResultDto
+        {
+            Succeeded = true,
+            UserId = user.Id,
+            UserName = user.UserName,
+            Email = user.Email,
+            Roles = new List<string> { roleName },
+            Message = $"Company Admin user '{user.UserName}' created successfully."
+        };
+    }
+
     private async Task<AuthResultDto> GenerateAuthResponseAsync(IdentityUser user)
     {
         IList<string> roles = await _userManager.GetRolesAsync(user);
@@ -263,6 +342,10 @@ public class IdentityService : IIdentityService
         {
             claims.Add(new Claim(ClaimTypes.Role, role));
         }
+
+        // Include any custom claims (e.g. company_id, company_name) in JWT
+        var userClaims = await _userManager.GetClaimsAsync(user);
+        claims.AddRange(userClaims);
 
         string? secretKey = _configuration["JwtSettings:SecretKey"] ?? "SuperSecretKeyForInventoryManagementSystem_JwtToken_2026!#";
         string? issuer = _configuration["JwtSettings:Issuer"] ?? "InventoryManagementSystem";
