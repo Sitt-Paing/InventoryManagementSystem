@@ -1,0 +1,395 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '92vw', maxWidth: '850px' }"
+  (onHide)="close()">
+
+  <!-- Dialog Header -->
+  <ng-template #header>
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg flex items-center justify-center text-white bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-xs">
+        <i class="pi pi-barcode text-lg"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white leading-tight">Barcode Scanner & Location Finder</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400">ဘာကုဒ်စကင်ဖတ်ပြီး ပစ္စည်းနှင့် တည်နေရာ (Warehouse, Zone, Rack, Bin) ရှာဖွေခြင်း</p>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- Dialog Content -->
+  <div class="scanner-dialog-content flex flex-col gap-4 pt-1">
+    <!-- Barcode Search Bar -->
+    <div class="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700/80">
+      <div class="flex items-center gap-2">
+        <p-iconfield iconPosition="left" class="flex-1">
+          <p-inputicon>
+            <i class="pi pi-barcode text-emerald-600 dark:text-emerald-400"></i>
+          </p-inputicon>
+          <input
+            #barcodeInput
+            pInputText
+            type="text"
+            [(ngModel)]="searchCode"
+            (keydown.enter)="search()"
+            placeholder="Scan barcode or type SKU / Barcode / Location Code..."
+            class="w-full text-sm font-mono font-medium py-2.5" />
+        </p-iconfield>
+
+        @if (searchCode) {
+          <p-button
+            icon="pi pi-times"
+            [text]="true"
+            [rounded]="true"
+            severity="secondary"
+            (click)="clear()"
+            title="Clear">
+          </p-button>
+        }
+
+        <p-button
+          label="Search"
+          icon="pi pi-search"
+          severity="success"
+          [loading]="isLoading"
+          (click)="search()">
+        </p-button>
+      </div>
+
+      <!-- Quick Tips & History -->
+      <div class="flex flex-wrap items-center justify-between gap-2 mt-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/50 text-[11px] text-slate-500 dark:text-slate-400">
+        <span class="flex items-center gap-1.5">
+          <i class="pi pi-info-circle text-emerald-500"></i>
+          <span>Hardware barcode scanner ကို သုံး၍ scan ဖတ်နိုင်ပါသည် (Auto-enter supported)</span>
+        </span>
+
+        @if (history.length > 0) {
+          <div class="flex items-center gap-1.5">
+            <span class="font-bold opacity-75">Recent:</span>
+            @for (code of history; track code) {
+              <button
+                type="button"
+                (click)="searchFromHistory(code)"
+                class="px-2 py-0.5 rounded bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:border-emerald-500 transition-colors font-mono cursor-pointer">
+                {{ code }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Error / Not Found Message -->
+    @if (errorMessage) {
+      <div class="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-300 flex items-center gap-3 animate-fadein">
+        <i class="pi pi-exclamation-triangle text-xl shrink-0"></i>
+        <div class="text-xs">
+          <p class="font-bold">ရှာမတွေ့ပါ (Not Found)</p>
+          <p class="mt-0.5">{{ errorMessage }}</p>
+        </div>
+      </div>
+    }
+
+    <!-- Result Display: Product Found -->
+    @if (lookupResult?.lookupType === 'Product' && lookupResult?.product; as prod) {
+      <div class="flex flex-col gap-4 animate-fadein">
+        <!-- Product Primary Card -->
+        <div class="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs">
+          <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+            <div class="flex-1">
+              <div class="flex flex-wrap items-center gap-2 mb-1">
+                @if (prod.categoryName) {
+                  <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                    {{ prod.categoryName }}
+                  </span>
+                }
+                @if (prod.brand) {
+                  <span class="px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40">
+                    {{ prod.brand }}
+                  </span>
+                }
+                <p-tag
+                  [value]="getStockStatusLabel(prod.currentStock, prod.reorderLevel)"
+                  [severity]="getStockSeverity(prod.currentStock, prod.reorderLevel)">
+                </p-tag>
+              </div>
+
+              <h2 class="text-lg font-bold text-slate-900 dark:text-white leading-tight">
+                {{ prod.productName }}
+              </h2>
+
+              <div class="flex flex-wrap items-center gap-3 mt-2 text-xs text-slate-600 dark:text-slate-400 font-mono">
+                @if (prod.sku) {
+                  <span>SKU: <strong class="text-slate-800 dark:text-slate-200">{{ prod.sku }}</strong></span>
+                }
+                @if (prod.barcode) {
+                  <span class="flex items-center gap-1">
+                    <i class="pi pi-barcode text-emerald-500"></i>
+                    <span>Barcode: <strong class="text-slate-800 dark:text-slate-200">{{ prod.barcode }}</strong></span>
+                  </span>
+                }
+                @if (prod.unit) {
+                  <span>Unit: <strong class="text-slate-800 dark:text-slate-200">{{ prod.unit }}</strong></span>
+                }
+              </div>
+            </div>
+
+            <!-- Price & Total Stock Grid -->
+            <div class="flex items-center gap-3 sm:border-l sm:pl-4 border-slate-200 dark:border-slate-700 shrink-0">
+              <div class="text-center sm:text-right">
+                <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Selling Price</span>
+                <p class="text-base font-extrabold text-slate-900 dark:text-white font-mono">
+                  {{ prod.sellingPrice | currency:'USD':'symbol':'1.2-2' }}
+                </p>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">Cost: {{ prod.costPrice | currency:'USD':'symbol':'1.2-2' }}</p>
+              </div>
+
+              <div class="px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-center shrink-0">
+                <span class="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-300 tracking-wider block">Total Stock</span>
+                <span class="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400">
+                  {{ prod.currentStock }}
+                </span>
+                <span class="text-[10px] block text-emerald-600 dark:text-emerald-400 font-medium">{{ prod.unit || 'Units' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Location Cards Section (Core Request) -->
+        <div class="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs">
+          <div class="flex items-center justify-between gap-2 mb-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center bg-sky-100 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400">
+                <i class="pi pi-map-marker text-sm"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-slate-900 dark:text-white">Product Storage Locations (ပစ္စည်းထားရှိသည့် နေရာများ)</h4>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">ဂိုဒေါင်၊ Zone၊ Rack နှင့် Bin တည်နေရာအလိုက် လက်ကျန်အရေအတွက်</p>
+              </div>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
+              {{ prod.locations.length }} Location{{ prod.locations.length > 1 ? 's' : '' }}
+            </span>
+          </div>
+
+          @if (prod.locations.length === 0) {
+            <div class="p-4 text-center rounded-lg bg-slate-50 dark:bg-slate-700/40 text-slate-500 dark:text-slate-400 text-xs">
+              <i class="pi pi-info-circle text-base mb-1 block"></i>
+              ဤပစ္စည်းအတွက် သတ်မှတ်ထားသော ဂိုဒေါင် သို့မဟုတ် တည်နေရာ မရှိသေးပါ။
+            </div>
+          } @else {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              @for (loc of prod.locations; track loc.locationCode + loc.warehouseId) {
+                <div class="location-card p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/80 flex flex-col justify-between gap-2.5">
+                  <!-- Warehouse & Location Header -->
+                  <div class="flex items-start justify-between gap-2">
+                    <div>
+                      <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                        <i class="pi pi-building text-[10px]"></i>
+                        {{ loc.warehouseName }}
+                      </span>
+                      <h5 class="text-sm font-extrabold text-slate-900 dark:text-white font-mono mt-0.5">
+                        {{ loc.locationCode }}
+                      </h5>
+                    </div>
+
+                    <!-- Quantity in this location -->
+                    <div class="text-right">
+                      <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-extrabold shadow-2xs"
+                        [ngClass]="loc.quantity > 0 
+                          ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700' 
+                          : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
+                        <i class="pi pi-box text-[10px]"></i>
+                        {{ loc.quantity }} {{ prod.unit || 'pcs' }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Zone / Rack / Bin Badges -->
+                  @if (!loc.isGeneralArea) {
+                    <div class="flex flex-wrap items-center gap-1.5 text-xs font-mono">
+                      @if (loc.zone) {
+                        <span class="px-2 py-0.5 rounded bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300">
+                          Zone: <strong class="text-slate-900 dark:text-white">{{ loc.zone }}</strong>
+                        </span>
+                      }
+                      @if (loc.rack) {
+                        <span class="px-2 py-0.5 rounded bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300">
+                          Rack: <strong class="text-slate-900 dark:text-white">{{ loc.rack }}</strong>
+                        </span>
+                      }
+                      @if (loc.bin) {
+                        <span class="px-2 py-0.5 rounded bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300">
+                          Bin: <strong class="text-slate-900 dark:text-white">{{ loc.bin }}</strong>
+                        </span>
+                      }
+                      @if (loc.locationBarcode) {
+                        <span class="px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-[10px]">
+                          <i class="pi pi-barcode text-[9px] mr-1"></i>{{ loc.locationBarcode }}
+                        </span>
+                      }
+                    </div>
+                  } @else {
+                    <div class="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                      <i class="pi pi-exclamation-circle text-xs"></i>
+                      <span>Rack/Bin အတိအကျ သတ်မှတ်ထားခြင်း မရှိသေးပါ (General Storage)</span>
+                    </div>
+                  }
+
+                  @if (loc.lastMovementDate) {
+                    <div class="text-[10px] text-slate-400 dark:text-slate-500 pt-1 border-t border-slate-200/50 dark:border-slate-700/50 flex justify-between">
+                      <span>Last movement:</span>
+                      <span class="font-mono">{{ loc.lastMovementDate | date:'medium' }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Recent Movements Timeline / Table -->
+        @if (prod.recentMovements.length > 0) {
+          <div class="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs">
+            <div class="flex items-center gap-2 mb-3">
+              <i class="pi pi-history text-slate-500"></i>
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                Recent Movements (လတ်တလော စတော့လှုပ်ရှားမှုမှတ်တမ်း)
+              </h4>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead>
+                  <tr class="border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-semibold">
+                    <th class="py-1.5 px-2">Date</th>
+                    <th class="py-1.5 px-2">Type</th>
+                    <th class="py-1.5 px-2 text-right">Quantity</th>
+                    <th class="py-1.5 px-2">Location</th>
+                    <th class="py-1.5 px-2">User / Note</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60 font-mono">
+                  @for (m of prod.recentMovements; track m.id) {
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                      <td class="py-2 px-2 text-slate-600 dark:text-slate-400 text-[11px] whitespace-nowrap">
+                        {{ m.transactionDate | date:'dd/MM/yyyy HH:mm' }}
+                      </td>
+                      <td class="py-2 px-2 whitespace-nowrap">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold"
+                          [ngClass]="{
+                            'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300': m.transactionType === 'IN',
+                            'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300': m.transactionType === 'OUT',
+                            'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300': m.transactionType === 'TRANSFER',
+                            'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300': m.transactionType === 'ADJUSTMENT'
+                          }">
+                          {{ m.transactionType }}
+                        </span>
+                      </td>
+                      <td class="py-2 px-2 text-right font-bold"
+                        [ngClass]="m.transactionType === 'OUT' ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'">
+                        {{ m.transactionType === 'OUT' ? '-' : '+' }}{{ m.quantity }}
+                      </td>
+                      <td class="py-2 px-2 text-slate-800 dark:text-slate-200">
+                        {{ m.warehouseName }} &rarr; {{ m.locationCode }}
+                        @if (m.toWarehouseName) {
+                          <span class="text-sky-600 dark:text-sky-400"> to {{ m.toWarehouseName }} &rarr; {{ m.toLocationCode || 'General' }}</span>
+                        }
+                      </td>
+                      <td class="py-2 px-2 text-slate-500 dark:text-slate-400 text-[11px] truncate max-w-xs font-sans">
+                        {{ m.note || m.userId }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Result Display: Location Barcode Found -->
+    @if (lookupResult?.lookupType === 'Location' && lookupResult?.location; as loc) {
+      <div class="flex flex-col gap-4 animate-fadein">
+        <div class="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-indigo-100 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 text-xl font-bold">
+              <i class="pi pi-th-large"></i>
+            </div>
+            <div>
+              <span class="text-xs uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500">Warehouse Location</span>
+              <h3 class="text-lg font-black font-mono text-slate-900 dark:text-white">{{ loc.locationCode }}</h3>
+              <p class="text-xs text-slate-600 dark:text-slate-400">{{ loc.warehouseName }}</p>
+            </div>
+            <div class="ml-auto flex flex-wrap gap-1.5 text-xs font-mono">
+              @if (loc.zone) {
+                <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700">Zone: <strong>{{ loc.zone }}</strong></span>
+              }
+              @if (loc.rack) {
+                <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700">Rack: <strong>{{ loc.rack }}</strong></span>
+              }
+              @if (loc.bin) {
+                <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700">Bin: <strong>{{ loc.bin }}</strong></span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Products in this Location -->
+        <div class="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3">
+            Products In This Location (ဤနေရာတွင်ရှိသော ပစ္စည်းများ)
+          </h4>
+
+          @if (loc.products.length === 0) {
+            <p class="text-xs text-slate-500 dark:text-slate-400 text-center py-4">ဤနေရာတွင် လက်ရှိ သိမ်းဆည်းထားသော ပစ္စည်းမရှိပါ။</p>
+          } @else {
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead>
+                  <tr class="border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400">
+                    <th class="py-2 px-2">Product Name</th>
+                    <th class="py-2 px-2">SKU / Barcode</th>
+                    <th class="py-2 px-2 text-right">Available Qty</th>
+                    <th class="py-2 px-2">Last Movement</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60 font-mono">
+                  @for (p of loc.products; track p.productId) {
+                    <tr>
+                      <td class="py-2 px-2 font-bold font-sans text-slate-900 dark:text-white">{{ p.productName }}</td>
+                      <td class="py-2 px-2 text-slate-500">{{ p.sku || p.barcode || '-' }}</td>
+                      <td class="py-2 px-2 text-right font-extrabold text-emerald-600 dark:text-emerald-400">
+                        {{ p.quantity }} {{ p.unit || 'pcs' }}
+                      </td>
+                      <td class="py-2 px-2 text-slate-400 text-[11px]">{{ p.lastMovementDate | date:'medium' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Dialog Footer -->
+  <ng-template #footer>
+    <div class="flex items-center justify-between w-full pt-2">
+      <span class="text-[11px] text-slate-400 hidden sm:inline">
+        Shortcut: <kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 font-mono border">Ctrl+B</kbd> to open scanner anywhere
+      </span>
+      <p-button
+        label="Close"
+        icon="pi pi-times"
+        severity="secondary"
+        [outlined]="true"
+        (click)="close()">
+      </p-button>
+    </div>
+  </ng-template>
+</p-dialog>
