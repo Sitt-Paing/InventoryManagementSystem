@@ -52,6 +52,8 @@ public partial class InventoryManagementDbContext : DbContext
 
     public virtual DbSet<GoodReceiptItem> GoodReceiptItems { get; set; }
 
+    public virtual DbSet<Company> Companies { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AspNetRole>(entity =>
@@ -95,6 +97,12 @@ public partial class InventoryManagementDbContext : DbContext
                         j.ToTable("AspNetUserRoles");
                         j.HasIndex(new[] { "RoleId" }, "IX_AspNetUserRoles_RoleId");
                     });
+            entity.HasOne(d => d.Company)
+                .WithMany(p => p.AspNetUsers)
+                .HasForeignKey(d => d.CompanyId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_AspNetUsers_Company");
+            entity.HasIndex(e => e.CompanyId, "IX_AspNetUsers_CompanyId");
         });
 
         modelBuilder.Entity<AspNetUserClaim>(entity =>
@@ -373,7 +381,7 @@ public partial class InventoryManagementDbContext : DbContext
                   .OnDelete(DeleteBehavior.Restrict);
         });
 
-        modelBuilder.Entity<GoodReceipt>(entity => 
+        modelBuilder.Entity<GoodReceipt>(entity =>
         {
             entity.ToTable("GoodReceipts");
             entity.HasKey(e => e.Id);
@@ -471,6 +479,25 @@ public partial class InventoryManagementDbContext : DbContext
                   .HasForeignKey(d => d.WarehouseId)
                   .OnDelete(DeleteBehavior.ClientSetNull)
                   .HasConstraintName("FK_WarehouseStocks_Warehouses");
+        });
+
+        modelBuilder.Entity<Company>(entity =>
+        {
+            entity.ToTable("Company");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.CompanyName).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.ContactPerson).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Email).HasMaxLength(256).IsRequired();
+            entity.Property(e => e.Phone).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.CreatedBy).HasMaxLength(256);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedBy).HasMaxLength(256);
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+            entity.Property(e => e.DeletedBy).HasMaxLength(256);
+            entity.Property(e => e.DeletedOn).HasColumnType("datetime");
+
         });
 
         OnModelCreatingPartial(modelBuilder);
