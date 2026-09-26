@@ -19,7 +19,8 @@ export const EN_DICTIONARY: Record<string, any> = {
     PURCHASE_ORDERS: 'Purchase Orders',
     GOOD_RECEIPTS: 'Goods Receipts',
     SETTINGS: 'Settings',
-    USER_MANAGEMENT: 'User Management'
+    USER_MANAGEMENT: 'User Management',
+    COMPANIES : 'Companies'
   },
   HEADER: {
     SEARCH_PLACEHOLDER: 'Search...',
