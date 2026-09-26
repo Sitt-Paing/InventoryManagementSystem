@@ -95,7 +95,43 @@ namespace InventoryManagementSystem.Api.Controllers.Master
             return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Product List.xlsx");
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("barcode-lookup")]
+        [EndpointSummary("Lookup product or warehouse location by barcode or SKU")]
+        public async Task<IActionResult> BarcodeLookup([FromQuery] string code)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                return BadRequest(new DefaultResponseModel
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Success = false,
+                    Message = "Barcode or code parameter is required.",
+                    Data = null
+                });
+            }
+
+            var result = await Mediator.Send(new InventoryManagementSystem.Application.Master.Products.Queries.GetProductByBarcode.GetProductByBarcodeQuery(code.Trim()));
+            if (result == null)
+            {
+                return NotFound(new DefaultResponseModel
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Success = false,
+                    Message = $"No product or warehouse location found for '{code}'.",
+                    Data = null
+                });
+            }
+
+            return Ok(new DefaultResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Success = true,
+                Message = "Barcode lookup successful.",
+                Data = result
+            });
+        }
+
+        [HttpGet("{id:guid}")]
         [EndpointSummary("Get product by Id")]
         public async Task<IActionResult> GetProductById(Guid id)
         {
@@ -134,7 +170,7 @@ namespace InventoryManagementSystem.Api.Controllers.Master
             return CreatedAtAction(nameof(GetProductById), new { id = productDto.Id }, response);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("{id:guid}")]
         [EndpointSummary("Update product by Id")]
         public async Task<IActionResult> UpdateProduct(Guid id, UpdateProductCommand command)
         {
@@ -159,7 +195,7 @@ namespace InventoryManagementSystem.Api.Controllers.Master
             });
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:guid}")]
         [EndpointSummary("Delete product by Id")]
         public async Task<IActionResult> DeleteProduct(Guid id)
         {
