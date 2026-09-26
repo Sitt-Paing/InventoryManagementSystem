@@ -12,17 +12,17 @@ export class CompanyService {
   constructor(private http: HttpClient) {}
 
   get(): Observable<RootModel> {
-    const url = `${environment.main_url}/master/companies`;
+    const url = `${environment.main_url}/usermanage/companies`;
     return this.http.get<RootModel>(url);
   }
 
   registerWithAdmin(payload: RegisterCompanyPayload): Observable<RootModel> {
-    const url = `${environment.main_url}/master/companies/register-with-admin`;
+    const url = `${environment.main_url}/usermanage/companies/register-with-admin`;
     return this.http.post<RootModel>(url, payload);
   }
 
   toggleStatus(id: number): Observable<RootModel> {
-    const url = `${environment.main_url}/master/companies/${id}/toggle-status`;
+    const url = `${environment.main_url}/usermanage/companies/${id}/toggle-status`;
     return this.http.put<RootModel>(url, {});
   }
 }
