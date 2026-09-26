@@ -84,4 +84,9 @@ export class ProductService {
     const url = `${environment.main_url}/master/products/${id}/barcode-preview?format=${encodeURIComponent(format)}`;
     return this.http.get(url, { responseType: 'blob' });
   }
+
+  barcodeLookup(code: string): Observable<RootModel> {
+    const url = `${environment.main_url}/master/products/barcode-lookup?code=${encodeURIComponent(code)}`;
+    return this.http.get<RootModel>(url);
+  }
 }
