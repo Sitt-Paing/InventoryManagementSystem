@@ -228,6 +228,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
+
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -335,6 +338,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
+
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -403,6 +409,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(50)
@@ -474,6 +483,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
 
                     b.Property<long>("CategoryId")
                         .HasColumnType("bigint");
+
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("CostPrice")
                         .HasColumnType("decimal(18, 2)");
@@ -573,6 +585,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("ConversionFactor")
                         .HasColumnType("decimal(18, 4)");
 
@@ -633,6 +648,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(50)
@@ -695,6 +713,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
+
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
@@ -750,6 +771,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(256)
@@ -836,6 +860,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
+
                     b.Property<string>("CompanyName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -915,6 +942,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
+
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -965,6 +995,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(50)
@@ -1018,6 +1051,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
 
                     b.Property<decimal?>("Capacity")
                         .HasColumnType("decimal(18, 2)");
+
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
 
                     b.Property<string>("ContactPerson")
                         .HasMaxLength(100)
@@ -1089,6 +1125,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Property<decimal?>("Capacity")
                         .HasColumnType("decimal(18, 2)");
 
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
+
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -1143,6 +1182,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(256)
