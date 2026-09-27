@@ -18,7 +18,7 @@ import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 
 import { GoodReceiptModel, GoodReceiptItemModel } from '../../../core/models/process/good-receipt.model';
-import { PurchaseOrderModel } from '../../../core/models/process/purchase-order.model';
+import { PurchaseOrderModel, PurchaseOrderStatus } from '../../../core/models/process/purchase-order.model';
 import { SuppliersModel } from '../../../core/models/master/suppliers.model';
 import { WarehouseModel } from '../../../core/models/master/warehouse.model';
 import { ProductModel } from '../../../core/models/master/product.model';
@@ -145,14 +145,17 @@ export class GoodReceiptsComponent implements OnInit {
 
   loadDropdownData(): void {
     forkJoin({
-      purchaseOrders: this.purchaseOrdersService.getPaged({ pageSize: 100 }),
+      purchaseOrders: this.purchaseOrdersService.getPaged({ pageSize: 100, excludeCompleted: true }),
       suppliers: this.suppliersService.get(),
       warehouses: this.warehouseService.get(),
       products: this.productService.get(),
       uoms: this.uomService.get()
     }).subscribe({
       next: (res) => {
-        this.purchaseOrders = (res.purchaseOrders?.data?.items || []) as PurchaseOrderModel[];
+        const allPos = (res.purchaseOrders?.data?.items || []) as PurchaseOrderModel[];
+        this.purchaseOrders = allPos.filter(
+          (po) => po.status !== PurchaseOrderStatus.Completed && po.status !== PurchaseOrderStatus.Cancelled
+        );
         this.suppliers = (res.suppliers?.data || []) as SuppliersModel[];
         this.warehouses = (res.warehouses?.data || []) as WarehouseModel[];
         this.products = (res.products?.data || []) as ProductModel[];
@@ -231,6 +234,7 @@ export class GoodReceiptsComponent implements OnInit {
       note: ''
     });
 
+    this.loadDropdownData();
     this.modalVisible = true;
   }
 
@@ -246,16 +250,27 @@ export class GoodReceiptsComponent implements OnInit {
             warehouseId: po.warehouseId
           });
 
-          // Auto populate line items from PO
-          this.formItems = (po.items || []).map((item) => ({
-            purchaseOrderItemId: item.id || 0,
-            productId: item.productId,
-            productName: item.productName,
-            productSku: item.productSku,
-            uomId: item.uomId,
-            uomName: item.uomName,
-            receivedQuantity: Math.max(0, item.quantity - (item.receivedQuantity || 0))
-          }));
+          // Auto populate line items from PO that still have quantity to receive
+          this.formItems = (po.items || [])
+            .map((item) => ({
+              purchaseOrderItemId: item.id || 0,
+              productId: item.productId,
+              productName: item.productName,
+              productSku: item.productSku,
+              uomId: item.uomId,
+              uomName: item.uomName,
+              receivedQuantity: Math.max(0, item.quantity - (item.receivedQuantity || 0))
+            }))
+            .filter((item) => item.receivedQuantity > 0);
+
+          if (this.formItems.length === 0) {
+            this.messageService.add({
+              key: 'globalMessage',
+              severity: 'warn',
+              summary: 'Purchase Order Fully Received',
+              detail: 'All items in this Purchase Order have already been fully received.'
+            });
+          }
 
           this.cdr.markForCheck();
         }
@@ -317,6 +332,19 @@ export class GoodReceiptsComponent implements OnInit {
         });
 
         this.formItems = (receipt.items || []).map(i => ({ ...i }));
+
+        if (receipt.purchaseOrderId && !this.purchaseOrders.some(p => p.id === receipt.purchaseOrderId)) {
+          this.purchaseOrdersService.getById(receipt.purchaseOrderId).subscribe({
+            next: (poRes) => {
+              const po = poRes.data as PurchaseOrderModel;
+              if (po) {
+                this.purchaseOrders = [po, ...this.purchaseOrders];
+                this.cdr.markForCheck();
+              }
+            }
+          });
+        }
+
         this.modalVisible = true;
         this.cdr.markForCheck();
       }
@@ -454,6 +482,7 @@ export class GoodReceiptsComponent implements OnInit {
         this.isSubmitting = false;
         this.modalVisible = false;
         this.loadData();
+        this.loadDropdownData();
       },
       error: (err) => {
         this.isSubmitting = false;
