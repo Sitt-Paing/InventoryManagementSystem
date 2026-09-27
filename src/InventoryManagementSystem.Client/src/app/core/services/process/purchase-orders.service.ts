@@ -28,6 +28,10 @@ export class PurchaseOrdersService {
     if (filter?.status !== undefined && filter?.status !== null) {
       params = params.set('status', filter.status.toString());
     }
+    if (filter?.excludeCompleted !== undefined && filter?.excludeCompleted !== null) {
+      params = params.set('excludeCompleted', filter.excludeCompleted.toString());
+    }
+
     if (filter?.sortField) {
       params = params.set('sortField', filter.sortField);
     }
