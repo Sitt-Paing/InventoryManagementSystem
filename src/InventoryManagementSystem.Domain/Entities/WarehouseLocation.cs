@@ -5,8 +5,10 @@ using System.Text.Json.Serialization;
 
 namespace InventoryManagementSystem.Domain.Entities;
 
-public partial class WarehouseLocation: BaseAuditableEntity<int>
+public partial class WarehouseLocation: BaseAuditableEntity<int>, IMustHaveCompany
 {
+    public int? CompanyId { get; set; }
+
     public int WarehouseId { get; set; }
 
     public string LocationCode { get; set; } = null!;
@@ -22,6 +24,7 @@ public partial class WarehouseLocation: BaseAuditableEntity<int>
     public decimal? Capacity { get; set; }
 
     public bool Status { get; set; }
+
 
     [JsonIgnore]
     public virtual Warehouse Warehouse { get; set; } = null!;
