@@ -24,4 +24,31 @@ public class CurrentUserService : ICurrentUserService
                                ?? _httpContextAccessor.HttpContext?.User?.Identity?.Name;
 
     public string? IpAddress => _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString();
+
+    public int? CompanyId
+    {
+        get
+        {
+            var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("company_id")
+                        ?? _httpContextAccessor.HttpContext?.User?.FindFirst("CompanyId");
+            if (claim != null && int.TryParse(claim.Value, out var companyId))
+            {
+                return companyId;
+            }
+            return null;
+        }
+    }
+
+    public bool IsSuperAdmin
+    {
+        get
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return false;
+            }
+            return user.IsInRole("SuperAdmin") || user.IsInRole("Administrator");
+        }
+    }
 }
