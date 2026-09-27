@@ -3,8 +3,10 @@ using InventoryManagementSystem.Domain.Common;
 
 namespace InventoryManagementSystem.Domain.Entities;
 
-public partial class ProductUomConversion : BaseAuditableEntity<long>
+public partial class ProductUomConversion : BaseAuditableEntity<long>, IMustHaveCompany
 {
+    public int? CompanyId { get; set; }
+
     public Guid ProductId { get; set; }
 
     public long FromUomId { get; set; }
@@ -20,6 +22,7 @@ public partial class ProductUomConversion : BaseAuditableEntity<long>
     public bool IsDefaultSale { get; set; }
 
     public bool IsActive { get; set; } = true;
+
 
     [JsonIgnore]
     public virtual UnitOfMeasure FromUom { get; set; } = null!;
