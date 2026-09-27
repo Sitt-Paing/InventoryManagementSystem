@@ -4,8 +4,10 @@ using InventoryManagementSystem.Domain.Common;
 
 namespace InventoryManagementSystem.Domain.Entities;
 
-public partial class UnitOfMeasure : BaseAuditableEntity<long>
+public partial class UnitOfMeasure : BaseAuditableEntity<long>, IMustHaveCompany
 {
+    public int? CompanyId { get; set; }
+
     public long CategoryId { get; set; }
 
     public string Code { get; set; } = null!;
@@ -17,6 +19,7 @@ public partial class UnitOfMeasure : BaseAuditableEntity<long>
     public int DecimalPlaces { get; set; }
 
     public bool IsActive { get; set; } = true;
+
 
     [JsonIgnore]
     public virtual UomCategory Category { get; set; } = null!;
