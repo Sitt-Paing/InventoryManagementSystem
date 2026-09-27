@@ -5,8 +5,10 @@ using InventoryManagementSystem.Domain.Common;
 
 namespace InventoryManagementSystem.Domain.Entities;
 
-public partial class Product : BaseAuditableEntity<Guid>
+public partial class Product : BaseAuditableEntity<Guid>, IMustHaveCompany
 {
+    public int? CompanyId { get; set; }
+
     public string Name { get; set; } = null!;
 
     public string? Sku { get; set; }
