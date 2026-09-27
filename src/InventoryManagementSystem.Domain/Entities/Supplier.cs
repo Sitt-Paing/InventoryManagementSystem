@@ -1,11 +1,13 @@
-﻿using InventoryManagementSystem.Domain.Common;
+using InventoryManagementSystem.Domain.Common;
 using System;
 using System.Collections.Generic;
 
 namespace InventoryManagementSystem.Domain.Entities;
 
-public partial class Supplier : BaseAuditableEntity<int>
+public partial class Supplier : BaseAuditableEntity<int>, IMustHaveCompany
 {
+    public int? CompanyId { get; set; }
+
     public string SupplierCode { get; set; } = null!;
 
     public string CompanyName { get; set; } = null!;
