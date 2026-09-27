@@ -46,6 +46,16 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
             throw new KeyNotFoundException($"Purchase Order with ID '{request.PurchaseOrderId}' was not found.");
         }
 
+        if (purchaseOrder.Status == PurchaseOrderStatus.Completed)
+        {
+            throw new InvalidOperationException($"Purchase Order '{purchaseOrder.PurchaseOrderNo}' has already been fully received.");
+        }
+
+        if (purchaseOrder.Status == PurchaseOrderStatus.Cancelled)
+        {
+            throw new InvalidOperationException($"Purchase Order '{purchaseOrder.PurchaseOrderNo}' has been cancelled.");
+        }
+
         var effectiveUserId = _currentUserService.UserName ?? _currentUserService.UserId ?? "System";
 
         var goodReceipt = new GoodReceipt
