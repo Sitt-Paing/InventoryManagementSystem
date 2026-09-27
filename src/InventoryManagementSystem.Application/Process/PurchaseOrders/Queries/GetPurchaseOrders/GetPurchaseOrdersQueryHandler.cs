@@ -48,6 +48,10 @@ public class GetPurchaseOrdersQueryHandler : IRequestHandler<GetPurchaseOrdersQu
         {
             query = query.Where(po => po.Status == request.Status.Value);
         }
+        else if (request.ExcludeCompleted == true)
+        {
+            query = query.Where(po => po.Status != Domain.Enums.PurchaseOrderStatus.Completed && po.Status != Domain.Enums.PurchaseOrderStatus.Cancelled);
+        }
 
 
         if (request.OrderDate.HasValue)
