@@ -6,13 +6,16 @@ using System.Text.Json.Serialization;
 
 namespace InventoryManagementSystem.Domain.Entities;
 
-public partial class GoodReceiptItem : BaseAuditableEntity<long>
+public partial class GoodReceiptItem : BaseAuditableEntity<long>, IMustHaveCompany
 {
+    public int? CompanyId { get; set; }
+
     public Guid GoodReceiptId { get; set; }
     public long PurchaseOrderItemId { get; set; }
     public Guid ProductId { get; set; }
     public long UomId { get; set; }
     public decimal ReceivedQuantity { get; set; }
+
 
     [JsonIgnore]
     public virtual GoodReceipt GoodReceipt { get; set; } = null!;
