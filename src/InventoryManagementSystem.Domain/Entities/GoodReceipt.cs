@@ -1,10 +1,11 @@
-﻿using InventoryManagementSystem.Domain.Common;
+using InventoryManagementSystem.Domain.Common;
 using System.Text.Json.Serialization;
 
 namespace InventoryManagementSystem.Domain.Entities;
 
-public partial class GoodReceipt: BaseAuditableEntity<Guid>
+public partial class GoodReceipt : BaseAuditableEntity<Guid>, IMustHaveCompany
 {
+    public int? CompanyId { get; set; }
     public string ReceiptNo { get; set; } = string.Empty;
     public int WarehouseId { get; set; }
     public Guid PurchaseOrderId { get; set; }
