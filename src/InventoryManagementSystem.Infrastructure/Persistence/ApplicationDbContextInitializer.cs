@@ -75,6 +75,12 @@ public class ApplicationDbContextInitializer
     public async Task TrySeedAsync()
     {
         // Default roles
+        var superAdminRole = new IdentityRole("SuperAdmin");
+        if (_roleManager.Roles.All(r => r.Name != superAdminRole.Name))
+        {
+            await _roleManager.CreateAsync(superAdminRole);
+        }
+
         var administratorRole = new IdentityRole("Administrator");
         if (_roleManager.Roles.All(r => r.Name != administratorRole.Name))
         {
