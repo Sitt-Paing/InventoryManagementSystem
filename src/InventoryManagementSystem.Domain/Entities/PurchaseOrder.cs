@@ -5,8 +5,9 @@ using System.Text.Json.Serialization;
 
 namespace InventoryManagementSystem.Domain.Entities;
 
-public class PurchaseOrder : BaseAuditableEntity<Guid>
+public class PurchaseOrder : BaseAuditableEntity<Guid>, IMustHaveCompany
 {
+    public int? CompanyId { get; set; }
     public string PurchaseOrderNo { get; set; } = string.Empty;
     public int SupplierId { get; set; }
     public int WarehouseId { get; set; }
