@@ -12,8 +12,10 @@ public record GetPurchaseOrdersQuery(
     int? SupplierId = null,
     int? WarehouseId = null,
     PurchaseOrderStatus? Status = null,
+    bool? ExcludeCompleted = null,
     string? SortField = null,
     int Order = -1,
     int PageNumber = 1,
     int PageSize = 20
 ) : IRequest<PagedResult<PurchaseOrderDto>>;
+
