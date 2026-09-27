@@ -6,8 +6,10 @@ using System.Text.Json.Serialization;
 
 namespace InventoryManagementSystem.Domain.Entities;
 
-public partial class PurchaseOrderItem : BaseAuditableEntity<long>
+public partial class PurchaseOrderItem : BaseAuditableEntity<long>, IMustHaveCompany
 {
+    public int? CompanyId { get; set; }
+
     public Guid PurchaseOrderId { get; set; }
 
     public Guid ProductId { get; set; }
@@ -16,6 +18,7 @@ public partial class PurchaseOrderItem : BaseAuditableEntity<long>
     public decimal UnitPrice { get; set; }
     public long UomId { get; set; }
     public decimal ReceivedQuantity { get; set; }
+
 
     [JsonIgnore]
     public virtual PurchaseOrder PurchaseOrder { get; set; } = null!;
