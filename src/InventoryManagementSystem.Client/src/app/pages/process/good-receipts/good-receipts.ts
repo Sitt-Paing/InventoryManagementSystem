@@ -177,9 +177,14 @@ export class GoodReceiptsComponent implements OnInit {
 
   loadData(): void {
     this.isLoading = true;
+    const todayStr = this.datePipe.transform(new Date(), 'yyyy-MM-dd') ?? undefined;
+    const receiptDateStr = this.filterReceiptDate
+      ? (this.datePipe.transform(this.filterReceiptDate, 'yyyy-MM-dd') ?? undefined)
+      : todayStr;
+
     const filter = {
       q: this.searchKeyword || undefined,
-      receiptDate: this.filterReceiptDate ? (this.datePipe.transform(this.filterReceiptDate, 'yyyy-MM-dd') ?? undefined) : undefined,
+      receiptDate: receiptDateStr,
       sortField: this.sortField,
       order: this.sortOrder,
       pageNumber: this.pageNumber,
@@ -498,9 +503,14 @@ export class GoodReceiptsComponent implements OnInit {
   }
 
   excel(): void {
+    const todayStr = this.datePipe.transform(new Date(), 'yyyy-MM-dd') ?? undefined;
+    const receiptDateStr = this.filterReceiptDate
+      ? (this.datePipe.transform(this.filterReceiptDate, 'yyyy-MM-dd') ?? undefined)
+      : todayStr;
+
     const filter = {
       q: this.searchKeyword || undefined,
-      receiptDate: this.filterReceiptDate ? (this.datePipe.transform(this.filterReceiptDate, 'yyyy-MM-dd') ?? undefined) : undefined
+      receiptDate: receiptDateStr
     };
 
     this.goodReceiptsService.export(filter).subscribe({
