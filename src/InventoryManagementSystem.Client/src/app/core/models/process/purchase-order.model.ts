@@ -56,8 +56,10 @@ export interface PurchaseOrderFilterModel {
   supplierId?: number | null;
   warehouseId?: number | null;
   status?: PurchaseOrderStatus | null;
+  excludeCompleted?: boolean | null;
   sortField?: string | null;
   order?: number | null;
   pageNumber?: number;
   pageSize?: number;
 }
+
