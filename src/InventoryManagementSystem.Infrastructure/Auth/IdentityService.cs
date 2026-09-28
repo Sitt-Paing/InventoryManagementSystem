@@ -23,6 +23,7 @@ public class IdentityService : IIdentityService
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly ApplicationDbContext _context;
+    private readonly InventoryManagementDbContext _inventoryContext;
     private readonly IConfiguration _configuration;
     private readonly ILogger<IdentityService> _logger;
 
@@ -31,6 +32,7 @@ public class IdentityService : IIdentityService
         SignInManager<IdentityUser> signInManager,
         RoleManager<IdentityRole> roleManager,
         ApplicationDbContext context,
+        InventoryManagementDbContext inventoryContext,
         IConfiguration configuration,
         ILogger<IdentityService> logger)
     {
@@ -38,6 +40,7 @@ public class IdentityService : IIdentityService
         _signInManager = signInManager;
         _roleManager = roleManager;
         _context = context;
+        _inventoryContext = inventoryContext;
         _configuration = configuration;
         _logger = logger;
     }
@@ -125,6 +128,19 @@ public class IdentityService : IIdentityService
             };
         }
 
+        // Check if user belongs to a deactivated company
+        int? companyId = await GetUserCompanyIdAsync(user);
+        if (companyId.HasValue && !await IsCompanyActiveAsync(companyId.Value))
+        {
+            _logger.LogWarning("Login blocked for user {Email}: Company {CompanyId} is deactivated or inactive.", user.Email, companyId.Value);
+            return new AuthResultDto
+            {
+                Succeeded = false,
+                Message = "Your company account has been deactivated. Please contact the administrator.",
+                Errors = new List<string> { "Company account is deactivated." }
+            };
+        }
+
         _logger.LogInformation("Login successful for user: {Email}", user.Email);
         return await GenerateAuthResponseAsync(user);
     }
@@ -197,6 +213,19 @@ public class IdentityService : IIdentityService
             {
                 Succeeded = false,
                 Message = "Refresh token has expired. Please login again."
+            };
+        }
+
+        // Check if user belongs to a deactivated company
+        int? refreshCompanyId = await GetUserCompanyIdAsync(user);
+        if (refreshCompanyId.HasValue && !await IsCompanyActiveAsync(refreshCompanyId.Value))
+        {
+            _logger.LogWarning("Token refresh blocked for user {Email}: Company {CompanyId} is deactivated or inactive.", user.Email, refreshCompanyId.Value);
+            return new AuthResultDto
+            {
+                Succeeded = false,
+                Message = "Your company account has been deactivated. Please contact the administrator.",
+                Errors = new List<string> { "Company account is deactivated." }
             };
         }
 
@@ -432,5 +461,31 @@ public class IdentityService : IIdentityService
         {
             return null;
         }
+    }
+
+    private async Task<int?> GetUserCompanyIdAsync(IdentityUser user)
+    {
+        var userClaims = await _userManager.GetClaimsAsync(user);
+        var companyClaim = userClaims.FirstOrDefault(c => c.Type == "company_id" || c.Type == "CompanyId");
+        if (companyClaim != null && int.TryParse(companyClaim.Value, out var cid))
+        {
+            return cid;
+        }
+
+        var aspNetUser = await _inventoryContext.AspNetUsers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == user.Id);
+
+        return aspNetUser?.CompanyId;
+    }
+
+    private async Task<bool> IsCompanyActiveAsync(int companyId)
+    {
+        var company = await _inventoryContext.Companies
+            .IgnoreQueryFilters()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == companyId);
+
+        return company != null && company.IsActive && !company.DeletedOn.HasValue;
     }
 }
