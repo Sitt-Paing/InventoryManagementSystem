@@ -1,4 +1,5 @@
 <p-toast key="globalMessage" position="top-right"></p-toast>
+<p-confirmDialog key="positionDialog"></p-confirmDialog>
 
 <div class="table-card p-4 space-y-4">
     <!-- Top Action Bar -->
@@ -37,7 +38,7 @@
                 <th class="text-center">Users</th>
                 <th pSortableColumn="isActive">Status <p-sortIcon field="isActive"></p-sortIcon></th>
                 <th pSortableColumn="createdOn">Registered On <p-sortIcon field="createdOn"></p-sortIcon></th>
-                <th [style]="{ width: '100px' }">Actions</th>
+                <th [style]="{ width: '130px' }">Actions</th>
             </tr>
         </ng-template>
 
@@ -62,12 +63,20 @@
                 </td>
                 <td>{{ company.createdOn | date:'dd/MMM/yyyy hh:mm a' }}</td>
                 <td>
-                    <p-button [label]="company.isActive ? 'Deactivate' : 'Activate'"
-                        [icon]="company.isActive ? 'pi pi-ban' : 'pi pi-check'"
-                        [severity]="company.isActive ? 'warn' : 'success'"
-                        [text]="true" size="small"
-                        (onClick)="toggleCompanyStatus(company); $event.stopPropagation()">
-                    </p-button>
+                    <div class="flex items-center gap-1">
+                        <p-button [label]="company.isActive ? 'Deactivate' : 'Activate'"
+                            [icon]="company.isActive ? 'pi pi-ban' : 'pi pi-check'"
+                            [severity]="company.isActive ? 'warn' : 'success'"
+                            [text]="true" size="small"
+                            (onClick)="toggleCompanyStatus(company); $event.stopPropagation()">
+                        </p-button>
+                        <p-button icon="pi pi-trash"
+                            severity="danger"
+                            [text]="true" size="small"
+                            title="Delete Company"
+                            (onClick)="deleteCompany(company); $event.stopPropagation()">
+                        </p-button>
+                    </div>
                 </td>
             </tr>
         </ng-template>
