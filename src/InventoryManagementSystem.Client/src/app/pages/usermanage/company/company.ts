@@ -5,12 +5,13 @@ import { Table, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { Tag } from 'primeng/tag';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 
 import { CompanyModel, RegisterCompanyPayload } from '../../../core/models/master/company.model';
 import { CompanyService } from '../../../core/services/master/company.service';
@@ -26,6 +27,7 @@ import { CompanyService } from '../../../core/services/master/company.service';
     TableModule,
     ButtonModule,
     DialogModule,
+    ConfirmDialogModule,
     Tag,
     IconFieldModule,
     InputIconModule,
@@ -33,7 +35,7 @@ import { CompanyService } from '../../../core/services/master/company.service';
     PasswordModule,
     DatePipe
   ],
-  providers: [MessageService, DatePipe],
+  providers: [MessageService, ConfirmationService, DatePipe],
   templateUrl: './company.html',
   styleUrl: './company.scss',
 })
@@ -52,6 +54,7 @@ export class CompanyComponent implements OnInit {
   private formBuilder = inject(FormBuilder);
   private companyService = inject(CompanyService);
   private messageService = inject(MessageService);
+  private confirmationService = inject(ConfirmationService);
   private cdr = inject(ChangeDetectorRef);
 
   public companyForm = this.formBuilder.group({
@@ -176,6 +179,32 @@ export class CompanyComponent implements OnInit {
   toggleCompanyStatus(company: CompanyModel): void {
     if (!company.id) return;
 
+    if (company.isActive) {
+      this.confirmationService.confirm({
+        key: 'positionDialog',
+        header: 'Deactivate Confirmation',
+        message: `Are you sure you want to deactivate "${company.companyName}"? Users belonging to this company will no longer be able to log in.`,
+        icon: 'pi pi-exclamation-triangle',
+        accept: () => {
+          this.executeToggleStatus(company);
+        }
+      });
+    } else {
+      this.confirmationService.confirm({
+        key: 'positionDialog',
+        header: 'Activate Confirmation',
+        message: `Are you sure you want to activate "${company.companyName}"?`,
+        icon: 'pi pi-info-circle',
+        accept: () => {
+          this.executeToggleStatus(company);
+        }
+      });
+    }
+  }
+
+  private executeToggleStatus(company: CompanyModel): void {
+    if (!company.id) return;
+
     this.companyService.toggleStatus(company.id).subscribe({
       next: (res) => {
         company.isActive = !company.isActive;
@@ -193,6 +222,40 @@ export class CompanyComponent implements OnInit {
           severity: 'error',
           summary: 'Error',
           detail: err.error?.message || 'Failed to update company status.'
+        });
+      }
+    });
+  }
+
+  deleteCompany(company: CompanyModel): void {
+    if (!company.id) return;
+
+    this.confirmationService.confirm({
+      key: 'positionDialog',
+      header: 'Delete Confirmation',
+      message: `Are you sure you want to delete "${company.companyName}"? This company and its users will no longer have access.`,
+      icon: 'pi pi-trash',
+      accept: () => {
+        this.companyService.delete(company.id!).subscribe({
+          next: (res) => {
+            this.messageService.add({
+              key: 'globalMessage',
+              severity: 'success',
+              summary: 'Confirmed',
+              detail: res.message || 'Company was deleted successfully.'
+            });
+            this.loadCompanies();
+            this.cdr.markForCheck();
+          },
+          error: (err) => {
+            this.messageService.add({
+              key: 'globalMessage',
+              severity: 'error',
+              summary: 'Error',
+              detail: err.error?.message || 'Failed to delete company.'
+            });
+            this.cdr.markForCheck();
+          }
         });
       }
     });
