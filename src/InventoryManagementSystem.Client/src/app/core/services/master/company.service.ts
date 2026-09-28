@@ -16,13 +16,28 @@ export class CompanyService {
     return this.http.get<RootModel>(url);
   }
 
+  getById(id: number): Observable<RootModel> {
+    const url = `${environment.main_url}/usermanage/companies/${id}`;
+    return this.http.get<RootModel>(url);
+  }
+
   registerWithAdmin(payload: RegisterCompanyPayload): Observable<RootModel> {
     const url = `${environment.main_url}/usermanage/companies/register-with-admin`;
     return this.http.post<RootModel>(url, payload);
   }
 
+  update(provider: CompanyModel): Observable<RootModel> {
+    const url = `${environment.main_url}/usermanage/companies/${provider.id}`;
+    return this.http.put<RootModel>(url, provider);
+  }
+
   toggleStatus(id: number): Observable<RootModel> {
     const url = `${environment.main_url}/usermanage/companies/${id}/toggle-status`;
     return this.http.put<RootModel>(url, {});
+  }
+
+  delete(id: number): Observable<RootModel> {
+    const url = `${environment.main_url}/usermanage/companies/${id}`;
+    return this.http.delete<RootModel>(url);
   }
 }
