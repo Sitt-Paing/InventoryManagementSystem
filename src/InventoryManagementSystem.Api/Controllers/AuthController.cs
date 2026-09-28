@@ -76,7 +76,7 @@ public class AuthController : ApiControllerBase
             {
                 StatusCode = StatusCodes.Status401Unauthorized,
                 Success = false,
-                Message = "Invalid credentials. Please check your username and password.",
+                Message = result.Message ?? "Invalid credentials. Please check your username and password.",
                 Data = result
             });
         }
