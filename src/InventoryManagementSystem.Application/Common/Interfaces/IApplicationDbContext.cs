@@ -21,5 +21,7 @@ public interface IApplicationDbContext
     DbSet<GoodReceiptItem> GoodReceiptItems { get; }
     DbSet<Company> Companies { get; }
 
+    Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
