@@ -28,6 +28,8 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
 
     public async Task<GoodReceiptDto> Handle(CreateGoodReceiptCommand request, CancellationToken cancellationToken)
     {
+        await using var databaseTransaction = await _context.BeginTransactionAsync(cancellationToken);
+
         var receiptNo = request.ReceiptNo.Trim();
         var exists = await _context.GoodReceipts
             .AnyAsync(r => r.ReceiptNo == receiptNo && !r.DeletedOn.HasValue, cancellationToken);
@@ -54,6 +56,30 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
         if (purchaseOrder.Status == PurchaseOrderStatus.Cancelled)
         {
             throw new InvalidOperationException($"Purchase Order '{purchaseOrder.PurchaseOrderNo}' has been cancelled.");
+        }
+
+        if (request.SupplierId != purchaseOrder.SupplierId)
+        {
+            throw new InvalidOperationException("Supplier must match the selected Purchase Order.");
+        }
+
+        foreach (var itemGroup in request.Items.GroupBy(i => i.PurchaseOrderItemId))
+        {
+            var poItem = purchaseOrder.Items.FirstOrDefault(i => i.Id == itemGroup.Key && !i.DeletedOn.HasValue);
+            if (poItem == null)
+            {
+                throw new InvalidOperationException($"Purchase Order Item '{itemGroup.Key}' does not belong to the selected Purchase Order.");
+            }
+
+            if (itemGroup.Any(i => i.ProductId != poItem.ProductId || i.UomId != poItem.UomId))
+            {
+                throw new InvalidOperationException($"Product and UOM must match Purchase Order Item '{itemGroup.Key}'.");
+            }
+
+            if (itemGroup.Sum(i => i.ReceivedQuantity) > poItem.Quantity - poItem.ReceivedQuantity)
+            {
+                throw new InvalidOperationException($"Received quantity exceeds the remaining quantity for Purchase Order Item '{itemGroup.Key}'.");
+            }
         }
 
         var effectiveUserId = _currentUserService.UserName ?? _currentUserService.UserId ?? "System";
@@ -156,6 +182,7 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
         }
 
         await _context.SaveChangesAsync(cancellationToken);
+        await databaseTransaction.CommitAsync(cancellationToken);
 
         // Fetch display details for return DTO
         var supplier = await _context.Suppliers.AsNoTracking()
