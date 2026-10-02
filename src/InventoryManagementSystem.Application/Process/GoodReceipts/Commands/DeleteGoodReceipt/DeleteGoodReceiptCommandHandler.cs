@@ -21,6 +21,8 @@ public class DeleteGoodReceiptCommandHandler : IRequestHandler<DeleteGoodReceipt
 
     public async Task<GoodReceiptDto?> Handle(DeleteGoodReceiptCommand request, CancellationToken cancellationToken)
     {
+        await using var databaseTransaction = await _context.BeginTransactionAsync(cancellationToken);
+
         var goodReceipt = await _context.GoodReceipts
             .Include(gr => gr.Items)
             .FirstOrDefaultAsync(gr => gr.Id == request.Id && !gr.DeletedOn.HasValue, cancellationToken);
@@ -95,6 +97,7 @@ public class DeleteGoodReceiptCommandHandler : IRequestHandler<DeleteGoodReceipt
         }
 
         await _context.SaveChangesAsync(cancellationToken);
+        await databaseTransaction.CommitAsync(cancellationToken);
 
         return new GoodReceiptDto
         {
