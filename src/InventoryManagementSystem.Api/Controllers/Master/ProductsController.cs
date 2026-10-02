@@ -186,6 +186,16 @@ namespace InventoryManagementSystem.Api.Controllers.Master
             }
 
             ProductDto? updatedProduct = await Mediator.Send(command);
+            if (updatedProduct == null)
+            {
+                return NotFound(new DefaultResponseModel
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Success = false,
+                    Message = $"Product with ID {id} not found.",
+                    Data = null
+                });
+            }
             return Ok(new DefaultResponseModel
             {
                 StatusCode = StatusCodes.Status200OK,

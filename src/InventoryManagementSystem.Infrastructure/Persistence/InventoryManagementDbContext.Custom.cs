@@ -24,6 +24,11 @@ public partial class InventoryManagementDbContext : IApplicationDbContext
         _currentUserService = currentUserService;
     }
 
+    public Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        return Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, cancellationToken);
+    }
+
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var currentUserId = _currentUserService?.UserName ?? _currentUserService?.UserId ?? "System";
@@ -150,11 +155,11 @@ public partial class InventoryManagementDbContext : IApplicationDbContext
 
     private static Guid ParseGuidOrDefault(string v)
     {
-        return Guid.TryParse(v, out Guid g) ? g : Guid.NewGuid();
+        return Guid.Parse(v);
     }
 
     private static Guid ParseGuidOrEmpty(string v)
     {
-        return Guid.TryParse(v, out Guid g) ? g : Guid.Empty;
+        return Guid.Parse(v);
     }
 }

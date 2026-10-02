@@ -25,6 +25,8 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
 
     public async Task<StockTransactionsDto?> Handle(UpdateStockTransactionsCommand request, CancellationToken cancellationToken)
     {
+        await using var databaseTransaction = await _context.BeginTransactionAsync(cancellationToken);
+
         var transaction = await _context.StockTransactions
             .Include(t => t.Product)
             .FirstOrDefaultAsync(t => t.Id == request.Id && !t.DeletedOn.HasValue, cancellationToken);
@@ -170,6 +172,7 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
         }
 
         await _context.SaveChangesAsync(cancellationToken);
+        await databaseTransaction.CommitAsync(cancellationToken);
 
         var warehouse = await _context.Warehouses.AsNoTracking()
             .FirstOrDefaultAsync(w => w.Id == transaction.WarehouseId, cancellationToken);
