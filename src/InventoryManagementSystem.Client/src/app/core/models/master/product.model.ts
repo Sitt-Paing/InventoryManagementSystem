@@ -31,3 +31,16 @@ export interface ProductModel {
   deletedOn?: Date | string;
   deletedBy?: string;
 }
+
+export interface ProductListItemModel {
+  id: string;
+  name: string;
+  sellingPrice: number;
+}
+
+export interface ProductPagedModel {
+  items: ProductListItemModel[];
+  totalRecords: number;
+  pageNumber: number;
+  pageSize: number;
+}
