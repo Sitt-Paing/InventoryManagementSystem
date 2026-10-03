@@ -6,6 +6,7 @@ using InventoryManagementSystem.Application.Master.Products.DTOs;
 using InventoryManagementSystem.Application.Master.Products.Queries.ExportProducts;
 using InventoryManagementSystem.Application.Master.Products.Queries.GetProducts;
 using InventoryManagementSystem.Application.Master.Products.Queries.GetProductsById;
+using InventoryManagementSystem.Application.Master.Products.Queries.GetProductsPage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -40,6 +41,20 @@ namespace InventoryManagementSystem.Api.Controllers.Master
         {
             var result = await Mediator.Send(new ExportProductsQuery(categoryId, format, fontName));
             return File(result.Content, result.ContentType, result.FileName);
+        }
+
+        [HttpGet("paged")]
+        [EndpointSummary("Get paged products with optional filtering and sorting")]
+        public async Task<IActionResult> GetPaganition([FromQuery] GetProductsPageQuery request,CancellationToken cancellationToken)
+        {
+            var result = await Mediator.Send(request, cancellationToken);
+            return Ok(new DefaultResponseModel
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Success = true,
+                Message = "Paged products retrieved successfully.",
+                Data = result
+            });
         }
 
         [HttpPost("excel")]
