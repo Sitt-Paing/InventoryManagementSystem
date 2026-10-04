@@ -51,7 +51,7 @@ export class DashboardComponent implements OnInit {
   loadData(): void {
     this.productService.get().subscribe({
       next: (res) => {
-        this.products = res.data || [];
+        this.products = res.data?.items || [];
         this.totalProductsCount = this.products.length;
         this.lowStockCount = this.products.filter(p => (p.currentStock || 0) <= (p.reorderLevel || 0) && (p.currentStock || 0) > 0).length;
         this.outOfStockCount = this.products.filter(p => (p.currentStock || 0) <= 0).length;
