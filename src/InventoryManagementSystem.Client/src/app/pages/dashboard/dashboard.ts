@@ -32,7 +32,7 @@ import { StockTransactionService } from '../../core/services/process/stock-trans
 export class DashboardComponent implements OnInit {
   products: ProductModel[] = [];
   recentTransactions: StockTransactionModel[] = [];
-  
+
   totalProductsCount: number = 0;
   lowStockCount: number = 0;
   outOfStockCount: number = 0;
