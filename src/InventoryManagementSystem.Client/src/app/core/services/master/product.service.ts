@@ -1,8 +1,8 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { ProductModel } from '../../models/master/product.model';
+import { ProductFilterModel, ProductModel, ProductPagedResponseModel } from '../../models/master/product.model';
 import { RootModel } from '../../models/root.model';
 
 @Injectable({
@@ -11,12 +11,22 @@ import { RootModel } from '../../models/root.model';
 export class ProductService {
   private http = inject(HttpClient);
 
-  get(categoryId?: number | null): Observable<RootModel> {
-    let url = `${environment.main_url}/master/products`;
-    if (categoryId != null && categoryId > 0) {
-      url += `?categoryId=${categoryId}`;
+  get(filter?: ProductFilterModel): Observable<ProductPagedResponseModel> {
+    const url = `${environment.main_url}/master/products`;
+    let params = new HttpParams();
+    if (filter?.categoryId != null) {
+      params = params.set('categoryId', filter.categoryId);
     }
-    return this.http.get<RootModel>(url);
+    if (filter?.search?.trim()) {
+      params = params.set('search', filter.search.trim());
+    }
+    if (filter?.pageNumber != null) {
+      params = params.set('pageNumber', filter.pageNumber);
+    }
+    if (filter?.pageSize != null) {
+      params = params.set('pageSize', filter.pageSize);
+    }
+    return this.http.get<ProductPagedResponseModel>(url, { params });
   }
 
   getById(id: string | number): Observable<RootModel> {
