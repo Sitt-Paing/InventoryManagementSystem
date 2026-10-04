@@ -97,6 +97,11 @@ export class ProductPackagingDialog implements OnChanges {
     });
   }
 
+  close(): void {
+    this.visible = false;
+    this.visibleChange.emit(false);
+  }
+
   createPackaging(): void {
     this.isEdit = false;
     this.packagingForm.reset({
@@ -108,21 +113,6 @@ export class ProductPackagingDialog implements OnChanges {
       isDefaultPurchase: false,
       isDefaultSale: false,
       isActive: true,
-    });
-    this.editModalVisible = true;
-  }
-
-  editPackaging(conv: ProductUomConversionModel): void {
-    this.isEdit = true;
-    this.packagingForm.patchValue({
-      id: conv.id,
-      fromUomId: conv.fromUomId,
-      toUomId: conv.toUomId,
-      conversionFactor: conv.conversionFactor,
-      barcode: conv.barcode || '',
-      isDefaultPurchase: conv.isDefaultPurchase,
-      isDefaultSale: conv.isDefaultSale,
-      isActive: conv.isActive,
     });
     this.editModalVisible = true;
   }
@@ -177,6 +167,21 @@ export class ProductPackagingDialog implements OnChanges {
     });
   }
 
+  editPackaging(conv: ProductUomConversionModel): void {
+    this.isEdit = true;
+    this.packagingForm.patchValue({
+      id: conv.id,
+      fromUomId: conv.fromUomId,
+      toUomId: conv.toUomId,
+      conversionFactor: conv.conversionFactor,
+      barcode: conv.barcode || '',
+      isDefaultPurchase: conv.isDefaultPurchase,
+      isDefaultSale: conv.isDefaultSale,
+      isActive: conv.isActive,
+    });
+    this.editModalVisible = true;
+  }
+
   deletePackaging(conv: ProductUomConversionModel): void {
     this.confirmationService.confirm({
       key: 'positionDialog',
@@ -229,10 +234,5 @@ export class ProductPackagingDialog implements OnChanges {
       barcode: conv.barcode,
       label: `${conv.fromUomCode} (${conv.conversionFactor})`,
     });
-  }
-
-  close(): void {
-    this.visible = false;
-    this.visibleChange.emit(false);
   }
 }

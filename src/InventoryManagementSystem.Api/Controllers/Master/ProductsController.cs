@@ -6,7 +6,6 @@ using InventoryManagementSystem.Application.Master.Products.DTOs;
 using InventoryManagementSystem.Application.Master.Products.Queries.ExportProducts;
 using InventoryManagementSystem.Application.Master.Products.Queries.GetProducts;
 using InventoryManagementSystem.Application.Master.Products.Queries.GetProductsById;
-using InventoryManagementSystem.Application.Master.Products.Queries.GetProductsPage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,10 +18,10 @@ namespace InventoryManagementSystem.Api.Controllers.Master
     public class ProductsController : ApiControllerBase
     {
         [HttpGet]
-        [EndpointSummary("Get all products or filter by category")]
-        public async Task<IActionResult> GetProducts([FromQuery] long? categoryId = null)
+        [EndpointSummary("Get products with optional search, category filter and pagination")]
+        public async Task<IActionResult> GetProducts([FromQuery] GetProductsQuery request, CancellationToken cancellationToken)
         {
-            List<ProductDto> result = await Mediator.Send(new GetProductsQuery(categoryId));
+            var result = await Mediator.Send(request, cancellationToken);
             return Ok(new DefaultResponseModel
             {
                 StatusCode = StatusCodes.Status200OK,
@@ -43,20 +42,6 @@ namespace InventoryManagementSystem.Api.Controllers.Master
             return File(result.Content, result.ContentType, result.FileName);
         }
 
-        [HttpGet("paged")]
-        [EndpointSummary("Get paged products with optional filtering and sorting")]
-        public async Task<IActionResult> GetPaganition([FromQuery] GetProductsPageQuery request,CancellationToken cancellationToken)
-        {
-            var result = await Mediator.Send(request, cancellationToken);
-            return Ok(new DefaultResponseModel
-            {
-                StatusCode = StatusCodes.Status200OK,
-                Success = true,
-                Message = "Paged products retrieved successfully.",
-                Data = result
-            });
-        }
-
         [HttpPost("excel")]
         [EndpointSummary("Export Excel")]
         [EndpointDescription("Product List Export")]
@@ -69,7 +54,8 @@ namespace InventoryManagementSystem.Api.Controllers.Master
             [FromQuery] int? order,
             [FromBody] KeyValuePair<string, string>[] columns)
         {
-            var products = await Mediator.Send(new GetProductsQuery(categoryId));
+            var result = await Mediator.Send(new GetProductsQuery(categoryId));
+            var products = result.Items;
 
             if (!string.IsNullOrWhiteSpace(q))
             {

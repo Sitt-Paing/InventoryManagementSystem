@@ -12,7 +12,7 @@ export class UnitOfMeasureService {
   constructor(private http: HttpClient) {}
 
   get(categoryId?: number): Observable<RootModel> {
-    let url = `${environment.main_url}/master/unit-of-measures`;
+    const url = `${environment.main_url}/master/unit-of-measures`;
     let params = new HttpParams();
     if (categoryId && categoryId > 0) {
       params = params.set('categoryId', categoryId.toString());
@@ -25,14 +25,14 @@ export class UnitOfMeasureService {
     return this.http.get<RootModel>(url);
   }
 
-  create(payload: Partial<UnitOfMeasureModel>): Observable<RootModel> {
+  create(model: Partial<UnitOfMeasureModel>): Observable<RootModel> {
     const url = `${environment.main_url}/master/unit-of-measures`;
-    return this.http.post<RootModel>(url, payload);
+    return this.http.post<RootModel>(url, model);
   }
 
-  update(payload: Partial<UnitOfMeasureModel>): Observable<RootModel> {
-    const url = `${environment.main_url}/master/unit-of-measures/${payload.id}`;
-    return this.http.put<RootModel>(url, payload);
+  update(model: Partial<UnitOfMeasureModel>): Observable<RootModel> {
+    const url = `${environment.main_url}/master/unit-of-measures/${model.id}`;
+    return this.http.put<RootModel>(url, model);
   }
 
   delete(id: number): Observable<RootModel> {

@@ -8,7 +8,7 @@ import { MM_DICTIONARY } from '../i18n/mm';
 })
 export class TranslationService {
   private readonly STORAGE_KEY = 'app_language';
-  
+
   // Available language definitions
   public readonly languages: LanguageOption[] = AVAILABLE_LANGUAGES;
 

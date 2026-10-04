@@ -114,6 +114,11 @@ export class ProductFormDialog implements OnChanges {
     }
   }
 
+  close(): void {
+    this.visible = false;
+    this.visibleChange.emit(false);
+  }
+
   onSubmit(): void {
     if (this.productForm.invalid) {
       this.productForm.markAllAsTouched();
@@ -201,10 +206,5 @@ export class ProductFormDialog implements OnChanges {
         },
       });
     }
-  }
-
-  close(): void {
-    this.visible = false;
-    this.visibleChange.emit(false);
   }
 }

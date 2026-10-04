@@ -145,33 +145,6 @@ export class PurchaseOrdersComponent implements OnInit {
     this.loadDropdownData();
   }
 
-  loadDropdownData(): void {
-    forkJoin({
-      suppliers: this.suppliersService.get(),
-      warehouses: this.warehouseService.get(),
-      products: this.productService.get(),
-      uoms: this.uomService.get()
-    }).subscribe({
-      next: (res) => {
-        this.suppliers = (res.suppliers?.data || []) as SuppliersModel[];
-        this.warehouses = (res.warehouses?.data || []) as WarehouseModel[];
-        this.products = (res.products?.data || []) as ProductModel[];
-        this.uoms = (res.uoms?.data || []) as UnitOfMeasureModel[];
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
-  onLazyLoad(event: TableLazyLoadEvent): void {
-    this.pageNumber = Math.floor((event.first ?? 0) / (event.rows ?? 20)) + 1;
-    this.pageSize = event.rows ?? 20;
-    if (event.sortField) {
-      this.sortField = Array.isArray(event.sortField) ? event.sortField[0] : event.sortField;
-      this.sortOrder = event.sortOrder ?? -1;
-    }
-    this.loadData();
-  }
-
   loadData(): void {
     this.isLoading = true;
     const todayStr = this.datePipe.transform(new Date(), 'yyyy-MM-dd') ?? undefined;
@@ -208,36 +181,28 @@ export class PurchaseOrdersComponent implements OnInit {
     });
   }
 
-  onSearch(keyword?: string): void {
-    if (keyword !== undefined) {
-      this.searchKeyword = keyword;
-    }
-    this.pageNumber = 1;
-    if (this.tblPurchaseOrders) {
-      this.tblPurchaseOrders.first = 0;
-    }
-    this.loadData();
+  loadDropdownData(): void {
+    forkJoin({
+      suppliers: this.suppliersService.get(),
+      warehouses: this.warehouseService.get(),
+      products: this.productService.get(),
+      uoms: this.uomService.get()
+    }).subscribe({
+      next: (res) => {
+        this.suppliers = (res.suppliers?.data || []) as SuppliersModel[];
+        this.warehouses = (res.warehouses?.data || []) as WarehouseModel[];
+        this.products = (res.products?.data?.items || []) as ProductModel[];
+        this.uoms = (res.uoms?.data || []) as UnitOfMeasureModel[];
+        this.cdr.markForCheck();
+      }
+    });
   }
 
-  onDateChange(): void {
-    this.pageNumber = 1;
-    if (this.tblPurchaseOrders) {
-      this.tblPurchaseOrders.first = 0;
-    }
-    this.loadData();
-  }
-
-  onStatusChange(): void {
-    this.pageNumber = 1;
-    if (this.tblPurchaseOrders) {
-      this.tblPurchaseOrders.first = 0;
-    }
-    this.loadData();
-  }
-
-  clearSearch(): void {
-    this.searchKeyword = '';
-    this.onSearch();
+  onDialogHide(): void {
+    this.modalVisible = false;
+    this.selectedPurchaseOrder = null;
+    this.isEdit = false;
+    this.formItems = [];
   }
 
   create(): void {
@@ -257,127 +222,6 @@ export class PurchaseOrdersComponent implements OnInit {
     this.modalVisible = true;
   }
 
-  update(): void {
-    if (!this.selectedPurchaseOrder) {
-      this.messageService.add({
-        key: 'globalMessage',
-        severity: 'warn',
-        summary: 'Warning',
-        detail: 'Please select a purchase order.'
-      });
-      return;
-    }
-
-    this.isEdit = true;
-    const po = this.selectedPurchaseOrder;
-    this.purchaseOrderForm.patchValue({
-      id: po.id,
-      purchaseOrderNo: po.purchaseOrderNo,
-      supplierId: po.supplierId,
-      warehouseId: po.warehouseId,
-      orderDate: po.orderDate ? new Date(po.orderDate) : new Date(),
-      expectedDate: po.expectedDate ? new Date(po.expectedDate) : new Date(),
-      status: po.status
-    });
-
-    this.formItems = (po.items || []).map(i => ({
-      id: i.id,
-      purchaseOrderId: i.purchaseOrderId,
-      productId: i.productId,
-      productName: i.productName,
-      productSku: i.productSku,
-      quantity: i.quantity,
-      unitPrice: i.unitPrice,
-      uomId: i.uomId,
-      uomName: i.uomName,
-      receivedQuantity: i.receivedQuantity ?? 0,
-      subTotal: i.quantity * i.unitPrice
-    }));
-
-    if (this.formItems.length === 0) {
-      this.formItems = [this.createEmptyItem()];
-    }
-
-    this.recalculateTotalAmount();
-    this.modalVisible = true;
-  }
-
-  viewDetails(order?: PurchaseOrderModel): void {
-    const target = order ?? this.selectedPurchaseOrder;
-    if (!target) {
-      this.messageService.add({
-        key: 'globalMessage',
-        severity: 'warn',
-        summary: 'Warning',
-        detail: 'Please select a purchase order.'
-      });
-      return;
-    }
-
-    this.detailOrder = target;
-    this.detailModalVisible = true;
-  }
-
-  printOrder(order?: PurchaseOrderModel): void {
-    const po = order ?? this.detailOrder ?? this.selectedPurchaseOrder;
-    if (!po) {
-      this.messageService.add({
-        key: 'globalMessage',
-        severity: 'warn',
-        summary: 'Warning',
-        detail: 'Please select a purchase order to print.'
-      });
-      return;
-    }
-
-    this.printOrderData = po;
-    this.printModalVisible = true;
-  }
-
-  delete(): void {
-    if (!this.selectedPurchaseOrder) {
-      this.messageService.add({
-        key: 'globalMessage',
-        severity: 'warn',
-        summary: 'Warning',
-        detail: 'Please select a purchase order to delete.'
-      });
-      return;
-    }
-
-    const orderId = this.selectedPurchaseOrder.id!;
-    const poNo = this.selectedPurchaseOrder.purchaseOrderNo;
-
-    this.confirmationService.confirm({
-      message: `Are you sure you want to delete purchase order "${poNo}"?`,
-      header: 'Delete Confirmation',
-      icon: 'pi pi-info-circle',
-      key: 'positionDialog',
-      accept: () => {
-        this.purchaseOrdersService.delete(orderId).subscribe({
-          next: (res) => {
-            this.selectedPurchaseOrder = null;
-            this.messageService.add({
-              key: 'globalMessage',
-              severity: 'success',
-              summary: 'Deleted',
-              detail: res.message ?? 'Purchase order deleted successfully.'
-            });
-            this.loadData();
-          },
-          error: (err) => {
-            this.messageService.add({
-              key: 'globalMessage',
-              severity: 'error',
-              summary: 'Error',
-              detail: err.error?.message ?? 'Failed to delete purchase order.'
-            });
-          }
-        });
-      }
-    });
-  }
-
   createEmptyItem(): PurchaseOrderItemModel {
     return {
       productId: '',
@@ -387,52 +231,6 @@ export class PurchaseOrdersComponent implements OnInit {
       receivedQuantity: 0,
       subTotal: 0
     };
-  }
-
-  addItem(): void {
-    this.formItems.push(this.createEmptyItem());
-    this.recalculateTotalAmount();
-  }
-
-  removeItem(index: number): void {
-    if (this.formItems.length > 1) {
-      this.formItems.splice(index, 1);
-      this.recalculateTotalAmount();
-    } else {
-      this.messageService.add({
-        key: 'globalMessage',
-        severity: 'warn',
-        summary: 'Warning',
-        detail: 'A purchase order must contain at least one item.'
-      });
-    }
-  }
-
-  onProductSelected(item: PurchaseOrderItemModel): void {
-    const prod = this.products.find(p => p.id === item.productId);
-    if (prod) {
-      item.productId = prod.id!;
-      item.productName = prod.name;
-      item.productSku = prod.sku ?? '';
-      item.unitPrice = prod.costPrice ?? 0;
-      if (prod.baseUomId) {
-        item.uomId = prod.baseUomId;
-      }
-      this.calculateSubTotal(item);
-    }
-  }
-
-  calculateSubTotal(item: PurchaseOrderItemModel): void {
-    item.subTotal = (item.quantity || 0) * (item.unitPrice || 0);
-    this.recalculateTotalAmount();
-  }
-
-  recalculateTotalAmount(): void {
-    this.formTotalAmount = this.formItems.reduce((acc, curr) => acc + ((curr.quantity || 0) * (curr.unitPrice || 0)), 0);
-  }
-
-  getTotalAmount(): number {
-    return this.formTotalAmount;
   }
 
   onSubmit(): void {
@@ -530,6 +328,236 @@ export class PurchaseOrdersComponent implements OnInit {
     }
   }
 
+  update(): void {
+    if (!this.selectedPurchaseOrder) {
+      this.messageService.add({
+        key: 'globalMessage',
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'Please select a purchase order.'
+      });
+      return;
+    }
+
+    this.isEdit = true;
+    const po = this.selectedPurchaseOrder;
+    this.purchaseOrderForm.patchValue({
+      id: po.id,
+      purchaseOrderNo: po.purchaseOrderNo,
+      supplierId: po.supplierId,
+      warehouseId: po.warehouseId,
+      orderDate: po.orderDate ? new Date(po.orderDate) : new Date(),
+      expectedDate: po.expectedDate ? new Date(po.expectedDate) : new Date(),
+      status: po.status
+    });
+
+    this.formItems = (po.items || []).map(i => ({
+      id: i.id,
+      purchaseOrderId: i.purchaseOrderId,
+      productId: i.productId,
+      productName: i.productName,
+      productSku: i.productSku,
+      quantity: i.quantity,
+      unitPrice: i.unitPrice,
+      uomId: i.uomId,
+      uomName: i.uomName,
+      receivedQuantity: i.receivedQuantity ?? 0,
+      subTotal: i.quantity * i.unitPrice
+    }));
+
+    if (this.formItems.length === 0) {
+      this.formItems = [this.createEmptyItem()];
+    }
+
+    this.recalculateTotalAmount();
+    this.modalVisible = true;
+  }
+
+  delete(): void {
+    if (!this.selectedPurchaseOrder) {
+      this.messageService.add({
+        key: 'globalMessage',
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'Please select a purchase order to delete.'
+      });
+      return;
+    }
+
+    const orderId = this.selectedPurchaseOrder.id!;
+    const poNo = this.selectedPurchaseOrder.purchaseOrderNo;
+
+    this.confirmationService.confirm({
+      message: `Are you sure you want to delete purchase order "${poNo}"?`,
+      header: 'Delete Confirmation',
+      icon: 'pi pi-info-circle',
+      key: 'positionDialog',
+      accept: () => {
+        this.purchaseOrdersService.delete(orderId).subscribe({
+          next: (res) => {
+            this.selectedPurchaseOrder = null;
+            this.messageService.add({
+              key: 'globalMessage',
+              severity: 'success',
+              summary: 'Deleted',
+              detail: res.message ?? 'Purchase order deleted successfully.'
+            });
+            this.loadData();
+          },
+          error: (err) => {
+            this.messageService.add({
+              key: 'globalMessage',
+              severity: 'error',
+              summary: 'Error',
+              detail: err.error?.message ?? 'Failed to delete purchase order.'
+            });
+          }
+        });
+      }
+    });
+  }
+
+  excel(): void {
+    const todayStr = this.datePipe.transform(new Date(), 'yyyy-MM-dd') ?? undefined;
+    const orderDateStr = this.filterOrderDate
+      ? (this.datePipe.transform(this.filterOrderDate, 'yyyy-MM-dd') ?? undefined)
+      : todayStr;
+
+    this.purchaseOrdersService.export({
+      q: this.searchKeyword,
+      orderDate: orderDateStr,
+      status: this.filterStatus
+    }).subscribe({
+      next: (blob) => {
+        this.exportService.excel_blob('Purchase_Orders', blob);
+      },
+      error: () => {
+        // Fallback to client-side table export if API export fails
+        this.exportService.excelAll('Purchase_Orders', this.tblPurchaseOrders);
+      }
+    });
+  }
+
+  onLazyLoad(event: TableLazyLoadEvent): void {
+    this.pageNumber = Math.floor((event.first ?? 0) / (event.rows ?? 20)) + 1;
+    this.pageSize = event.rows ?? 20;
+    if (event.sortField) {
+      this.sortField = Array.isArray(event.sortField) ? event.sortField[0] : event.sortField;
+      this.sortOrder = event.sortOrder ?? -1;
+    }
+    this.loadData();
+  }
+
+  onSearch(keyword?: string): void {
+    if (keyword !== undefined) {
+      this.searchKeyword = keyword;
+    }
+    this.pageNumber = 1;
+    if (this.tblPurchaseOrders) {
+      this.tblPurchaseOrders.first = 0;
+    }
+    this.loadData();
+  }
+
+  onDateChange(): void {
+    this.pageNumber = 1;
+    if (this.tblPurchaseOrders) {
+      this.tblPurchaseOrders.first = 0;
+    }
+    this.loadData();
+  }
+
+  onStatusChange(): void {
+    this.pageNumber = 1;
+    if (this.tblPurchaseOrders) {
+      this.tblPurchaseOrders.first = 0;
+    }
+    this.loadData();
+  }
+
+  clearSearch(): void {
+    this.searchKeyword = '';
+    this.onSearch();
+  }
+
+  viewDetails(order?: PurchaseOrderModel): void {
+    const target = order ?? this.selectedPurchaseOrder;
+    if (!target) {
+      this.messageService.add({
+        key: 'globalMessage',
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'Please select a purchase order.'
+      });
+      return;
+    }
+
+    this.detailOrder = target;
+    this.detailModalVisible = true;
+  }
+
+  printOrder(order?: PurchaseOrderModel): void {
+    const po = order ?? this.detailOrder ?? this.selectedPurchaseOrder;
+    if (!po) {
+      this.messageService.add({
+        key: 'globalMessage',
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'Please select a purchase order to print.'
+      });
+      return;
+    }
+
+    this.printOrderData = po;
+    this.printModalVisible = true;
+  }
+
+  addItem(): void {
+    this.formItems.push(this.createEmptyItem());
+    this.recalculateTotalAmount();
+  }
+
+  removeItem(index: number): void {
+    if (this.formItems.length > 1) {
+      this.formItems.splice(index, 1);
+      this.recalculateTotalAmount();
+    } else {
+      this.messageService.add({
+        key: 'globalMessage',
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'A purchase order must contain at least one item.'
+      });
+    }
+  }
+
+  onProductSelected(item: PurchaseOrderItemModel): void {
+    const prod = this.products.find(p => p.id === item.productId);
+    if (prod) {
+      item.productId = prod.id!;
+      item.productName = prod.name;
+      item.productSku = prod.sku ?? '';
+      item.unitPrice = prod.costPrice ?? 0;
+      if (prod.baseUomId) {
+        item.uomId = prod.baseUomId;
+      }
+      this.calculateSubTotal(item);
+    }
+  }
+
+  calculateSubTotal(item: PurchaseOrderItemModel): void {
+    item.subTotal = (item.quantity || 0) * (item.unitPrice || 0);
+    this.recalculateTotalAmount();
+  }
+
+  recalculateTotalAmount(): void {
+    this.formTotalAmount = this.formItems.reduce((acc, curr) => acc + ((curr.quantity || 0) * (curr.unitPrice || 0)), 0);
+  }
+
+  getTotalAmount(): number {
+    return this.formTotalAmount;
+  }
+
   getStatusSeverity(status: PurchaseOrderStatus): 'warn' | 'info' | 'success' | 'danger' | 'secondary' {
     switch (status) {
       case PurchaseOrderStatus.Pending:
@@ -573,34 +601,6 @@ export class PurchaseOrdersComponent implements OnInit {
       default:
         return 'Unknown';
     }
-  }
-
-  onDialogHide(): void {
-    this.modalVisible = false;
-    this.selectedPurchaseOrder = null;
-    this.isEdit = false;
-    this.formItems = [];
-  }
-
-  excel(): void {
-    const todayStr = this.datePipe.transform(new Date(), 'yyyy-MM-dd') ?? undefined;
-    const orderDateStr = this.filterOrderDate
-      ? (this.datePipe.transform(this.filterOrderDate, 'yyyy-MM-dd') ?? undefined)
-      : todayStr;
-
-    this.purchaseOrdersService.export({
-      q: this.searchKeyword,
-      orderDate: orderDateStr,
-      status: this.filterStatus
-    }).subscribe({
-      next: (blob) => {
-        this.exportService.excel_blob('Purchase_Orders', blob);
-      },
-      error: () => {
-        // Fallback to client-side table export if API export fails
-        this.exportService.excelAll('Purchase_Orders', this.tblPurchaseOrders);
-      }
-    });
   }
 
   private generatePoNumber(): string {

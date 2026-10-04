@@ -26,9 +26,9 @@ export class CompanyService {
     return this.http.post<RootModel>(url, payload);
   }
 
-  update(provider: CompanyModel): Observable<RootModel> {
-    const url = `${environment.main_url}/usermanage/companies/${provider.id}`;
-    return this.http.put<RootModel>(url, provider);
+  update(model: CompanyModel): Observable<RootModel> {
+    const url = `${environment.main_url}/usermanage/companies/${model.id}`;
+    return this.http.put<RootModel>(url, model);
   }
 
   toggleStatus(id: number): Observable<RootModel> {

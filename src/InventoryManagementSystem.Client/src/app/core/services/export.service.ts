@@ -10,7 +10,7 @@ import { ExportColumnModel } from '../models/export-column.model';
 })
 export class ExportService {
 
-  constructor(private datePipe: DatePipe) { }
+  constructor(private datePipe: DatePipe) {}
 
   public async excelAll(fileName: string, table: any): Promise<void> {
     if (!table) {

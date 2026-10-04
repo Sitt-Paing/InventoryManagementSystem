@@ -32,7 +32,7 @@ import { StockTransactionService } from '../../core/services/process/stock-trans
 export class DashboardComponent implements OnInit {
   products: ProductModel[] = [];
   recentTransactions: StockTransactionModel[] = [];
-  
+
   totalProductsCount: number = 0;
   lowStockCount: number = 0;
   outOfStockCount: number = 0;
@@ -51,7 +51,7 @@ export class DashboardComponent implements OnInit {
   loadData(): void {
     this.productService.get().subscribe({
       next: (res) => {
-        this.products = res.data || [];
+        this.products = res.data?.items || [];
         this.totalProductsCount = this.products.length;
         this.lowStockCount = this.products.filter(p => (p.currentStock || 0) <= (p.reorderLevel || 0) && (p.currentStock || 0) > 0).length;
         this.outOfStockCount = this.products.filter(p => (p.currentStock || 0) <= 0).length;

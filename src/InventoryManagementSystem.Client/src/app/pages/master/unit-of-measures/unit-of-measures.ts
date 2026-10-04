@@ -149,10 +149,6 @@ export class UnitOfMeasures implements OnInit {
     });
   }
 
-  onCategoryFilterChange(): void {
-    this.loadUoms();
-  }
-
   create(): void {
     this.isEdit = false;
     this.uomForm.reset({
@@ -165,6 +161,58 @@ export class UnitOfMeasures implements OnInit {
       isActive: true,
     });
     this.modalVisible = true;
+  }
+
+  save(): void {
+    if (this.uomForm.invalid) {
+      this.uomForm.markAllAsTouched();
+      return;
+    }
+
+    this.isSubmitting = true;
+    const formVal = this.uomForm.value;
+
+    const payload: Partial<UnitOfMeasureModel> = {
+      id: formVal.id || 0,
+      categoryId: formVal.categoryId!,
+      code: formVal.code!.trim().toUpperCase(),
+      name: formVal.name!.trim(),
+      symbol: formVal.symbol?.trim() || null,
+      decimalPlaces: formVal.decimalPlaces ?? 0,
+      isActive: formVal.isActive ?? true,
+    };
+
+    const action = this.isEdit
+      ? this.uomService.update(payload)
+      : this.uomService.create(payload);
+
+    action.subscribe({
+      next: (res) => {
+        this.isSubmitting = false;
+        if (res.success) {
+          this.messageService.add({
+            key: 'globalMessage',
+            severity: 'success',
+            summary: 'Success',
+            detail: `Unit of measure ${this.isEdit ? 'updated' : 'created'} successfully.`,
+          });
+          this.modalVisible = false;
+          this.loadUoms();
+        }
+      },
+      error: (err) => {
+        this.isSubmitting = false;
+        const detail = err.error?.errors
+          ? Object.values(err.error.errors).flat().join(', ')
+          : (err.error?.message || 'Operation failed');
+        this.messageService.add({
+          key: 'globalMessage',
+          severity: 'error',
+          summary: 'Error',
+          detail,
+        });
+      },
+    });
   }
 
   update(): void {
@@ -232,63 +280,15 @@ export class UnitOfMeasures implements OnInit {
     });
   }
 
-  save(): void {
-    if (this.uomForm.invalid) {
-      this.uomForm.markAllAsTouched();
-      return;
-    }
+  exportExcel(): void {
+    this.exportService.excelAll('UnitOfMeasures', this.tblUom);
+  }
 
-    this.isSubmitting = true;
-    const formVal = this.uomForm.value;
-
-    const payload: Partial<UnitOfMeasureModel> = {
-      id: formVal.id || 0,
-      categoryId: formVal.categoryId!,
-      code: formVal.code!.trim().toUpperCase(),
-      name: formVal.name!.trim(),
-      symbol: formVal.symbol?.trim() || null,
-      decimalPlaces: formVal.decimalPlaces ?? 0,
-      isActive: formVal.isActive ?? true,
-    };
-
-    const action = this.isEdit
-      ? this.uomService.update(payload)
-      : this.uomService.create(payload);
-
-    action.subscribe({
-      next: (res) => {
-        this.isSubmitting = false;
-        if (res.success) {
-          this.messageService.add({
-            key: 'globalMessage',
-            severity: 'success',
-            summary: 'Success',
-            detail: `Unit of measure ${this.isEdit ? 'updated' : 'created'} successfully.`,
-          });
-          this.modalVisible = false;
-          this.loadUoms();
-        }
-      },
-      error: (err) => {
-        this.isSubmitting = false;
-        const detail = err.error?.errors
-          ? Object.values(err.error.errors).flat().join(', ')
-          : (err.error?.message || 'Operation failed');
-        this.messageService.add({
-          key: 'globalMessage',
-          severity: 'error',
-          summary: 'Error',
-          detail,
-        });
-      },
-    });
+  onCategoryFilterChange(): void {
+    this.loadUoms();
   }
 
   openCategoryManager(): void {
     this.categoryModalVisible = true;
-  }
-
-  exportExcel(): void {
-    this.exportService.excelAll('UnitOfMeasures', this.tblUom);
   }
 }

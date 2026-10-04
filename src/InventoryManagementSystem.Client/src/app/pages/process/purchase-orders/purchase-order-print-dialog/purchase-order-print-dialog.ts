@@ -16,6 +16,11 @@ export class PurchaseOrderPrintDialog {
   @Input() order: PurchaseOrderModel | null = null;
   @Output() visibleChange = new EventEmitter<boolean>();
 
+  close(): void {
+    this.visible = false;
+    this.visibleChange.emit(false);
+  }
+
   getStatusLabel(status?: PurchaseOrderStatus): string {
     switch (status) {
       case PurchaseOrderStatus.Pending:
@@ -29,11 +34,6 @@ export class PurchaseOrderPrintDialog {
       default:
         return '-';
     }
-  }
-
-  close(): void {
-    this.visible = false;
-    this.visibleChange.emit(false);
   }
 
   printVoucher(): void {

@@ -94,38 +94,6 @@ export class CompanyComponent implements OnInit {
     });
   }
 
-  onSearch(): void {
-    this.applyFilter();
-  }
-
-  applyFilter(): void {
-    if (!this.searchKeyword.trim()) {
-      this.filteredCompanies = [...this.companies];
-    } else {
-      const q = this.searchKeyword.toLowerCase().trim();
-      this.filteredCompanies = this.companies.filter(c =>
-        c.companyName?.toLowerCase().includes(q) ||
-        c.contactPerson?.toLowerCase().includes(q) ||
-        c.email?.toLowerCase().includes(q) ||
-        c.phone?.toLowerCase().includes(q)
-      );
-    }
-  }
-
-  openRegisterModal(): void {
-    this.companyForm.reset({
-      companyName: '',
-      contactPerson: '',
-      companyEmail: '',
-      phone: '',
-      address: '',
-      adminUserName: '',
-      adminEmail: '',
-      adminPassword: ''
-    });
-    this.modalVisible = true;
-  }
-
   onDialogHide(): void {
     this.modalVisible = false;
     this.companyForm.reset();
@@ -176,6 +144,72 @@ export class CompanyComponent implements OnInit {
     });
   }
 
+  deleteCompany(company: CompanyModel): void {
+    if (!company.id) return;
+
+    this.confirmationService.confirm({
+      key: 'positionDialog',
+      header: 'Delete Confirmation',
+      message: `Are you sure you want to delete "${company.companyName}"? This company and its users will no longer have access.`,
+      icon: 'pi pi-trash',
+      accept: () => {
+        this.companyService.delete(company.id!).subscribe({
+          next: (res) => {
+            this.messageService.add({
+              key: 'globalMessage',
+              severity: 'success',
+              summary: 'Confirmed',
+              detail: res.message || 'Company was deleted successfully.'
+            });
+            this.loadCompanies();
+            this.cdr.markForCheck();
+          },
+          error: (err) => {
+            this.messageService.add({
+              key: 'globalMessage',
+              severity: 'error',
+              summary: 'Error',
+              detail: err.error?.message || 'Failed to delete company.'
+            });
+            this.cdr.markForCheck();
+          }
+        });
+      }
+    });
+  }
+
+  onSearch(): void {
+    this.applyFilter();
+  }
+
+  applyFilter(): void {
+    if (!this.searchKeyword.trim()) {
+      this.filteredCompanies = [...this.companies];
+    } else {
+      const q = this.searchKeyword.toLowerCase().trim();
+      this.filteredCompanies = this.companies.filter(c =>
+        c.companyName?.toLowerCase().includes(q) ||
+        c.contactPerson?.toLowerCase().includes(q) ||
+        c.email?.toLowerCase().includes(q) ||
+        c.phone?.toLowerCase().includes(q)
+      );
+    }
+  }
+
+  openRegisterModal(): void {
+    this.companyForm.reset({
+      companyName: '',
+      contactPerson: '',
+      companyEmail: '',
+      phone: '',
+      address: '',
+      adminUserName: '',
+      adminEmail: '',
+      adminPassword: ''
+    });
+    this.modalVisible = true;
+  }
+
   toggleCompanyStatus(company: CompanyModel): void {
     if (!company.id) return;
 
@@ -222,40 +256,6 @@ export class CompanyComponent implements OnInit {
           severity: 'error',
           summary: 'Error',
           detail: err.error?.message || 'Failed to update company status.'
-        });
-      }
-    });
-  }
-
-  deleteCompany(company: CompanyModel): void {
-    if (!company.id) return;
-
-    this.confirmationService.confirm({
-      key: 'positionDialog',
-      header: 'Delete Confirmation',
-      message: `Are you sure you want to delete "${company.companyName}"? This company and its users will no longer have access.`,
-      icon: 'pi pi-trash',
-      accept: () => {
-        this.companyService.delete(company.id!).subscribe({
-          next: (res) => {
-            this.messageService.add({
-              key: 'globalMessage',
-              severity: 'success',
-              summary: 'Confirmed',
-              detail: res.message || 'Company was deleted successfully.'
-            });
-            this.loadCompanies();
-            this.cdr.markForCheck();
-          },
-          error: (err) => {
-            this.messageService.add({
-              key: 'globalMessage',
-              severity: 'error',
-              summary: 'Error',
-              detail: err.error?.message || 'Failed to delete company.'
-            });
-            this.cdr.markForCheck();
-          }
         });
       }
     });

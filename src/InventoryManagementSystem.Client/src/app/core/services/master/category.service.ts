@@ -9,30 +9,30 @@ import { RootModel } from "../../models/root.model";
   providedIn: 'root'
 })
 export class CategoryService {
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   get(): Observable<RootModel> {
-    let url: string = `${environment.main_url}/master/categories`;
+    const url = `${environment.main_url}/master/categories`;
     return this.http.get<RootModel>(url);
   }
 
   getById(id: number): Observable<RootModel> {
-    let url: string = `${environment.main_url}/master/categories/${id}`;
+    const url = `${environment.main_url}/master/categories/${id}`;
     return this.http.get<RootModel>(url);
   }
 
-  create(provider: CategoryModel): Observable<RootModel> {
-    let url: string = `${environment.main_url}/master/categories`;
-    return this.http.post<RootModel>(url, JSON.stringify(provider));
+  create(model: CategoryModel): Observable<RootModel> {
+    const url = `${environment.main_url}/master/categories`;
+    return this.http.post<RootModel>(url, JSON.stringify(model));
   }
 
-  update(provider: CategoryModel): Observable<RootModel> {
-    let url: string = `${environment.main_url}/master/categories/${provider.id}`;
-    return this.http.put<RootModel>(url, JSON.stringify(provider));
+  update(model: CategoryModel): Observable<RootModel> {
+    const url = `${environment.main_url}/master/categories/${model.id}`;
+    return this.http.put<RootModel>(url, JSON.stringify(model));
   }
 
   delete(id: number): Observable<RootModel> {
-    let url: string = `${environment.main_url}/master/categories/${id}`;
+    const url = `${environment.main_url}/master/categories/${id}`;
     return this.http.delete<RootModel>(url);
   }
 }

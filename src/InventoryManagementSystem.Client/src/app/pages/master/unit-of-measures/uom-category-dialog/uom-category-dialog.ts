@@ -58,6 +58,11 @@ export class UomCategoryDialog implements OnChanges {
     }
   }
 
+  close(): void {
+    this.visible = false;
+    this.visibleChange.emit(false);
+  }
+
   createCategory(): void {
     this.isEdit = false;
     this.categoryForm.reset({
@@ -65,18 +70,6 @@ export class UomCategoryDialog implements OnChanges {
       name: '',
       description: '',
       isActive: true,
-    });
-    this.editModalVisible = true;
-  }
-
-  editCategory(cat: UomCategoryModel): void {
-    this.isEdit = true;
-    this.selectedCategory = cat;
-    this.categoryForm.patchValue({
-      id: cat.id,
-      name: cat.name,
-      description: cat.description || '',
-      isActive: cat.isActive,
     });
     this.editModalVisible = true;
   }
@@ -126,6 +119,18 @@ export class UomCategoryDialog implements OnChanges {
     });
   }
 
+  editCategory(cat: UomCategoryModel): void {
+    this.isEdit = true;
+    this.selectedCategory = cat;
+    this.categoryForm.patchValue({
+      id: cat.id,
+      name: cat.name,
+      description: cat.description || '',
+      isActive: cat.isActive,
+    });
+    this.editModalVisible = true;
+  }
+
   deleteCategory(cat: UomCategoryModel): void {
     this.confirmationService.confirm({
       key: 'positionDialog',
@@ -156,10 +161,5 @@ export class UomCategoryDialog implements OnChanges {
         });
       },
     });
-  }
-
-  close(): void {
-    this.visible = false;
-    this.visibleChange.emit(false);
   }
 }
