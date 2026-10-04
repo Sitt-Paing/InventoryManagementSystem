@@ -47,16 +47,16 @@ export class ProductBarcodeDialog implements OnChanges {
     }
   }
 
+  close(): void {
+    this.visible = false;
+    this.visibleChange.emit(false);
+  }
+
   onStickerPresetChange(preset: StickerPreset): void {
     if (preset) {
       this.stickerWidthMm = preset.width;
       this.stickerHeightMm = preset.height;
     }
-  }
-
-  close(): void {
-    this.visible = false;
-    this.visibleChange.emit(false);
   }
 
   printSticker(): void {
