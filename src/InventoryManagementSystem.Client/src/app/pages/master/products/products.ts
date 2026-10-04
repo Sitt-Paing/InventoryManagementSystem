@@ -118,7 +118,7 @@ export class Products implements OnInit {
     this.isLoading = true;
     this.productService.get().subscribe({
       next: (res) => {
-        this.products = (res.data || []) as ProductModel[];
+        this.products = (res.data?.items || []) as ProductModel[];
         this.onCategoryFilterChange();
         this.isLoading = false;
         this.cdr.detectChanges();
