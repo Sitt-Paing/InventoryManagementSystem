@@ -1,6 +1,7 @@
 using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Application.Master.Products.DTOs;
 using MediatR;
+using InventoryManagementSystem.Application.Common.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using System.Text;
 namespace InventoryManagementSystem.Application.Master.Products.Queries.GetProducts;
 
 
-public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, List<ProductDto>>
+public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, PagedResult<ProductDto>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -17,7 +18,7 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, List<Pr
     {
         _context = context;
     }
-    public async Task<List<ProductDto>> Handle(GetProductsQuery request, CancellationToken cancellationToken)
+    public async Task<PagedResult<ProductDto>> Handle(GetProductsQuery request, CancellationToken cancellationToken)
     {
         var query = _context.Products
             .AsNoTracking()
@@ -28,7 +29,22 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, List<Pr
             query = query.Where(p => p.CategoryId == request.CategoryId.Value);
         }
 
-        return await query
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var search = request.Search.Trim();
+            query = query.Where(p => p.Name.Contains(search));
+        }
+
+        var totalRecords = await query.CountAsync(cancellationToken);
+        query = query.OrderBy(p => p.Name).ThenBy(p => p.Id);
+
+        if (request.PageNumber.HasValue && request.PageSize.HasValue)
+        {
+            query = query.Skip((request.PageNumber.Value - 1) * request.PageSize.Value)
+                .Take(request.PageSize.Value);
+        }
+
+        var products = await query
             .Select(p => new ProductDto
             {
                 Id = p.Id,
@@ -63,5 +79,13 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, List<Pr
                 DeletedBy = p.DeletedBy
             })
             .ToListAsync(cancellationToken);
+
+        return new PagedResult<ProductDto>
+        {
+            Items = products,
+            TotalRecords = totalRecords,
+            PageNumber = request.PageNumber ?? 1,
+            PageSize = request.PageSize ?? totalRecords
+        };
     }
 }
