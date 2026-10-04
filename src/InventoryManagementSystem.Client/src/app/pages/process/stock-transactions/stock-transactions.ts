@@ -156,51 +156,19 @@ export class StockTransactionsComponent implements OnInit {
     ];
   }
 
+  get calculatedTotalStock(): number {
+    if (this.productWarehouseStocks && this.productWarehouseStocks.length > 0) {
+      return this.productWarehouseStocks.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+    }
+    return this.selectedProductForForm ? Number(this.selectedProductForForm.currentStock) || 0 : 0;
+  }
+
   ngOnInit(): void {
     this.setupTransactionTypeListener();
     this.loadProducts();
     this.loadWarehouses();
     this.loadLocations();
     this.loadData();
-  }
-
-  onSearch(): void {
-    this.pageNumber = 1;
-    if (this.tblStockTransactions) {
-      this.tblStockTransactions.first = 0;
-    }
-    this.loadData();
-  }
-
-  onLazyLoad(event: TableLazyLoadEvent): void {
-    if (event.first !== undefined && event.rows) {
-      this.pageNumber = Math.floor(event.first / event.rows) + 1;
-      this.pageSize = event.rows;
-    }
-    if (event.sortField) {
-      this.sortField = Array.isArray(event.sortField) ? event.sortField[0] : event.sortField;
-      this.sortOrder = event.sortOrder ?? -1;
-    }
-    this.loadData();
-  }
-
-  setupTransactionTypeListener(): void {
-    this.stockTransactionForm.get('transactionType')?.valueChanges.subscribe(type => {
-      const toWhControl = this.stockTransactionForm.get('toWarehouseId');
-      const toLocControl = this.stockTransactionForm.get('toWarehouseLocationId');
-      if (type === 'TRANSFER') {
-        toWhControl?.setValidators([Validators.required, Validators.min(1)]);
-        toLocControl?.setValidators([Validators.required, Validators.min(1)]);
-      } else {
-        toWhControl?.clearValidators();
-        toLocControl?.clearValidators();
-        toWhControl?.setValue(null);
-        toLocControl?.setValue(null);
-        this.filteredToLocations = [];
-      }
-      toWhControl?.updateValueAndValidity();
-      toLocControl?.updateValueAndValidity();
-    });
   }
 
   loadData(): void {
@@ -238,21 +206,6 @@ export class StockTransactionsComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
-  }
- 
-
-  onStartDateChange(date: Date): void {
-    this.sDate = date;
-    if (!this.sDate || this.eDate < this.sDate) {
-      this.eDate = new Date(this.sDate);
-    }
-  }
-
-  onEndDateChange(date: Date): void {
-    this.eDate = date;
-    if (!this.eDate || this.sDate > this.eDate) {
-      this.sDate = new Date(this.eDate);
-    }
   }
 
   loadProducts(): void {
@@ -298,25 +251,6 @@ export class StockTransactionsComponent implements OnInit {
     });
   }
 
-  get calculatedTotalStock(): number {
-    if (this.productWarehouseStocks && this.productWarehouseStocks.length > 0) {
-      return this.productWarehouseStocks.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
-    }
-    return this.selectedProductForForm ? Number(this.selectedProductForForm.currentStock) || 0 : 0;
-  }
-
-  buildWarehouseOptionsWithStock(): void {
-    this.warehouseOptionsWithStock = this.warehouses.map(w => {
-      const match = this.productWarehouseStocks.find(s => s.warehouseId === w.id);
-      const stock = match ? Number(match.quantity) : 0;
-      return {
-        ...w,
-        stock: stock,
-        label: `${w.name} (Stock: ${stock})`
-      };
-    });
-  }
-
   loadLocations(): void {
     this.warehouseLocationService.get().subscribe({
       next: (res) => {
@@ -327,49 +261,6 @@ export class StockTransactionsComponent implements OnInit {
         this.allLocations = [];
       }
     });
-  }
-
-  onWarehouseChange(event: any): void {
-    const warehouseId = event?.value ?? null;
-    this.updateFilteredLocations(warehouseId);
-    this.stockTransactionForm.patchValue({ warehouseLocationId: 0 });
-    this.loadWarehouseBalance();
-  }
-
-  updateFilteredLocations(warehouseId: number | null): void {
-    if (warehouseId && warehouseId > 0) {
-      this.filteredLocations = this.allLocations.filter(loc => loc.warehouseId === warehouseId);
-    } else {
-      this.filteredLocations = [...this.allLocations];
-    }
-  }
-
-  onToWarehouseChange(event: any): void {
-    const warehouseId = event?.value ?? null;
-    this.updateFilteredToLocations(warehouseId);
-    this.stockTransactionForm.patchValue({ toWarehouseLocationId: null });
-  }
-
-  updateFilteredToLocations(warehouseId: number | null): void {
-    if (warehouseId && warehouseId > 0) {
-      this.filteredToLocations = this.allLocations.filter(loc => loc.warehouseId === warehouseId);
-    } else {
-      this.filteredToLocations = [...this.allLocations];
-    }
-  }
-
-  onProductChange(event: any): void {
-    const productId = event?.value ?? null;
-    if (!productId) {
-      this.selectedProductForForm = null;
-      this.warehouseStock = null;
-      this.productWarehouseStocks = [];
-      this.buildWarehouseOptionsWithStock();
-      return;
-    }
-    this.selectedProductForForm = this.products.find(p => p.id === productId) || null;
-    this.loadProductWarehouseStocks(productId);
-    this.loadWarehouseBalance();
   }
 
   loadWarehouseBalance(): void {
@@ -580,6 +471,11 @@ export class StockTransactionsComponent implements OnInit {
     }
   }
 
+  editRow(txn: StockTransactionModel): void {
+    this.selectedStockTransaction = txn;
+    this.update();
+  }
+
   delete(): void {
     if (this.selectedStockTransaction != null) {
       const txnId = this.selectedStockTransaction.id!;
@@ -627,6 +523,123 @@ export class StockTransactionsComponent implements OnInit {
     }
   }
 
+  deleteRow(txn: StockTransactionModel): void {
+    this.selectedStockTransaction = txn;
+    this.delete();
+  }
+
+  excel(): void {
+    this.exportService.excelAll('Stock_Transactions', this.tblStockTransactions);
+  }
+
+  onSearch(): void {
+    this.pageNumber = 1;
+    if (this.tblStockTransactions) {
+      this.tblStockTransactions.first = 0;
+    }
+    this.loadData();
+  }
+
+  onLazyLoad(event: TableLazyLoadEvent): void {
+    if (event.first !== undefined && event.rows) {
+      this.pageNumber = Math.floor(event.first / event.rows) + 1;
+      this.pageSize = event.rows;
+    }
+    if (event.sortField) {
+      this.sortField = Array.isArray(event.sortField) ? event.sortField[0] : event.sortField;
+      this.sortOrder = event.sortOrder ?? -1;
+    }
+    this.loadData();
+  }
+
+  setupTransactionTypeListener(): void {
+    this.stockTransactionForm.get('transactionType')?.valueChanges.subscribe(type => {
+      const toWhControl = this.stockTransactionForm.get('toWarehouseId');
+      const toLocControl = this.stockTransactionForm.get('toWarehouseLocationId');
+      if (type === 'TRANSFER') {
+        toWhControl?.setValidators([Validators.required, Validators.min(1)]);
+        toLocControl?.setValidators([Validators.required, Validators.min(1)]);
+      } else {
+        toWhControl?.clearValidators();
+        toLocControl?.clearValidators();
+        toWhControl?.setValue(null);
+        toLocControl?.setValue(null);
+        this.filteredToLocations = [];
+      }
+      toWhControl?.updateValueAndValidity();
+      toLocControl?.updateValueAndValidity();
+    });
+  }
+
+  onStartDateChange(date: Date): void {
+    this.sDate = date;
+    if (!this.sDate || this.eDate < this.sDate) {
+      this.eDate = new Date(this.sDate);
+    }
+  }
+
+  onEndDateChange(date: Date): void {
+    this.eDate = date;
+    if (!this.eDate || this.sDate > this.eDate) {
+      this.sDate = new Date(this.eDate);
+    }
+  }
+
+  buildWarehouseOptionsWithStock(): void {
+    this.warehouseOptionsWithStock = this.warehouses.map(w => {
+      const match = this.productWarehouseStocks.find(s => s.warehouseId === w.id);
+      const stock = match ? Number(match.quantity) : 0;
+      return {
+        ...w,
+        stock: stock,
+        label: `${w.name} (Stock: ${stock})`
+      };
+    });
+  }
+
+  onWarehouseChange(event: any): void {
+    const warehouseId = event?.value ?? null;
+    this.updateFilteredLocations(warehouseId);
+    this.stockTransactionForm.patchValue({ warehouseLocationId: 0 });
+    this.loadWarehouseBalance();
+  }
+
+  updateFilteredLocations(warehouseId: number | null): void {
+    if (warehouseId && warehouseId > 0) {
+      this.filteredLocations = this.allLocations.filter(loc => loc.warehouseId === warehouseId);
+    } else {
+      this.filteredLocations = [...this.allLocations];
+    }
+  }
+
+  onToWarehouseChange(event: any): void {
+    const warehouseId = event?.value ?? null;
+    this.updateFilteredToLocations(warehouseId);
+    this.stockTransactionForm.patchValue({ toWarehouseLocationId: null });
+  }
+
+  updateFilteredToLocations(warehouseId: number | null): void {
+    if (warehouseId && warehouseId > 0) {
+      this.filteredToLocations = this.allLocations.filter(loc => loc.warehouseId === warehouseId);
+    } else {
+      this.filteredToLocations = [...this.allLocations];
+    }
+  }
+
+  onProductChange(event: any): void {
+    const productId = event?.value ?? null;
+    if (!productId) {
+      this.selectedProductForForm = null;
+      this.warehouseStock = null;
+      this.productWarehouseStocks = [];
+      this.buildWarehouseOptionsWithStock();
+      return;
+    }
+    this.selectedProductForForm = this.products.find(p => p.id === productId) || null;
+    this.loadProductWarehouseStocks(productId);
+    this.loadWarehouseBalance();
+  }
+
   view(): void {
     this.pageNumber = 1;
     if (this.tblStockTransactions) {
@@ -655,16 +668,6 @@ export class StockTransactionsComponent implements OnInit {
     this.detailModalVisible = true;
   }
 
-  editRow(txn: StockTransactionModel): void {
-    this.selectedStockTransaction = txn;
-    this.update();
-  }
-
-  deleteRow(txn: StockTransactionModel): void {
-    this.selectedStockTransaction = txn;
-    this.delete();
-  }
-
   getWarehouseName(warehouseId: number): string {
     const wh = this.warehouses.find(w => w.id === warehouseId);
     return wh ? wh.name : `WH #${warehouseId}`;
@@ -683,9 +686,5 @@ export class StockTransactionsComponent implements OnInit {
       case 'ADJUSTMENT': return 'warn';
       default: return 'warn';
     }
-  }
-
-  excel(): void {
-    this.exportService.excelAll('Stock_Transactions', this.tblStockTransactions);
   }
 }
