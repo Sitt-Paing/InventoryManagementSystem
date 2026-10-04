@@ -127,8 +127,9 @@ export class Categories implements OnInit {
     });
   }
 
-  showDialog() {
-    this.modalVisible = true;
+  onDialogHide(): void {
+    this.selectedCategory = null as any;
+    this.modalVisible = false;
   }
 
   create(): void {
@@ -139,64 +140,6 @@ export class Categories implements OnInit {
     this.categoryForm.controls.id.setValue(0);
     this.categoryForm.controls.isActive.setValue(true);
     this.showDialog();
-  }
-
-  update(): void {
-    this.isEdit = true;
-    this.categoryForm.reset();
-
-    if (this.selectedCategory !== null && this.selectedCategory !== undefined) {
-      this.categoryForm.controls['id'].setValue(this.selectedCategory.id);
-      this.categoryForm.controls['name'].setValue(this.selectedCategory.name);
-      this.categoryForm.controls['description'].setValue(this.selectedCategory.description ?? '');
-      this.categoryForm.controls['isActive'].setValue(this.selectedCategory.isActive);
-      this.categoryForm.controls['createdOn'].setValue(this.selectedCategory.createdOn as any);
-      this.categoryForm.controls['createdBy'].setValue(this.selectedCategory.createdBy as any);
-      this.showDialog();
-      this.selectedCategory = null as any;
-      this.errorMessage.set([]);
-    } else {
-      this.messageService.add({
-        key: 'globalMessage',
-        severity: 'warn',
-        summary: 'Warning',
-        detail: 'Please Select Category',
-      });
-    }
-  }
-
-  delete(): void {
-    if (this.selectedCategory != null) {
-      this.confirmationService.confirm({
-        message: 'Are You Sure Want To Delete?',
-        header: 'Delete Confirmation',
-        icon: 'pi pi-info-circle',
-        accept: () => {
-          this.categoryService.delete(this.selectedCategory.id).subscribe((res) => {
-            this.messageService.add({
-              key: 'globalMessage',
-              severity: 'success',
-              summary: 'Confirmed',
-              detail: res.message,
-            });
-            this.loadData();
-            this.selectedCategory = null as any;
-            this.cdr.detectChanges();
-          });
-        },
-        reject: () => {
-          this.selectedCategory = null as any;
-        },
-        key: 'positionDialog',
-      });
-    } else {
-      this.messageService.add({
-        key: 'globalMessage',
-        severity: 'warn',
-        summary: 'Warning',
-        detail: 'Please Select Category',
-      });
-    }
   }
 
   onSubmit(): void {
@@ -262,12 +205,69 @@ export class Categories implements OnInit {
     }
   }
 
-  onDialogHide(): void {
-    this.selectedCategory = null as any;
-    this.modalVisible = false;
+  update(): void {
+    this.isEdit = true;
+    this.categoryForm.reset();
+
+    if (this.selectedCategory !== null && this.selectedCategory !== undefined) {
+      this.categoryForm.controls['id'].setValue(this.selectedCategory.id);
+      this.categoryForm.controls['name'].setValue(this.selectedCategory.name);
+      this.categoryForm.controls['description'].setValue(this.selectedCategory.description ?? '');
+      this.categoryForm.controls['isActive'].setValue(this.selectedCategory.isActive);
+      this.categoryForm.controls['createdOn'].setValue(this.selectedCategory.createdOn as any);
+      this.categoryForm.controls['createdBy'].setValue(this.selectedCategory.createdBy as any);
+      this.showDialog();
+      this.selectedCategory = null as any;
+      this.errorMessage.set([]);
+    } else {
+      this.messageService.add({
+        key: 'globalMessage',
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'Please Select Category',
+      });
+    }
+  }
+
+  delete(): void {
+    if (this.selectedCategory != null) {
+      this.confirmationService.confirm({
+        message: 'Are You Sure Want To Delete?',
+        header: 'Delete Confirmation',
+        icon: 'pi pi-info-circle',
+        accept: () => {
+          this.categoryService.delete(this.selectedCategory.id).subscribe((res) => {
+            this.messageService.add({
+              key: 'globalMessage',
+              severity: 'success',
+              summary: 'Confirmed',
+              detail: res.message,
+            });
+            this.loadData();
+            this.selectedCategory = null as any;
+            this.cdr.detectChanges();
+          });
+        },
+        reject: () => {
+          this.selectedCategory = null as any;
+        },
+        key: 'positionDialog',
+      });
+    } else {
+      this.messageService.add({
+        key: 'globalMessage',
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'Please Select Category',
+      });
+    }
   }
 
   excel(): void {
     this.exportService.excelAll('Category', this.tblCategory);
+  }
+
+  showDialog(): void {
+    this.modalVisible = true;
   }
 }
