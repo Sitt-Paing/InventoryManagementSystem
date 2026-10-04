@@ -211,7 +211,7 @@ export class StockTransactionsComponent implements OnInit {
   loadProducts(): void {
     this.productService.get().subscribe({
       next: (res) => {
-        this.products = (res.data || []) as ProductModel[];
+        this.products = (res.data?.items || []) as ProductModel[];
       },
       error: () => {
         this.products = [];
