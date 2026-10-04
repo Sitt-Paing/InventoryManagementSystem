@@ -79,16 +79,6 @@ export class Products implements OnInit {
   scannerModalVisible: boolean = false;
   scannerInitialCode: string = '';
 
-  openScanner(initialCode: string = ''): void {
-    this.scannerInitialCode = initialCode;
-    this.scannerModalVisible = true;
-  }
-
-  locateProduct(prod: ProductModel): void {
-    const code = prod.barcode || prod.sku || '';
-    this.openScanner(code);
-  }
-
   constructor(
     private shareService: SharedService,
     private productService: ProductService,
@@ -124,22 +114,6 @@ export class Products implements OnInit {
     this.loadData();
   }
 
-  loadMasterData(): void {
-    this.categoryService.get().subscribe({
-      next: (res) => {
-        this.categories = (res.data || []) as CategoryModel[];
-        this.cdr.detectChanges();
-      },
-    });
-
-    this.uomService.get().subscribe({
-      next: (res) => {
-        this.availableUoms = (res.data || []) as UnitOfMeasureModel[];
-        this.cdr.detectChanges();
-      },
-    });
-  }
-
   loadData(): void {
     this.isLoading = true;
     this.productService.get().subscribe({
@@ -156,14 +130,20 @@ export class Products implements OnInit {
     });
   }
 
-  onCategoryFilterChange(): void {
-    if (this.selectedCategoryId == null || this.selectedCategoryId === 0) {
-      this.filteredProducts = [...this.products];
-    } else {
-      this.filteredProducts = this.products.filter(
-        (p) => Number(p.categoryId) === Number(this.selectedCategoryId)
-      );
-    }
+  loadMasterData(): void {
+    this.categoryService.get().subscribe({
+      next: (res) => {
+        this.categories = (res.data || []) as CategoryModel[];
+        this.cdr.detectChanges();
+      },
+    });
+
+    this.uomService.get().subscribe({
+      next: (res) => {
+        this.availableUoms = (res.data || []) as UnitOfMeasureModel[];
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   create(): void {
@@ -226,23 +206,6 @@ export class Products implements OnInit {
     });
   }
 
-  viewItemBarcode(product: ProductModel): void {
-    this.selectedBarcodeProduct = product;
-    this.selectedBarcodeValue = product.barcode || product.sku || null;
-    this.barcodeModalVisible = true;
-  }
-
-  openPackagingDialog(product: ProductModel): void {
-    this.selectedPackagingProduct = product;
-    this.packagingModalVisible = true;
-  }
-
-  onPackagingPrintBarcode(event: { product: ProductModel; barcode: string; label: string }): void {
-    this.selectedBarcodeProduct = event.product;
-    this.selectedBarcodeValue = event.barcode;
-    this.barcodeModalVisible = true;
-  }
-
   excel(): void {
     const exportColumn: ExportColumnModel[] = [
       { key: 'Sku', value: 'SKU' },
@@ -280,6 +243,43 @@ export class Products implements OnInit {
           this.exportService.excelAll('Products', this.tblProducts);
         },
       });
+  }
+
+  openScanner(initialCode: string = ''): void {
+    this.scannerInitialCode = initialCode;
+    this.scannerModalVisible = true;
+  }
+
+  locateProduct(prod: ProductModel): void {
+    const code = prod.barcode || prod.sku || '';
+    this.openScanner(code);
+  }
+
+  onCategoryFilterChange(): void {
+    if (this.selectedCategoryId == null || this.selectedCategoryId === 0) {
+      this.filteredProducts = [...this.products];
+    } else {
+      this.filteredProducts = this.products.filter(
+        (p) => Number(p.categoryId) === Number(this.selectedCategoryId)
+      );
+    }
+  }
+
+  viewItemBarcode(product: ProductModel): void {
+    this.selectedBarcodeProduct = product;
+    this.selectedBarcodeValue = product.barcode || product.sku || null;
+    this.barcodeModalVisible = true;
+  }
+
+  openPackagingDialog(product: ProductModel): void {
+    this.selectedPackagingProduct = product;
+    this.packagingModalVisible = true;
+  }
+
+  onPackagingPrintBarcode(event: { product: ProductModel; barcode: string; label: string }): void {
+    this.selectedBarcodeProduct = event.product;
+    this.selectedBarcodeValue = event.barcode;
+    this.barcodeModalVisible = true;
   }
 
   getCategoryName(categoryId: number | string): string {
