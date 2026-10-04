@@ -74,18 +74,6 @@ export class WarehouseLocations implements OnInit, OnDestroy {
     { label: '100mm × 50mm (Large Rack/Zone)', width: 100, height: 50 },
   ];
 
-  onStickerPresetChange(preset: { label: string; width: number; height: number }): void {
-    if (preset) {
-      this.stickerWidthMm = preset.width;
-      this.stickerHeightMm = preset.height;
-      this.loadBarcodePreview();
-    }
-  }
-
-  onStickerSizeInput(): void {
-    this.loadBarcodePreview();
-  }
-
   private formBuilder = inject(FormBuilder);
   public locationForm = this.formBuilder.group({
     id: [0],
@@ -138,13 +126,11 @@ export class WarehouseLocations implements OnInit, OnDestroy {
     this.loadData();
   }
 
-  loadWarehouses(): void {
-    this.warehouseService.get().subscribe({
-      next: (res) => {
-        this.warehouses = (res.data as WarehouseModel[]) ?? [];
-        this.cdr.detectChanges();
-      },
-    });
+  ngOnDestroy(): void {
+    if (this.serverPreviewBlobUrl) {
+      URL.revokeObjectURL(this.serverPreviewBlobUrl);
+      this.serverPreviewBlobUrl = null;
+    }
   }
 
   loadData(): void {
@@ -163,8 +149,46 @@ export class WarehouseLocations implements OnInit, OnDestroy {
     });
   }
 
-  onWarehouseFilterChange(): void {
-    this.loadData();
+  loadWarehouses(): void {
+    this.warehouseService.get().subscribe({
+      next: (res) => {
+        this.warehouses = (res.data as WarehouseModel[]) ?? [];
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  loadBarcodePreview(): void {
+    if (!this.selectedLocationForBarcode) return;
+    this.isLoadingPreview = true;
+    if (this.serverPreviewBlobUrl) {
+      URL.revokeObjectURL(this.serverPreviewBlobUrl);
+      this.serverPreviewBlobUrl = null;
+    }
+
+    this.locationService
+      .getBarcodePreview(
+        this.selectedLocationForBarcode.id,
+        this.stickerWidthMm,
+        this.stickerHeightMm
+      )
+      .subscribe({
+        next: (blob) => {
+          this.serverPreviewBlobUrl = URL.createObjectURL(blob);
+          this.isLoadingPreview = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.isLoadingPreview = false;
+          this.messageService.add({
+            key: 'globalMessage',
+            severity: 'error',
+            summary: 'Preview Error',
+            detail: 'Failed to generate server barcode preview.',
+          });
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   onDialogHide(): void {
@@ -333,44 +357,31 @@ export class WarehouseLocations implements OnInit, OnDestroy {
     }
   }
 
+  excel(): void {
+    this.exportService.excelAll('WarehouseLocations', this.tblLocations);
+  }
+
+  onStickerPresetChange(preset: { label: string; width: number; height: number }): void {
+    if (preset) {
+      this.stickerWidthMm = preset.width;
+      this.stickerHeightMm = preset.height;
+      this.loadBarcodePreview();
+    }
+  }
+
+  onStickerSizeInput(): void {
+    this.loadBarcodePreview();
+  }
+
+  onWarehouseFilterChange(): void {
+    this.loadData();
+  }
+
   viewBarcode(location: WarehouseLocationModel): void {
     this.selectedLocationForBarcode = location;
     this.selectedBarcodeValue = location.barcode || location.locationCode || null;
     this.barcodeModalVisible = true;
     this.loadBarcodePreview();
-  }
-
-  loadBarcodePreview(): void {
-    if (!this.selectedLocationForBarcode) return;
-    this.isLoadingPreview = true;
-    if (this.serverPreviewBlobUrl) {
-      URL.revokeObjectURL(this.serverPreviewBlobUrl);
-      this.serverPreviewBlobUrl = null;
-    }
-
-    this.locationService
-      .getBarcodePreview(
-        this.selectedLocationForBarcode.id,
-        this.stickerWidthMm,
-        this.stickerHeightMm
-      )
-      .subscribe({
-        next: (blob) => {
-          this.serverPreviewBlobUrl = URL.createObjectURL(blob);
-          this.isLoadingPreview = false;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          this.isLoadingPreview = false;
-          this.messageService.add({
-            key: 'globalMessage',
-            severity: 'error',
-            summary: 'Preview Error',
-            detail: 'Failed to generate server barcode preview.',
-          });
-          this.cdr.detectChanges();
-        },
-      });
   }
 
   onBarcodeDialogHide(): void {
@@ -487,16 +498,5 @@ export class WarehouseLocations implements OnInit, OnDestroy {
       </html>
     `);
     printWindow.document.close();
-  }
-
-  excel(): void {
-    this.exportService.excelAll('WarehouseLocations', this.tblLocations);
-  }
-
-  ngOnDestroy(): void {
-    if (this.serverPreviewBlobUrl) {
-      URL.revokeObjectURL(this.serverPreviewBlobUrl);
-      this.serverPreviewBlobUrl = null;
-    }
   }
 }
