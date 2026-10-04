@@ -39,8 +39,21 @@ export interface ProductListItemModel {
 }
 
 export interface ProductPagedModel {
-    items: ProductListItemModel[];
+    items: ProductModel[];
     totalRecords: number;
     pageNumber: number;
     pageSize: number;
+}
+export interface ProductFilterModel {
+    categoryId?: number | null;
+    search?: string | null;
+    pageNumber?: number | null;
+    pageSize?: number | null;
+}
+
+export interface ProductPagedResponseModel {
+    statusCode: number;
+    success: boolean;
+    message: string;
+    data: ProductPagedModel;
 }
