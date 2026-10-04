@@ -45,20 +45,8 @@ export class AppHeader implements OnInit, OnDestroy {
   private routerSub!: Subscription;
   private elementRef = inject(ElementRef);
 
-  isLangDropdownOpen = false;
-  isBarcodeScannerOpen = false;
-
-  @HostListener('window:keydown', ['$event'])
-  handleKeyboardShortcut(event: KeyboardEvent): void {
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'b') {
-      event.preventDefault();
-      this.isBarcodeScannerOpen = true;
-    }
-  }
-
-  openBarcodeScanner(): void {
-    this.isBarcodeScannerOpen = true;
-  }
+  isLangDropdownOpen: boolean = false;
+  isBarcodeScannerOpen: boolean = false;
 
   constructor(
     public sharedService: SharedService,
@@ -87,6 +75,19 @@ export class AppHeader implements OnInit, OnDestroy {
     ];
   }
 
+  get displayName(): string {
+    return this.authService.getUserName();
+  }
+
+  get userInitial(): string {
+    return this.authService.getUserInitial();
+  }
+
+  get userRole(): string {
+    const roles = this.authService.getUserRoles();
+    return roles.length > 0 ? roles[0] : 'User';
+  }
+
   ngOnInit(): void {
     this.updateBreadcrumb(this.router.url);
     this.routerSub = this.router.events.pipe(
@@ -100,6 +101,18 @@ export class AppHeader implements OnInit, OnDestroy {
     if (this.routerSub) {
       this.routerSub.unsubscribe();
     }
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardShortcut(event: KeyboardEvent): void {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'b') {
+      event.preventDefault();
+      this.isBarcodeScannerOpen = true;
+    }
+  }
+
+  openBarcodeScanner(): void {
+    this.isBarcodeScannerOpen = true;
   }
 
   toggleLangDropdown(event: MouseEvent): void {
@@ -159,19 +172,6 @@ export class AppHeader implements OnInit, OnDestroy {
         childTransKey: 'NAV.CATEGORIES'
       };
     }
-  }
-
-  get displayName(): string {
-    return this.authService.getUserName();
-  }
-
-  get userInitial(): string {
-    return this.authService.getUserInitial();
-  }
-
-  get userRole(): string {
-    const roles = this.authService.getUserRoles();
-    return roles.length > 0 ? roles[0] : 'User';
   }
 
   logout(): void {
