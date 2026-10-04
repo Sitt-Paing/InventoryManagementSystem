@@ -45,6 +45,14 @@ export class AppSidebar implements OnInit {
     private router: Router
   ) {}
 
+  get userName(): string {
+    return this.authService.getUserName();
+  }
+
+  get userInitial(): string {
+    return this.authService.getUserInitial();
+  }
+
   ngOnInit(): void {
     this.autoExpandActiveGroup(this.router.url);
 
@@ -79,14 +87,6 @@ export class AppSidebar implements OnInit {
         }));
       }
     }
-  }
-
-  get userName(): string {
-    return this.authService.getUserName();
-  }
-
-  get userInitial(): string {
-    return this.authService.getUserInitial();
   }
 
   hasRole(item: any): boolean {
