@@ -191,7 +191,7 @@ export class PurchaseOrdersComponent implements OnInit {
       next: (res) => {
         this.suppliers = (res.suppliers?.data || []) as SuppliersModel[];
         this.warehouses = (res.warehouses?.data || []) as WarehouseModel[];
-        this.products = (res.products?.data || []) as ProductModel[];
+        this.products = (res.products?.data?.items || []) as ProductModel[];
         this.uoms = (res.uoms?.data || []) as UnitOfMeasureModel[];
         this.cdr.markForCheck();
       }
