@@ -68,6 +68,11 @@ export class BarcodeScannerDialog implements OnInit, OnChanges {
     }
   }
 
+  close(): void {
+    this.visible = false;
+    this.visibleChange.emit(false);
+  }
+
   search(): void {
     const code = this.searchCode?.trim();
     if (!code) {
@@ -112,11 +117,6 @@ export class BarcodeScannerDialog implements OnInit, OnChanges {
   searchFromHistory(code: string): void {
     this.searchCode = code;
     this.search();
-  }
-
-  close(): void {
-    this.visible = false;
-    this.visibleChange.emit(false);
   }
 
   getStockSeverity(currentStock: number, reorderLevel: number): 'success' | 'warn' | 'danger' {
