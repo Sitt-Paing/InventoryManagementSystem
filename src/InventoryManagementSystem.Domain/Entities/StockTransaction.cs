@@ -35,6 +35,7 @@ public partial class StockTransaction : BaseAuditableEntity<long>, IMustHaveComp
 
     public string? Note { get; set; }
 
+    public long? ReversesStockTransactionId { get; set; }
     [JsonIgnore]
     public virtual Product Product { get; set; } = null!;
 
@@ -47,4 +48,7 @@ public partial class StockTransaction : BaseAuditableEntity<long>, IMustHaveComp
 
     [JsonIgnore]
     public virtual GoodReceiptItem? GoodReceiptItem { get; set; }
+
+    [JsonIgnore]
+    public virtual StockTransaction? ReversesStockTransaction { get; set; }
 }
