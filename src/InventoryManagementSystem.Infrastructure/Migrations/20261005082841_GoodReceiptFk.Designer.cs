@@ -4,6 +4,7 @@ using InventoryManagementSystem.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InventoryManagementSystem.Infrastructure.Migrations
 {
     [DbContext(typeof(InventoryManagementDbContext))]
-    partial class InventoryManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261005082841_GoodReceiptFk")]
+    partial class GoodReceiptFk
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -813,9 +816,6 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Property<long?>("ReferenceNo")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("ReversesStockTransactionId")
-                        .HasColumnType("bigint");
-
                     b.Property<int?>("ToWarehouseId")
                         .HasColumnType("int");
 
@@ -856,10 +856,6 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.HasIndex("GoodReceiptItemId");
 
                     b.HasIndex("ProductId");
-
-                    b.HasIndex("ReversesStockTransactionId")
-                        .IsUnique()
-                        .HasFilter("[ReversesStockTransactionId] IS NOT NULL");
 
                     b.HasIndex("ToWarehouseId");
 
@@ -1506,11 +1502,6 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_StockTransactions_Products");
 
-                    b.HasOne("InventoryManagementSystem.Domain.Entities.StockTransaction", "ReversesStockTransaction")
-                        .WithMany()
-                        .HasForeignKey("ReversesStockTransactionId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("InventoryManagementSystem.Domain.Entities.Warehouse", "ToWarehouse")
                         .WithMany()
                         .HasForeignKey("ToWarehouseId");
@@ -1526,8 +1517,6 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Navigation("GoodReceiptItem");
 
                     b.Navigation("Product");
-
-                    b.Navigation("ReversesStockTransaction");
 
                     b.Navigation("ToWarehouse");
 

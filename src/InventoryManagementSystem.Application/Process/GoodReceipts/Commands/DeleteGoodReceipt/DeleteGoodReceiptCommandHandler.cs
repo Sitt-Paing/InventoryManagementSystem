@@ -43,6 +43,11 @@ public class DeleteGoodReceiptCommandHandler : IRequestHandler<DeleteGoodReceipt
         {
             item.DeletedOn = now;
 
+            if (!item.ReceivedBaseQuantity.HasValue)
+            {
+                throw new InvalidOperationException ($"Receipt item '{item.Id}' has no recorded base quantity.");
+            }
+            var baseQuantity = item.ReceivedBaseQuantity.Value;
             // Revert PurchaseOrderItem received quantity
             if (purchaseOrder != null)
             {
@@ -57,10 +62,17 @@ public class DeleteGoodReceiptCommandHandler : IRequestHandler<DeleteGoodReceipt
             var stock = await _context.WarehouseStocks
                 .FirstOrDefaultAsync(s => s.ProductId == item.ProductId && s.WarehouseId == goodReceipt.WarehouseId && !s.DeletedOn.HasValue, cancellationToken);
 
-            if (stock != null)
+            if(stock == null)
             {
-                stock.Quantity = Math.Max(0, stock.Quantity - item.ReceivedQuantity);
+                throw new InvalidOperationException($"Warehouse stock for product '{item.ProductId}' in warehouse '{goodReceipt.WarehouseId}' not found.");
+            } else if(stock.Quantity < baseQuantity)
+            {
+                throw new InvalidOperationException($"Cannot delete receipt item '{item.Id}' as it would result in negative stock for product '{item.ProductId}' in warehouse '{goodReceipt.WarehouseId}'.");
+            } else
+            {
+                stock.Quantity -= baseQuantity;
             }
+            
         }
 
         if (purchaseOrder != null)

@@ -4,6 +4,7 @@ using InventoryManagementSystem.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InventoryManagementSystem.Infrastructure.Migrations
 {
     [DbContext(typeof(InventoryManagementDbContext))]
-    partial class InventoryManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261005075949_baseQuantityColumn")]
+    partial class baseQuantityColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -792,12 +795,6 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Property<DateTime?>("DeletedOn")
                         .HasColumnType("datetime");
 
-                    b.Property<Guid?>("GoodReceiptId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<long?>("GoodReceiptItemId")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("Note")
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
@@ -811,9 +808,6 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .HasColumnType("decimal(18, 4)");
 
                     b.Property<long?>("ReferenceNo")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("ReversesStockTransactionId")
                         .HasColumnType("bigint");
 
                     b.Property<int?>("ToWarehouseId")
@@ -851,15 +845,7 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GoodReceiptId");
-
-                    b.HasIndex("GoodReceiptItemId");
-
                     b.HasIndex("ProductId");
-
-                    b.HasIndex("ReversesStockTransactionId")
-                        .IsUnique()
-                        .HasFilter("[ReversesStockTransactionId] IS NOT NULL");
 
                     b.HasIndex("ToWarehouseId");
 
@@ -1490,26 +1476,11 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
 
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.StockTransaction", b =>
                 {
-                    b.HasOne("InventoryManagementSystem.Domain.Entities.GoodReceipt", "GoodReceipt")
-                        .WithMany()
-                        .HasForeignKey("GoodReceiptId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("InventoryManagementSystem.Domain.Entities.GoodReceiptItem", "GoodReceiptItem")
-                        .WithMany()
-                        .HasForeignKey("GoodReceiptItemId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("InventoryManagementSystem.Domain.Entities.Product", "Product")
                         .WithMany("StockTransactions")
                         .HasForeignKey("ProductId")
                         .IsRequired()
                         .HasConstraintName("FK_StockTransactions_Products");
-
-                    b.HasOne("InventoryManagementSystem.Domain.Entities.StockTransaction", "ReversesStockTransaction")
-                        .WithMany()
-                        .HasForeignKey("ReversesStockTransactionId")
-                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("InventoryManagementSystem.Domain.Entities.Warehouse", "ToWarehouse")
                         .WithMany()
@@ -1521,13 +1492,7 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("GoodReceipt");
-
-                    b.Navigation("GoodReceiptItem");
-
                     b.Navigation("Product");
-
-                    b.Navigation("ReversesStockTransaction");
 
                     b.Navigation("ToWarehouse");
 

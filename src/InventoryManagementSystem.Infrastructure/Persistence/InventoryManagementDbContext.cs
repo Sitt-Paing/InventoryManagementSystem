@@ -239,6 +239,23 @@ public partial class InventoryManagementDbContext : DbContext
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_StockTransactions_Products");
+
+            entity.HasOne(d => d.GoodReceipt).WithMany()
+                .HasForeignKey(d => d.GoodReceiptId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.GoodReceiptItem).WithMany()
+                .HasForeignKey(d => d.GoodReceiptItemId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(t => t.ReversesStockTransaction)
+                .WithMany()
+                .HasForeignKey(t => t.ReversesStockTransactionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(t => t.ReversesStockTransactionId)
+                .IsUnique()
+                .HasFilter("[ReversesStockTransactionId] IS NOT NULL");
         });
 
         modelBuilder.Entity<Supplier>(entity =>
@@ -423,6 +440,7 @@ public partial class InventoryManagementDbContext : DbContext
             entity.ToTable("GoodReceiptItems");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.ReceivedQuantity).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.ReceivedBaseQuantity).HasColumnType("decimal(18, 4)");
 
             entity.Property(e => e.CreatedBy).HasMaxLength(50);
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
