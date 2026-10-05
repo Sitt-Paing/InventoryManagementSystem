@@ -247,6 +247,15 @@ public partial class InventoryManagementDbContext : DbContext
             entity.HasOne(d => d.GoodReceiptItem).WithMany()
                 .HasForeignKey(d => d.GoodReceiptItemId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(t => t.ReversesStockTransaction)
+                .WithMany()
+                .HasForeignKey(t => t.ReversesStockTransactionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(t => t.ReversesStockTransactionId)
+                .IsUnique()
+                .HasFilter("[ReversesStockTransactionId] IS NOT NULL");
         });
 
         modelBuilder.Entity<Supplier>(entity =>
