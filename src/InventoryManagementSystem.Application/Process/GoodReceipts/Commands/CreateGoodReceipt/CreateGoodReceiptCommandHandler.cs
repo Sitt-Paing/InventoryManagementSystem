@@ -104,7 +104,7 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
         {
             var baseQuantity = await _uomConversionService.ConvertToBaseUomAsync(item.ProductId, item.UomId, item.ReceivedQuantity, cancellationToken);
 
-            goodReceipt.Items.Add(new GoodReceiptItem
+            var receiptItem = new GoodReceiptItem
             {
                 GoodReceiptId = goodReceipt.Id,
                 PurchaseOrderItemId = item.PurchaseOrderItemId,
@@ -112,7 +112,9 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
                 UomId = item.UomId,
                 ReceivedQuantity = item.ReceivedQuantity,
                 ReceivedBaseQuantity = baseQuantity
-            });
+            };
+
+            goodReceipt.Items.Add(receiptItem);
 
             var random = new Random();
 
@@ -126,6 +128,8 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
                 ReferenceNo = random.Next(100000, 1000000),
                 TransactionType = "IN",
                 TransactionDate = request.ReceiptDate,
+                GoodReceipt = goodReceipt,
+                GoodReceiptItem = receiptItem,
                 Note = $"Goods Receipt: {receiptNo}"
             });
 
