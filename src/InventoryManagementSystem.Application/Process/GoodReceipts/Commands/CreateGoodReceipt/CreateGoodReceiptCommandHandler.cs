@@ -17,13 +17,16 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IUomConversionService _uomConversionService;
 
     public CreateGoodReceiptCommandHandler(
         IApplicationDbContext context,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IUomConversionService uomConversionService)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _uomConversionService = uomConversionService;
     }
 
     public async Task<GoodReceiptDto> Handle(CreateGoodReceiptCommand request, CancellationToken cancellationToken)
@@ -99,13 +102,16 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
 
         foreach (var item in request.Items)
         {
+            var baseQuantity = await _uomConversionService.ConvertToBaseUomAsync(item.ProductId, item.UomId, item.ReceivedQuantity, cancellationToken);
+
             goodReceipt.Items.Add(new GoodReceiptItem
             {
                 GoodReceiptId = goodReceipt.Id,
                 PurchaseOrderItemId = item.PurchaseOrderItemId,
                 ProductId = item.ProductId,
                 UomId = item.UomId,
-                ReceivedQuantity = item.ReceivedQuantity
+                ReceivedQuantity = item.ReceivedQuantity,
+                ReceivedBaseQuantity = baseQuantity
             });
 
             var random = new Random();
@@ -113,7 +119,7 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
             _context.StockTransactions.Add(new StockTransaction
             {
                 ProductId = item.ProductId,
-                Quantity = item.ReceivedQuantity,
+                Quantity = baseQuantity,
                 UserId = effectiveUserId,
                 WarehouseId = request.WarehouseId,
                 WarehouseLocationId = 0,
@@ -147,7 +153,8 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
                 _context.WarehouseStocks.Add(stock);
             }
 
-            stock.Quantity += item.ReceivedQuantity;
+
+            stock.Quantity += baseQuantity;
         }
 
         // Update PO Status based on received quantities
