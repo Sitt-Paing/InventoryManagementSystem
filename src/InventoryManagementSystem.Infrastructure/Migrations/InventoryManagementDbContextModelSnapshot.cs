@@ -792,6 +792,12 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Property<DateTime?>("DeletedOn")
                         .HasColumnType("datetime");
 
+                    b.Property<Guid?>("GoodReceiptId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long?>("GoodReceiptItemId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Note")
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
@@ -841,6 +847,10 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("GoodReceiptId");
+
+                    b.HasIndex("GoodReceiptItemId");
 
                     b.HasIndex("ProductId");
 
@@ -1473,6 +1483,16 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
 
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.StockTransaction", b =>
                 {
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.GoodReceipt", "GoodReceipt")
+                        .WithMany()
+                        .HasForeignKey("GoodReceiptId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.GoodReceiptItem", "GoodReceiptItem")
+                        .WithMany()
+                        .HasForeignKey("GoodReceiptItemId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("InventoryManagementSystem.Domain.Entities.Product", "Product")
                         .WithMany("StockTransactions")
                         .HasForeignKey("ProductId")
@@ -1488,6 +1508,10 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .HasForeignKey("WarehouseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("GoodReceipt");
+
+                    b.Navigation("GoodReceiptItem");
 
                     b.Navigation("Product");
 
