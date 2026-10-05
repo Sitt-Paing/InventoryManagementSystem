@@ -813,6 +813,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Property<long?>("ReferenceNo")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("ReversesStockTransactionId")
+                        .HasColumnType("bigint");
+
                     b.Property<int?>("ToWarehouseId")
                         .HasColumnType("int");
 
@@ -853,6 +856,10 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.HasIndex("GoodReceiptItemId");
 
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("ReversesStockTransactionId")
+                        .IsUnique()
+                        .HasFilter("[ReversesStockTransactionId] IS NOT NULL");
 
                     b.HasIndex("ToWarehouseId");
 
@@ -1499,6 +1506,11 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_StockTransactions_Products");
 
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.StockTransaction", "ReversesStockTransaction")
+                        .WithMany()
+                        .HasForeignKey("ReversesStockTransactionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("InventoryManagementSystem.Domain.Entities.Warehouse", "ToWarehouse")
                         .WithMany()
                         .HasForeignKey("ToWarehouseId");
@@ -1514,6 +1526,8 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Navigation("GoodReceiptItem");
 
                     b.Navigation("Product");
+
+                    b.Navigation("ReversesStockTransaction");
 
                     b.Navigation("ToWarehouse");
 
