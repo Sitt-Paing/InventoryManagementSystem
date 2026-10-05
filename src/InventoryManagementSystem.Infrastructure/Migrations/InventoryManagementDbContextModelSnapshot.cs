@@ -437,6 +437,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Property<long>("PurchaseOrderItemId")
                         .HasColumnType("bigint");
 
+                    b.Property<decimal?>("ReceivedBaseQuantity")
+                        .HasColumnType("decimal(18, 4)");
+
                     b.Property<decimal>("ReceivedQuantity")
                         .HasColumnType("decimal(18, 4)");
 
