@@ -423,6 +423,7 @@ public partial class InventoryManagementDbContext : DbContext
             entity.ToTable("GoodReceiptItems");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.ReceivedQuantity).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.ReceivedBaseQuantity).HasColumnType("decimal(18, 4)");
 
             entity.Property(e => e.CreatedBy).HasMaxLength(50);
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
