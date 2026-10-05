@@ -87,8 +87,8 @@ export class StockTransactionsComponent implements OnInit {
   // Filter toolbar state
   selectedType: string = '_';
   selectedWarehouseFilter: number | null = null;
-  sDate: Date = new Date();
-  eDate: Date = new Date();
+  sDate: Date | null = null;
+  eDate: Date | null = null;
 
   movementTypeOptions = [
     { label: 'All', value: '_' },
@@ -173,8 +173,8 @@ export class StockTransactionsComponent implements OnInit {
 
   loadData(): void {
     this.isLoading = true;
-    const sdate = this.datePipe.transform(this.sDate || new Date(), 'yyyy-MM-dd') ?? '';
-    const edate = this.datePipe.transform(this.eDate || new Date(), 'yyyy-MM-dd') ?? '';
+    const sdate = this.datePipe.transform(this.sDate, 'yyyy-MM-dd');
+    const edate = this.datePipe.transform(this.eDate, 'yyyy-MM-dd');
     const type = this.selectedType === '_' ? null : this.selectedType;
 
     this.stockTransactionService.get({
@@ -571,16 +571,16 @@ export class StockTransactionsComponent implements OnInit {
     });
   }
 
-  onStartDateChange(date: Date): void {
+  onStartDateChange(date: Date | null): void {
     this.sDate = date;
-    if (!this.sDate || this.eDate < this.sDate) {
+    if (this.sDate && this.eDate && this.eDate < this.sDate) {
       this.eDate = new Date(this.sDate);
     }
   }
 
-  onEndDateChange(date: Date): void {
+  onEndDateChange(date: Date | null): void {
     this.eDate = date;
-    if (!this.eDate || this.sDate > this.eDate) {
+    if (this.eDate && this.sDate && this.sDate > this.eDate) {
       this.sDate = new Date(this.eDate);
     }
   }
@@ -651,8 +651,8 @@ export class StockTransactionsComponent implements OnInit {
   resetState(): void {
     this.selectedType = '_';
     this.selectedWarehouseFilter = null;
-    this.sDate = new Date();
-    this.eDate = new Date();
+    this.sDate = null;
+    this.eDate = null;
     this.searchKeyword = '';
     this.pageNumber = 1;
     this.sortField = 'createdOn';
