@@ -239,6 +239,14 @@ public partial class InventoryManagementDbContext : DbContext
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_StockTransactions_Products");
+
+            entity.HasOne(d => d.GoodReceipt).WithMany()
+                .HasForeignKey(d => d.GoodReceiptId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.GoodReceiptItem).WithMany()
+                .HasForeignKey(d => d.GoodReceiptItemId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Supplier>(entity =>
