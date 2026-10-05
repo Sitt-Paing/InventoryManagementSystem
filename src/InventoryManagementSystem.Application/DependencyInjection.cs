@@ -1,4 +1,7 @@
 ﻿using FluentValidation;
+using InventoryManagementSystem.Application.Common.Interfaces;
+using InventoryManagementSystem.Application.Common.Services;
+using InventoryManagementSystem.Domain.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -16,6 +19,8 @@ namespace InventoryManagementSystem.Application
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
                 cfg.AddBehavior(typeof(MediatR.IPipelineBehavior<,>), typeof(Common.Behaviors.ValidationBehavior<,>));
             });
+            services.AddScoped<IUomConversionService,UomConversionService>();
+            services.AddTransient<UomQuantityCalculator>();
             return services;
         }
     }
