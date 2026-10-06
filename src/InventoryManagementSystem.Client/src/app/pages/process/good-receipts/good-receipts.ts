@@ -93,7 +93,7 @@ export class GoodReceiptsComponent implements OnInit {
 
   // Line items state for the dialog form
   formItems: GoodReceiptItemModel[] = [];
-
+  private idempotencyKey: string | null = null;
   private formBuilder = inject(FormBuilder);
   public goodReceiptForm = this.formBuilder.group({
     id: [null as string | null],
@@ -206,6 +206,7 @@ export class GoodReceiptsComponent implements OnInit {
     this.isEdit = false;
     this.formItems = [];
     const autoReceiptNo = 'GRN-' + new Date().getTime().toString().slice(-6);
+    this.idempotencyKey = crypto.randomUUID();
 
     this.goodReceiptForm.reset({
       id: null,
@@ -224,6 +225,10 @@ export class GoodReceiptsComponent implements OnInit {
   }
 
   onSubmit(): void {
+    if (this.isSubmitting) {
+      return;
+    }
+
     if (this.goodReceiptForm.invalid) {
       this.goodReceiptForm.markAllAsTouched();
       return;
@@ -250,6 +255,7 @@ export class GoodReceiptsComponent implements OnInit {
       status: !!formVal.status,
       receivedBy: formVal.receivedBy!.trim(),
       note: formVal.note?.trim() || undefined,
+      idempotencyKey: this.isEdit ? undefined : this.idempotencyKey!,
       items: this.formItems.map(i => ({
         id: i.id,
         purchaseOrderItemId: i.purchaseOrderItemId,
