@@ -97,7 +97,8 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
             ReceiptDate = request.ReceiptDate,
             Status = request.Status,
             ReceivedBy = request.ReceivedBy.Trim(),
-            Note = request.Note?.Trim()
+            Note = request.Note?.Trim(),
+            IdempotencyKey = request.IdempotencyKey,
         };
 
         foreach (var item in request.Items)
