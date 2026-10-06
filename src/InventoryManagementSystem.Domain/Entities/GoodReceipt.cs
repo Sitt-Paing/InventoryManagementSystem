@@ -14,6 +14,7 @@ public partial class GoodReceipt : BaseAuditableEntity<Guid>, IMustHaveCompany
     public bool Status { get; set; }
     public string ReceivedBy { get; set; } = string.Empty;
     public string? Note { get; set; }
+    public Guid? IdempotencyKey { get; set; }
 
     [JsonIgnore]
     public virtual Warehouse? Warehouse { get; set; }
