@@ -29,6 +29,7 @@ export interface GoodReceiptModel {
     receivedBy: string;
     note?: string;
     totalItems?: number;
+    idempotencyKey?: string;
     items: GoodReceiptItemModel[];
     createdOn?: Date | null;
     createdBy?: string | null;
