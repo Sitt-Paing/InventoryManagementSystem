@@ -355,6 +355,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Property<DateTime?>("DeletedOn")
                         .HasColumnType("datetime");
 
+                    b.Property<Guid?>("IdempotencyKey")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Note")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -398,6 +401,10 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.HasIndex("SupplierId");
 
                     b.HasIndex("WarehouseId");
+
+                    b.HasIndex("CompanyId", "IdempotencyKey")
+                        .IsUnique()
+                        .HasFilter("[IdempotencyKey] IS NOT NULL");
 
                     b.ToTable("GoodReceipts", (string)null);
                 });
