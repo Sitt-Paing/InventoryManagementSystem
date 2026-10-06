@@ -32,6 +32,10 @@ public class CreateGoodReceiptCommandValidator : AbstractValidator<CreateGoodRec
         RuleFor(v => v.Items)
             .NotEmpty().WithMessage("At least one receipt item is required.");
 
+        RuleFor(x => x.IdempotencyKey)
+            .NotEmpty()
+            .WithMessage("Idempotency key is required.");
+
         RuleForEach(v => v.Items).ChildRules(item =>
         {
             item.RuleFor(i => i.ProductId)
