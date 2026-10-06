@@ -21,5 +21,6 @@ public record CreateGoodReceiptCommand(
     bool Status,
     string ReceivedBy,
     string? Note,
+    Guid IdempotencyKey,
     List<CreateGoodReceiptItemInput> Items
 ) : IRequest<GoodReceiptDto>;
