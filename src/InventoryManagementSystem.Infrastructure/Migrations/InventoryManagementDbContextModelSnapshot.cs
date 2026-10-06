@@ -358,6 +358,11 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Property<Guid?>("IdempotencyKey")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("IdempotencyRequestHash")
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(64)");
+
                     b.Property<string>("Note")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
