@@ -433,6 +433,10 @@ public partial class InventoryManagementDbContext : DbContext
                   .WithOne(p => p.GoodReceipt)
                   .HasForeignKey(p => p.GoodReceiptId)
                   .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(d => new { d.CompanyId, d.IdempotencyKey })
+                  .IsUnique()
+                  .HasFilter("[IdempotencyKey] IS NOT NULL");
         });
 
         modelBuilder.Entity<GoodReceiptItem>(entity =>
