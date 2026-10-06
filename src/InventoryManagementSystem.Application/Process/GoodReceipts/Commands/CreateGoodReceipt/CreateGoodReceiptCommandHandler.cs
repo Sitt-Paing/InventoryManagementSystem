@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Application.Process.GoodReceipts.DTOs;
+using InventoryManagementSystem.Application.Process.GoodReceipts.Queries.GetGoodReceiptById;
 using InventoryManagementSystem.Domain.Entities;
 using InventoryManagementSystem.Domain.Enums;
 using MediatR;
@@ -18,20 +21,51 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IUomConversionService _uomConversionService;
+    private readonly ISender _sender;
 
     public CreateGoodReceiptCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IUomConversionService uomConversionService)
+        IUomConversionService uomConversionService,
+        ISender sender)
     {
         _context = context;
         _currentUserService = currentUserService;
         _uomConversionService = uomConversionService;
+        _sender = sender;
     }
 
     public async Task<GoodReceiptDto> Handle(CreateGoodReceiptCommand request, CancellationToken cancellationToken)
     {
         await using var databaseTransaction = await _context.BeginTransactionAsync(cancellationToken);
+
+        var companyId = _currentUserService.CompanyId;
+        var requestHash = CalculateRequestHash(request);
+        var existingReceipt = await _context.GoodReceipts
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.IdempotencyKey == request.IdempotencyKey && x.CompanyId == companyId, cancellationToken);
+
+        if (existingReceipt != null && existingReceipt.DeletedOn.HasValue)
+        {
+            throw new InvalidOperationException($"A Good Receipt with the same Idempotency Key '{request.IdempotencyKey}' has already been processed and deleted.");
+        }
+
+        if (existingReceipt != null)
+        {
+            if (!string.Equals(existingReceipt.IdempotencyRequestHash, requestHash, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException("This idempotency key was already used for a different request, or its original request hash is unavailable.");
+            }
+
+            var result = await _sender.Send(new GetGoodReceiptByIdQuery(existingReceipt.Id), cancellationToken);
+            if (result == null)
+            {
+                throw new InvalidOperationException("The previously created goods receipt is no longer available.");
+            }
+
+            await databaseTransaction.CommitAsync(cancellationToken);
+            return result;
+        }
 
         var receiptNo = request.ReceiptNo.Trim();
         var exists = await _context.GoodReceipts
@@ -99,6 +133,7 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
             ReceivedBy = request.ReceivedBy.Trim(),
             Note = request.Note?.Trim(),
             IdempotencyKey = request.IdempotencyKey,
+            IdempotencyRequestHash = requestHash,
         };
 
         foreach (var item in request.Items)
@@ -242,5 +277,35 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
                 CreatedBy = i.CreatedBy
             }).ToList()
         };
+    }
+
+    private static string CalculateRequestHash(CreateGoodReceiptCommand request)
+    {
+        // Canonicalize the original create payload; later receipt edits must not change this hash.
+        var payload = new
+        {
+            ReceiptNo = request.ReceiptNo.Trim(),
+            request.WarehouseId,
+            request.PurchaseOrderId,
+            request.SupplierId,
+            ReceiptDate = request.ReceiptDate.ToString("O", CultureInfo.InvariantCulture),
+            request.Status,
+            ReceivedBy = request.ReceivedBy.Trim(),
+            Note = request.Note?.Trim(),
+            Items = request.Items
+                .OrderBy(x => x.PurchaseOrderItemId)
+                .ThenBy(x => x.ProductId)
+                .ThenBy(x => x.UomId)
+                .ThenBy(x => x.ReceivedQuantity)
+                .Select(x => new
+                {
+                    x.PurchaseOrderItemId,
+                    x.ProductId,
+                    x.UomId,
+                    ReceivedQuantity = x.ReceivedQuantity.ToString("G29", CultureInfo.InvariantCulture)
+                }).ToArray()
+        };
+
+        return Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(payload)));
     }
 }
