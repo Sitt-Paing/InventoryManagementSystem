@@ -437,6 +437,10 @@ public partial class InventoryManagementDbContext : DbContext
             entity.HasIndex(d => new { d.CompanyId, d.IdempotencyKey })
                   .IsUnique()
                   .HasFilter("[IdempotencyKey] IS NOT NULL");
+
+            entity.Property(d => d.IdempotencyRequestHash)
+                  .HasMaxLength(64)
+                  .IsUnicode(false);
         });
 
         modelBuilder.Entity<GoodReceiptItem>(entity =>
