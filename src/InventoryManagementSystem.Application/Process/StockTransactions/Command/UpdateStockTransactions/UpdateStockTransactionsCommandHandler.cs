@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementSystem.Application.Common.Interfaces;
@@ -36,6 +37,8 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
             return null;
         }
 
+        await StockTransactionMutationGuard.EnsureCanModifyAsync(_context, transaction, cancellationToken);
+
         var effectiveUserId = !string.IsNullOrWhiteSpace(request.UserId)
             ? request.UserId
             : (_currentUserService.UserId ?? _currentUserService.UserName ?? "system");
@@ -71,11 +74,19 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
         }
 
         // 2. Fetch WarehouseStocks
-        var oldSourceStock = await GetOrCreateWarehouseStockAsync(transaction.ProductId, transaction.WarehouseId, effectiveUserId, cancellationToken);
+        var oldSourceStock = await _context.WarehouseStocks.FirstOrDefaultAsync(
+            x => x.ProductId == transaction.ProductId && x.WarehouseId == transaction.WarehouseId && !x.DeletedOn.HasValue, cancellationToken)
+            ?? throw new InvalidOperationException("The original source warehouse stock is unavailable.");
         WarehouseStocks? oldDestStock = null;
-        if (transaction.ToWarehouseId.HasValue && transaction.ToWarehouseId.Value > 0)
+        if (normalizedOldType == "TRANSFER")
         {
-            oldDestStock = await GetOrCreateWarehouseStockAsync(transaction.ProductId, transaction.ToWarehouseId.Value, effectiveUserId, cancellationToken);
+            if (!transaction.ToWarehouseId.HasValue || transaction.ToWarehouseId.Value <= 0)
+            {
+                throw new InvalidOperationException("The original transfer destination is unavailable.");
+            }
+            oldDestStock = await _context.WarehouseStocks.FirstOrDefaultAsync(
+                x => x.ProductId == transaction.ProductId && x.WarehouseId == transaction.ToWarehouseId.Value && !x.DeletedOn.HasValue, cancellationToken)
+                ?? throw new InvalidOperationException("The original destination warehouse stock is unavailable.");
         }
 
         var newSourceStock = (transaction.ProductId == request.ProductId && transaction.WarehouseId == request.WarehouseId)
@@ -83,7 +94,7 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
             : await GetOrCreateWarehouseStockAsync(request.ProductId, request.WarehouseId, effectiveUserId, cancellationToken);
 
         WarehouseStocks? newDestStock = null;
-        if (request.ToWarehouseId.HasValue && request.ToWarehouseId.Value > 0)
+        if (normalizedNewType == "TRANSFER" && request.ToWarehouseId.HasValue && request.ToWarehouseId.Value > 0)
         {
             newDestStock = (transaction.ProductId == request.ProductId && transaction.ToWarehouseId == request.ToWarehouseId)
                 ? oldDestStock
@@ -146,6 +157,13 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
         else if (normalizedNewType == "ADJUSTMENT")
         {
             newSourceStock.Quantity = request.Quantity;
+        }
+
+        // Validate the final balances: replacing an intake/transfer can reuse stock in the same warehouse.
+        var affectedStocks = new[] { oldSourceStock, oldDestStock, newSourceStock, newDestStock };
+        if (affectedStocks.Any(stock => stock != null && stock.Quantity < 0))
+        {
+            throw new InvalidOperationException("This change would leave a warehouse with negative stock. The original movement's stock has already been used.");
         }
 
         var isTransfer = string.Equals(normalizedNewType, "TRANSFER", StringComparison.OrdinalIgnoreCase);
@@ -232,6 +250,13 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
 
     private async Task<WarehouseStocks> GetOrCreateWarehouseStockAsync(Guid productId, int warehouseId, string effectiveUserId, CancellationToken cancellationToken)
     {
+        var trackedStock = _context.WarehouseStocks.Local.FirstOrDefault(
+            x => x.ProductId == productId && x.WarehouseId == warehouseId && !x.DeletedOn.HasValue);
+        if (trackedStock != null)
+        {
+            return trackedStock;
+        }
+
         var stock = await _context.WarehouseStocks
             .FirstOrDefaultAsync(x => x.ProductId == productId && x.WarehouseId == warehouseId && !x.DeletedOn.HasValue, cancellationToken);
 
