@@ -1,8 +1,8 @@
 <aside
-  class="app-sidebar h-[calc(100vh-3.5rem)] transition-all duration-300 ease-in-out flex flex-col justify-between overflow-y-auto select-none"
+  class="app-sidebar h-full min-h-0 transition-all duration-300 ease-in-out flex flex-col overflow-hidden select-none"
   [ngClass]="sharedService.sidebarCollapsed() ? 'w-16' : 'w-60'">
 
-  <div class="py-4 px-3 space-y-4">
+  <div class="flex-1 min-h-0 overflow-y-auto py-4 px-3 space-y-4">
     <div *ngFor="let group of navGroups" class="space-y-1">
       <button *ngIf="!sharedService.sidebarCollapsed()" type="button" (click)="toggleGroup(group.groupName)"
         class="w-full flex items-center justify-between px-3 py-1 text-[12px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors cursor-pointer select-none group/hdr rounded-md hover:bg-slate-100 dark:hover:bg-slate-800/50">
@@ -34,7 +34,7 @@
 
   <!-- Bottom User Status Pill -->
   <div *ngIf="!sharedService.sidebarCollapsed()"
-    class="p-2.5 m-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40">
+    class="shrink-0 p-2.5 m-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40">
     <div class="flex items-center gap-2.5">
       <div class="w-7 h-7 rounded-full text-white font-bold flex items-center justify-center text-[10px] shadow-xs"
         style="background: var(--accent-gradient);">
