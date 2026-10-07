@@ -35,6 +35,15 @@ public class CreateStockTransactionsCommandHandler : IRequestHandler<CreateStock
 
         var normalizedType = command.TransactionType.Trim().ToUpperInvariant();
 
+        await StockTransactionWarehouseValidation.ValidateAsync(
+            _context,
+            command.WarehouseId,
+            command.WarehouseLocationId,
+            normalizedType == "TRANSFER",
+            command.ToWarehouseId,
+            command.ToWarehouseLocationId,
+            cancellationToken);
+
         var effectiveUserId = !string.IsNullOrWhiteSpace(command.UserId)
             ? command.UserId
             : (_currentUserService.UserId ?? _currentUserService.UserName ?? "system");
