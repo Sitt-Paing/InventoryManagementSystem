@@ -38,7 +38,7 @@ Manage product catalogs, suppliers, purchasing, goods receipts, and warehouse st
 | **Authentication** | ASP.NET Core Identity, JWT access and refresh tokens stored in HttpOnly cookies |
 | **Role-aware behavior** | Identity roles and role claims, including Administrator and SuperAdmin |
 | **Tenant-aware persistence** | Company context, automatic company assignment, and EF Core global query filters |
-| **CSRF integration** | ASP.NET Core antiforgery token issuance and Angular X-XSRF-TOKEN request headers |
+| **CSRF protection** | Global server-side antiforgery validation and Angular X-XSRF-TOKEN request headers |
 | **Audit metadata** | Creation and modification metadata applied during persistence |
 | **Data exchange** | Spreadsheet and CSV export infrastructure |
 | **API exploration** | OpenAPI documentation with a Scalar interface in Development |
@@ -55,7 +55,7 @@ This project highlights implementation skills across the frontend, backend, and 
 | **Input validation** | FluentValidation validators in the application layer |
 | **Relational data modeling** | EF Core entities, SQL Server persistence, and database migrations |
 | **Identity and access** | Identity users and roles, JWT validation, and token refresh handling |
-| **Browser authentication integration** | HttpOnly authentication cookies, antiforgery token issuance, and an Angular HTTP interceptor |
+| **Browser authentication integration** | HttpOnly authentication cookies, globally validated antiforgery tokens, trusted-origin CORS, and an Angular HTTP interceptor |
 | **Multi-tenant data access** | Current-user company context, company assignment on insert, and global query filters |
 | **Role-aware application behavior** | Role claims and privileged-role checks in the current-user service |
 | **Email integration** | MailKit SMTP service, purchase-order email previews, and application-layer delivery commands |
@@ -71,10 +71,13 @@ This project highlights implementation skills across the frontend, backend, and 
 ## 🔐 Security and tenancy
 
 - **Authentication:** Access and refresh tokens use HttpOnly cookies; cookie security settings adapt to HTTPS. Protected inventory controllers require authentication.
-- **CSRF foundations:** The API issues an `XSRF-TOKEN` cookie and configures `X-XSRF-TOKEN` as the antiforgery header. The Angular interceptor attaches that header to mutating requests. Server-side antiforgery validation is not currently wired into the inspected controllers or request pipeline, so this is integration groundwork rather than complete CSRF enforcement.
+- **CSRF protection:** A global `AutoValidateAntiforgeryTokenAttribute` rejects unsafe controller requests with missing or invalid antiforgery tokens with HTTP 400, including login, refresh, and logout. Angular fetches a current-identity token before each mutation and uses the response token in `X-XSRF-TOKEN`. The secure, HttpOnly antiforgery correlation cookie is required alongside it. GET, HEAD, OPTIONS, and TRACE do not require validation.
+- **Trusted browser origins:** Credentialed CORS accepts only `Cors:AllowedOrigins`. Development defaults to `http://localhost:4200` and `https://localhost:4200`; other environments require explicit configuration for cross-origin clients. HTTPS is required for the antiforgery cookie.
 - **Role-based foundations:** Identity maintains roles and emits role claims. The current-user service checks `Administrator` and `SuperAdmin` for privileged data access. Fine-grained role restrictions on management endpoints remain a roadmap item.
 - **Company tenancy:** Inventory entities use company-scoped EF Core query filters, and new company-aware entities inherit the current company when none is supplied. The current implementation lets both `Administrator` and `SuperAdmin` bypass company filters; it also bypasses filters when no authenticated user context exists. These filters are an application data-access mechanism, not a claim of audited tenant isolation.
 - **Audit metadata:** The persistence layer records who created or modified auditable entities and when.
+
+The antiforgery flow follows [ASP.NET Core's antiforgery guidance](https://learn.microsoft.com/aspnet/core/security/anti-request-forgery).
 
 ## 🏗 Architecture
 
@@ -178,6 +181,12 @@ Set `SmtpSettings:Host`, `Port`, `UserName`, `Password`, `FromEmail`, `FromName`
 
 The committed implementation supports SMTP delivery. A RabbitMQ-backed outbox worker with delivery status, retries, and idempotency is currently being developed in the local working tree and is not included in this README-only commit.
 
+### CSRF requirements for API clients
+
+Before any POST, PUT, PATCH, DELETE, or other unsafe controller request, call `GET /api/Auth/csrf-token`, retain the response cookies, and send `data.csrfToken` in `X-XSRF-TOKEN`. Obtain a new token after login, logout, or an authentication identity change. This applies to manual API clients and Scalar requests as well as the Angular app, including bearer-authenticated callers.
+
+For a deployed frontend on another origin, configure `Cors:AllowedOrigins` as an array of exact trusted origins, without trailing slashes. Environment variables can use `Cors__AllowedOrigins__0`, `Cors__AllowedOrigins__1`, and so on. Browser restrictions on cross-site cookies still apply.
+
 ## 🗺 Roadmap
 
 Upcoming product features:
@@ -187,7 +196,7 @@ Upcoming product features:
 
 Security follow-ups identified in the current implementation:
 
-- [ ] Enforce server-side antiforgery validation for cookie-authenticated mutating requests.
+- [x] Enforce server-side antiforgery validation for unsafe controller requests.
 - [ ] Apply explicit role authorization to privileged management operations.
 - [ ] Refine tenant administrator scope and verify company boundaries across reads and writes.
 
@@ -199,6 +208,12 @@ Build the API and its referenced projects from the repository root:
 
 ```bash
 dotnet build src/InventoryManagementSystem.Api/InventoryManagementSystem.Api.csproj
+```
+
+Run the database-free CSRF/CORS integration checks:
+
+```bash
+dotnet run --project tests/InventoryManagementSystem.CsrfChecks
 ```
 
 Run frontend commands from `src/InventoryManagementSystem.Client`:
