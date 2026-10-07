@@ -3,10 +3,12 @@ using System.Threading.Tasks;
 using InventoryManagementSystem.Application.Common.Models;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.Commands.CreatePurchaseOrder;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.Commands.DeletePurchaseOrder;
+using InventoryManagementSystem.Application.Process.PurchaseOrders.Commands.SendPurchaseOrderEmail;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.Commands.UpdatePurchaseOrder;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.DTOs;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.Queries.ExportPurchaseOrders;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.Queries.GetPurchaseOrderById;
+using InventoryManagementSystem.Application.Process.PurchaseOrders.Queries.GetPurchaseOrderEmailPreview;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.Queries.GetPurchaseOrders;
 using InventoryManagementSystem.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -77,6 +79,34 @@ public class PurchaseOrdersController : ApiControllerBase
             Success = true,
             Message = "Purchase order retrieved successfully.",
             Data = order
+        });
+    }
+
+    [HttpGet("{id:guid}/email-preview")]
+    [EndpointSummary("Preview a purchase order email without sending it")]
+    public async Task<IActionResult> GetPurchaseOrderEmailPreview(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await Mediator.Send(new GetPurchaseOrderEmailPreviewQuery(id), cancellationToken);
+        return Ok(new DefaultResponseModel
+        {
+            StatusCode = StatusCodes.Status200OK,
+            Success = true,
+            Message = "Purchase order email preview retrieved successfully.",
+            Data = result
+        });
+    }
+
+    [HttpPost("{id:guid}/send-email")]
+    [EndpointSummary("Send a purchase order email to its supplier")]
+    public async Task<IActionResult> SendPurchaseOrderEmail(Guid id, CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new SendPurchaseOrderEmailCommand(id), cancellationToken);
+        return Ok(new DefaultResponseModel
+        {
+            StatusCode = StatusCodes.Status200OK,
+            Success = true,
+            Message = "Purchase order email submitted to the SMTP server successfully.",
+            Data = null
         });
     }
 
