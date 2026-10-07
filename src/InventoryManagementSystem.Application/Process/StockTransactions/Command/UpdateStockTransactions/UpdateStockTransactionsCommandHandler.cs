@@ -43,6 +43,15 @@ public class UpdateStockTransactionsCommandHandler : IRequestHandler<UpdateStock
         var normalizedOldType = transaction.TransactionType.Trim().ToUpperInvariant();
         var normalizedNewType = request.TransactionType.Trim().ToUpperInvariant();
 
+        await StockTransactionWarehouseValidation.ValidateAsync(
+            _context,
+            request.WarehouseId,
+            request.WarehouseLocationId,
+            normalizedNewType == "TRANSFER",
+            request.ToWarehouseId,
+            request.ToWarehouseLocationId,
+            cancellationToken);
+
         // 1. Fetch products
         var oldProduct = transaction.Product ?? await _context.Products.FirstOrDefaultAsync(p => p.Id == transaction.ProductId, cancellationToken);
         if (oldProduct == null)
