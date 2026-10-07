@@ -24,6 +24,19 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
 
         if (entity == null) return null;
 
+        if (entity.BaseUomId != request.BaseUomId)
+        {
+            var hasStockHistory = entity.CurrentStock != 0
+                || await _context.WarehouseStocks.AnyAsync(x => x.ProductId == entity.Id, cancellationToken)
+                || await _context.StockTransactions.AnyAsync(x => x.ProductId == entity.Id, cancellationToken)
+                || await _context.GoodReceiptItems.AnyAsync(x => x.ProductId == entity.Id, cancellationToken);
+
+            if (hasStockHistory)
+            {
+                throw new InvalidOperationException("The stock unit cannot be changed while stock history exists. Existing balances and recorded quantities must be migrated together.");
+            }
+        }
+
         entity.Name = request.Name;
         entity.CategoryId = request.CategoryId;
         entity.BaseUomId = request.BaseUomId;
