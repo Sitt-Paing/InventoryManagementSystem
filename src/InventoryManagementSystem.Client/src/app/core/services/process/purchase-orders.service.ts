@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { RootModel } from '../../models/root.model';
 import { PurchaseOrderFilterModel, PurchaseOrderModel } from '../../models/process/purchase-order.model';
+import { PurchaseOrderEmailPreviewModel } from '../../models/process/purchase-order-email-preview.model';
 
 @Injectable({
   providedIn: 'root',
@@ -52,6 +53,16 @@ export class PurchaseOrdersService {
   getById(id: string): Observable<RootModel> {
     const url = `${environment.main_url}/process/purchase-orders/${id}`;
     return this.http.get<RootModel>(url);
+  }
+
+  getEmailPreview(id: string): Observable<Omit<RootModel, 'data'> & { data: PurchaseOrderEmailPreviewModel | null }> {
+    const url = `${environment.main_url}/process/purchase-orders/${id}/email-preview`;
+    return this.http.get<Omit<RootModel, 'data'> & { data: PurchaseOrderEmailPreviewModel | null }>(url);
+  }
+
+  sendEmail(id: string): Observable<RootModel> {
+    const url = `${environment.main_url}/process/purchase-orders/${id}/send-email`;
+    return this.http.post<RootModel>(url, null);
   }
 
   create(model: PurchaseOrderModel): Observable<RootModel> {
