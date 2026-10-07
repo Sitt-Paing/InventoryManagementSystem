@@ -1,4 +1,5 @@
-import { ChangeDetectorRef, Component, inject, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, inject, OnInit, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
@@ -18,6 +19,7 @@ import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 
 import { PurchaseOrderModel, PurchaseOrderItemModel, PurchaseOrderStatus, PURCHASE_ORDER_STATUS_OPTIONS } from '../../../core/models/process/purchase-order.model';
+import { PurchaseOrderEmailPreviewModel } from '../../../core/models/process/purchase-order-email-preview.model';
 import { SuppliersModel } from '../../../core/models/master/suppliers.model';
 import { WarehouseModel } from '../../../core/models/master/warehouse.model';
 import { ProductModel } from '../../../core/models/master/product.model';
@@ -67,6 +69,14 @@ export class PurchaseOrdersComponent implements OnInit {
   modalVisible: boolean = false;
   detailModalVisible: boolean = false;
   printModalVisible: boolean = false;
+  emailModalVisible: boolean = false;
+  isLoadingEmailPreview: boolean = false;
+  isSendingEmail: boolean = false;
+  emailPreview: PurchaseOrderEmailPreviewModel | null = null;
+  emailOrder: PurchaseOrderModel | null = null;
+  emailError: string = '';
+  private emailPreviewRequestId: number = 0;
+  private destroyRef = inject(DestroyRef);
 
   purchaseOrders: PurchaseOrderModel[] = [];
   selectedPurchaseOrder: PurchaseOrderModel | null = null;
@@ -132,6 +142,11 @@ export class PurchaseOrdersComponent implements OnInit {
         label: 'Delete',
         icon: 'pi pi-trash',
         command: () => this.delete()
+      },
+      {
+        label: 'Email Preview',
+        icon: 'pi pi-envelope',
+        command: () => this.previewEmail()
       },
       {
         label: 'Excel',
@@ -494,6 +509,92 @@ export class PurchaseOrdersComponent implements OnInit {
 
     this.detailOrder = target;
     this.detailModalVisible = true;
+  }
+
+  previewEmail(order?: PurchaseOrderModel): void {
+    if (this.isSendingEmail || this.isLoadingEmailPreview) {
+      return;
+    }
+
+    const target = order ?? this.selectedPurchaseOrder;
+    if (!target?.id) {
+      this.messageService.add({
+        key: 'globalMessage',
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'Please select a purchase order.'
+      });
+      return;
+    }
+
+    const requestId = ++this.emailPreviewRequestId;
+    this.emailOrder = target;
+    this.emailPreview = null;
+    this.emailError = '';
+    this.emailModalVisible = true;
+    this.isLoadingEmailPreview = true;
+
+    this.purchaseOrdersService.getEmailPreview(target.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          if (requestId !== this.emailPreviewRequestId) return;
+          this.isLoadingEmailPreview = false;
+          if (res.success && res.data) {
+            this.emailPreview = res.data;
+          } else {
+            this.emailError = res.message || 'Unable to load the email preview.';
+          }
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          if (requestId !== this.emailPreviewRequestId) return;
+          this.isLoadingEmailPreview = false;
+          this.emailError = err.error?.message || 'Unable to load the email preview.';
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  sendOrderEmail(): void {
+    if (this.isSendingEmail || this.isLoadingEmailPreview || !this.emailPreview || !this.emailOrder?.id) {
+      return;
+    }
+
+    this.isSendingEmail = true;
+    this.emailError = '';
+    this.purchaseOrdersService.sendEmail(this.emailOrder.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.isSendingEmail = false;
+          if (res.success) {
+            this.emailModalVisible = false;
+            this.messageService.add({
+              key: 'globalMessage',
+              severity: 'success',
+              summary: 'Success',
+              detail: 'Purchase order email submitted successfully.'
+            });
+          } else {
+            this.emailError = res.message || 'Failed to send the purchase order email.';
+          }
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          this.isSendingEmail = false;
+          this.emailError = err.error?.message || 'Failed to send the purchase order email.';
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  onEmailDialogHide(): void {
+    ++this.emailPreviewRequestId;
+    this.isLoadingEmailPreview = false;
+    this.emailPreview = null;
+    this.emailOrder = null;
+    this.emailError = '';
   }
 
   printOrder(order?: PurchaseOrderModel): void {
