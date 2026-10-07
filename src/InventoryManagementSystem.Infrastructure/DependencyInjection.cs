@@ -2,6 +2,7 @@ using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Infrastructure.Auth;
 using InventoryManagementSystem.Infrastructure.Persistence;
 using InventoryManagementSystem.Infrastructure.Services;
+using InventoryManagementSystem.Infrastructure.Services.Email;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -42,6 +43,8 @@ public static class DependencyInjection
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddTransient<IExportService, ExportService>();
         services.AddTransient<IBarcodeGenerationService, BarcodeGenerationService>();
+        services.Configure<SmtpSettings>(configuration.GetSection("SmtpSettings"));
+        services.AddTransient<IEmailService, SmtpEmailService>();
 
 
         var secretKey = configuration["JwtSettings:SecretKey"] ?? "SuperSecretKeyForInventoryManagementSystem_JwtToken_2026!#";
