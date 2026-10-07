@@ -1,9 +1,9 @@
-<div class="min-h-screen flex flex-col font-sans antialiased"
+<div class="h-dvh flex flex-col overflow-hidden font-sans antialiased"
      [class.dark]="sharedService.isDarkMode()">
-  <app-header></app-header>
-  <div class="flex flex-1 overflow-hidden">
-    <app-sidebar></app-sidebar>
-    <main class="flex-1 overflow-y-auto p-3 md:p-4 lg:p-5">
+  <app-header class="shrink-0"></app-header>
+  <div class="flex flex-1 min-h-0 overflow-hidden">
+    <app-sidebar class="h-full shrink-0"></app-sidebar>
+    <main class="flex-1 min-w-0 overflow-y-auto p-3 md:p-4 lg:p-5">
       <router-outlet></router-outlet>
     </main>
   </div>
