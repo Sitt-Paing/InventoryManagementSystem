@@ -163,6 +163,11 @@ export class StockTransactionsComponent implements OnInit {
     return this.selectedProductForForm ? Number(this.selectedProductForForm.currentStock) || 0 : 0;
   }
 
+  getStockUnit(productId: string): string {
+    const product = this.products.find(p => p.id === productId);
+    return product?.baseUomCode || product?.baseUomName || '';
+  }
+
   ngOnInit(): void {
     this.setupTransactionTypeListener();
     this.loadProducts();
