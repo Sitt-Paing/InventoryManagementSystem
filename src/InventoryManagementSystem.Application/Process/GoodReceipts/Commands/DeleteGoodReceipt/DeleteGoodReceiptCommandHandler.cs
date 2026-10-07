@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Application.Process.GoodReceipts.DTOs;
+using InventoryManagementSystem.Domain.Entities;
 using InventoryManagementSystem.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -13,10 +14,12 @@ namespace InventoryManagementSystem.Application.Process.GoodReceipts.Commands.De
 public class DeleteGoodReceiptCommandHandler : IRequestHandler<DeleteGoodReceiptCommand, GoodReceiptDto?>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public DeleteGoodReceiptCommandHandler(IApplicationDbContext context)
+    public DeleteGoodReceiptCommandHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
     {
         _context = context;
+        _currentUserService = currentUserService;
     }
 
     public async Task<GoodReceiptDto?> Handle(DeleteGoodReceiptCommand request, CancellationToken cancellationToken)
@@ -33,30 +36,58 @@ public class DeleteGoodReceiptCommandHandler : IRequestHandler<DeleteGoodReceipt
         }
 
         var now = DateTime.Now;
-        goodReceipt.DeletedOn = now;
+        var userId = _currentUserService.UserName ?? _currentUserService.UserId ?? "System";
 
         var purchaseOrder = await _context.PurchaseOrders
             .Include(p => p.Items)
             .FirstOrDefaultAsync(p => p.Id == goodReceipt.PurchaseOrderId, cancellationToken);
 
+        if (purchaseOrder == null || purchaseOrder.DeletedOn.HasValue)
+        {
+            throw new InvalidOperationException("The receipt's purchase order is unavailable.");
+        }
+
         foreach (var item in goodReceipt.Items.Where(i => !i.DeletedOn.HasValue))
         {
-            item.DeletedOn = now;
-
             if (!item.ReceivedBaseQuantity.HasValue)
             {
                 throw new InvalidOperationException ($"Receipt item '{item.Id}' has no recorded base quantity.");
             }
             var baseQuantity = item.ReceivedBaseQuantity.Value;
-            // Revert PurchaseOrderItem received quantity
-            if (purchaseOrder != null)
+            if (baseQuantity <= 0 || item.ReceivedQuantity <= 0)
             {
-                var poItem = purchaseOrder.Items.FirstOrDefault(i => i.Id == item.PurchaseOrderItemId);
-                if (poItem != null)
-                {
-                    poItem.ReceivedQuantity = Math.Max(0, poItem.ReceivedQuantity - item.ReceivedQuantity);
-                }
+                throw new InvalidOperationException($"Receipt item '{item.Id}' has an invalid recorded quantity.");
             }
+
+            var originalTransaction = await _context.StockTransactions.SingleOrDefaultAsync(
+                x => x.GoodReceiptId == goodReceipt.Id && x.GoodReceiptItemId == item.Id
+                    && x.TransactionType == "IN" && !x.DeletedOn.HasValue
+                    && !x.ReversesStockTransactionId.HasValue, cancellationToken);
+
+            if (originalTransaction == null)
+            {
+                throw new InvalidOperationException($"Receipt item '{item.Id}' has no linked original stock movement. Its history must be reconciled before deletion.");
+            }
+
+            if (await _context.StockTransactions.AnyAsync(x => x.ReversesStockTransactionId == originalTransaction.Id, cancellationToken))
+            {
+                throw new InvalidOperationException($"Receipt item '{item.Id}' has already been reversed.");
+            }
+
+            if (originalTransaction.ProductId != item.ProductId
+                || originalTransaction.WarehouseId != goodReceipt.WarehouseId
+                || originalTransaction.Quantity != baseQuantity)
+            {
+                throw new InvalidOperationException($"Receipt item '{item.Id}' does not match its original stock movement.");
+            }
+            // Revert PurchaseOrderItem received quantity
+            var poItem = purchaseOrder.Items.FirstOrDefault(i => i.Id == item.PurchaseOrderItemId && !i.DeletedOn.HasValue);
+            if (poItem == null || poItem.ProductId != item.ProductId || poItem.UomId != item.UomId
+                || poItem.ReceivedQuantity < item.ReceivedQuantity)
+            {
+                throw new InvalidOperationException($"Receipt item '{item.Id}' does not match the purchase order's received quantity.");
+            }
+            poItem.ReceivedQuantity -= item.ReceivedQuantity;
 
             // Revert Warehouse stock
             var stock = await _context.WarehouseStocks
@@ -72,10 +103,31 @@ public class DeleteGoodReceiptCommandHandler : IRequestHandler<DeleteGoodReceipt
             {
                 stock.Quantity -= baseQuantity;
             }
+
+            _context.StockTransactions.Add(new StockTransaction
+            {
+                CompanyId = originalTransaction.CompanyId,
+                ProductId = item.ProductId,
+                WarehouseId = originalTransaction.WarehouseId,
+                WarehouseLocationId = originalTransaction.WarehouseLocationId,
+                Quantity = baseQuantity,
+                TransactionType = "OUT",
+                TransactionDate = now,
+                UserId = userId,
+                GoodReceiptId = goodReceipt.Id,
+                GoodReceiptItemId = item.Id,
+                ReversesStockTransactionId = originalTransaction.Id,
+                Note = $"Reversal of goods receipt '{goodReceipt.ReceiptNo}', stock transaction '{originalTransaction.Id}'."
+            });
+            item.DeletedOn = now;
+            item.DeletedBy = userId;
             
         }
 
-        if (purchaseOrder != null)
+        goodReceipt.DeletedOn = now;
+        goodReceipt.DeletedBy = userId;
+
+        if (purchaseOrder.Status != PurchaseOrderStatus.Cancelled)
         {
             // Recalculate PO status
             var activePoItems = purchaseOrder.Items.Where(i => !i.DeletedOn.HasValue).ToList();
