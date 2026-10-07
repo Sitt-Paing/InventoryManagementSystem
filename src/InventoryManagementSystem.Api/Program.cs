@@ -32,24 +32,9 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 builder.Services.AddScoped<ICookieService, CookieService>();
-builder.Services.AddAntiforgery(options =>
-{
-    options.HeaderName = "X-XSRF-TOKEN";
-});
+builder.Services.AddBrowserSecurity(builder.Configuration, builder.Environment);
 
-builder.Services.AddControllers();
 builder.Services.AddOpenApiDoc();
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.SetIsOriginAllowed(_ => true)
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
-    });
-});
 
 var app = builder.Build();
 
@@ -69,7 +54,6 @@ if (app.Environment.IsDevelopment())
 
 
 app.UseExceptionHandler();
-app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();
 app.UseDefaultFiles();
@@ -77,6 +61,7 @@ app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseCors(BrowserSecurityExtensions.CorsPolicy);
 
 app.UseAuthentication();
 app.UseAuthorization();

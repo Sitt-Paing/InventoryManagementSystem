@@ -23,6 +23,7 @@ export class AuthService {
   public userRolesSignal = signal<string[]>(this.getStoredUserRoles());
 
   private refreshToken$: Observable<RootModel> | null = null;
+  private csrfToken$: Observable<string | null> | null = null;
 
   initializeAuth(): Observable<boolean> {
 
@@ -194,11 +195,17 @@ export class AuthService {
    * Fetch CSRF token from server
    */
   getCsrfToken(): Observable<string | null> {
+    if (this.csrfToken$) {
+      return this.csrfToken$;
+    }
     const url = `${environment.main_url}/Auth/csrf-token`;
-    return this.http.get<RootModel>(url, { withCredentials: true }).pipe(
+    this.csrfToken$ = this.http.get<RootModel>(url, { withCredentials: true }).pipe(
       map(res => (res.success && res.data?.csrfToken ? (res.data.csrfToken as string) : null)),
-      catchError(() => of(null))
+      catchError(() => of(null)),
+      finalize(() => { this.csrfToken$ = null; }),
+      shareReplay(1)
     );
+    return this.csrfToken$;
   }
 
   private currentUserSubject =

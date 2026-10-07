@@ -1,8 +1,9 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { catchError, defer, of, switchMap, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 /**
  * Global HTTP Interceptor that:
@@ -14,23 +15,30 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  // Read Anti-CSRF Token from document cookie
-  const xsrfToken = authService.getCookie('XSRF-TOKEN');
-
-  let headers = req.headers;
-  const isMutatingMethod = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method.toUpperCase());
-
-  if (xsrfToken && isMutatingMethod && !headers.has('X-XSRF-TOKEN')) {
-    headers = headers.set('X-XSRF-TOKEN', xsrfToken);
+  // Only attach credentials and tokens to our API, never third-party requests.
+  const apiUrl = new URL(environment.main_url, document.baseURI);
+  const requestUrl = new URL(req.url, document.baseURI);
+  if (requestUrl.origin !== apiUrl.origin ||
+      !requestUrl.pathname.startsWith(`${apiUrl.pathname.replace(/\/$/, '')}/`)) {
+    return next(req);
   }
 
-  // Clone request with credentials & CSRF header
-  const authReq = req.clone({
-    withCredentials: true,
-    headers
-  });
+  const isMutatingMethod = !['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(req.method.toUpperCase());
+  const sendRequest = () => defer(() =>
+    isMutatingMethod ? authService.getCsrfToken() : of(null)
+  ).pipe(
+    switchMap(token => {
+      if (isMutatingMethod && !token) {
+        return throwError(() => new Error('Unable to obtain a CSRF token. Please try again.'));
+      }
+      // Fetch the token for the current server identity, including after login,
+      // token expiry, and refresh. Reading the response also supports different hosts.
+      const headers = token ? req.headers.set('X-XSRF-TOKEN', token) : req.headers;
+      return next(req.clone({ withCredentials: true, headers }));
+    })
+  );
 
-  return next(authReq).pipe(
+  return sendRequest().pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
         // If not already on login or refresh-token endpoint, try refresh or navigate to login
@@ -42,7 +50,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             switchMap(res => {
               if (res.success) {
                 // Retry failed request with new credentials
-                return next(authReq);
+                return sendRequest();
               }
               authService.logout();
               router.navigate(['/auth/login']);
