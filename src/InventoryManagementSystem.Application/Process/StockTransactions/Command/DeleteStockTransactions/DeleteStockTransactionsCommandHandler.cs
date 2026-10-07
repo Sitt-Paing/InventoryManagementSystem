@@ -34,6 +34,8 @@ public class DeleteStockTransactionsCommandHandler : IRequestHandler<DeleteStock
             return null;
         }
 
+        await StockTransactionMutationGuard.EnsureCanModifyAsync(_context, transaction, cancellationToken);
+
         var product = transaction.Product ?? await _context.Products.FirstOrDefaultAsync(p => p.Id == transaction.ProductId, cancellationToken);
 
         var normalizedType = transaction.TransactionType.Trim().ToUpperInvariant();
@@ -42,10 +44,19 @@ public class DeleteStockTransactionsCommandHandler : IRequestHandler<DeleteStock
         var sourceStock = await _context.WarehouseStocks
             .FirstOrDefaultAsync(x => x.ProductId == transaction.ProductId && x.WarehouseId == transaction.WarehouseId && !x.DeletedOn.HasValue, cancellationToken);
 
+        if (sourceStock == null)
+        {
+            throw new InvalidOperationException("The original source warehouse stock is unavailable.");
+        }
+
         if (sourceStock != null)
         {
             if (normalizedType == "IN")
             {
+                if (sourceStock.Quantity < transaction.Quantity)
+                {
+                    throw new InvalidOperationException("This intake cannot be deleted because its stock has already been used.");
+                }
                 sourceStock.Quantity -= transaction.Quantity;
             }
             else if (normalizedType == "OUT")
@@ -54,11 +65,19 @@ public class DeleteStockTransactionsCommandHandler : IRequestHandler<DeleteStock
             }
             else if (normalizedType == "TRANSFER")
             {
+                if (!transaction.ToWarehouseId.HasValue || transaction.ToWarehouseId.Value <= 0)
+                {
+                    throw new InvalidOperationException("The original transfer destination is unavailable.");
+                }
                 sourceStock.Quantity += transaction.Quantity;
                 if (transaction.ToWarehouseId.HasValue && transaction.ToWarehouseId.Value > 0)
                 {
                     var destStock = await _context.WarehouseStocks
                         .FirstOrDefaultAsync(x => x.ProductId == transaction.ProductId && x.WarehouseId == transaction.ToWarehouseId.Value && !x.DeletedOn.HasValue, cancellationToken);
+                    if (destStock == null || destStock.Quantity < transaction.Quantity)
+                    {
+                        throw new InvalidOperationException("This transfer cannot be deleted because destination stock is missing or has already been used.");
+                    }
                     if (destStock != null)
                     {
                         destStock.Quantity -= transaction.Quantity;
