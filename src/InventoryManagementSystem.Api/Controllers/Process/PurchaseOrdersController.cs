@@ -9,6 +9,7 @@ using InventoryManagementSystem.Application.Process.PurchaseOrders.DTOs;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.Queries.ExportPurchaseOrders;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.Queries.GetPurchaseOrderById;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.Queries.GetPurchaseOrderEmailPreview;
+using InventoryManagementSystem.Application.Process.PurchaseOrders.Queries.GetPurchaseOrderEmailStatus;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.Queries.GetPurchaseOrders;
 using InventoryManagementSystem.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -98,15 +99,28 @@ public class PurchaseOrdersController : ApiControllerBase
 
     [HttpPost("{id:guid}/send-email")]
     [EndpointSummary("Send a purchase order email to its supplier")]
-    public async Task<IActionResult> SendPurchaseOrderEmail(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> SendPurchaseOrderEmail(Guid id, [FromHeader(Name = "Idempotency-Key")] Guid? idempotencyKey, CancellationToken cancellationToken)
     {
-        await Mediator.Send(new SendPurchaseOrderEmailCommand(id), cancellationToken);
+        var emailId = await Mediator.Send(new SendPurchaseOrderEmailCommand(id, idempotencyKey ?? Guid.NewGuid()), cancellationToken);
+        return AcceptedAtAction(nameof(GetPurchaseOrderEmailStatus), new { id, emailId }, new DefaultResponseModel
+        {
+            StatusCode = StatusCodes.Status202Accepted,
+            Success = true,
+            Message = "Purchase order email request accepted. Check its status for the sending result.",
+            Data = new { EmailId = emailId }
+        });
+    }
+
+    [HttpGet("{id:guid}/emails/{emailId:guid}")]
+    public async Task<IActionResult> GetPurchaseOrderEmailStatus(Guid id, Guid emailId, CancellationToken cancellationToken)
+    {
+        var result = await Mediator.Send(new GetPurchaseOrderEmailStatusQuery(id, emailId), cancellationToken);
         return Ok(new DefaultResponseModel
         {
             StatusCode = StatusCodes.Status200OK,
             Success = true,
-            Message = "Purchase order email submitted to the SMTP server successfully.",
-            Data = null
+            Message = "Email status retrieved successfully.",
+            Data = result
         });
     }
 
