@@ -17,10 +17,12 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.11")
+                .HasAnnotation("ProductVersion", "10.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.HasSequence("PurchaseOrderNumberSequence");
 
             modelBuilder.Entity("AspNetUserRole", b =>
                 {
@@ -735,8 +737,16 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<int?>("CompanyId")
                         .HasColumnType("int");
+
+                    b.Property<string>("CreateRequestHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(50)
@@ -787,6 +797,10 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.HasIndex("SupplierId");
 
                     b.HasIndex("WarehouseId");
+
+                    b.HasIndex("CompanyId", "PurchaseOrderNo")
+                        .IsUnique()
+                        .HasFilter("[CompanyId] IS NOT NULL");
 
                     b.ToTable("PurchaseOrders", (string)null);
                 });
