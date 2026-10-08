@@ -14,11 +14,10 @@ public record CreatePurchaseOrderItemInput(
 );
 
 public record CreatePurchaseOrderCommand(
-    string PurchaseOrderNo,
     int SupplierId,
     int WarehouseId,
     DateTime OrderDate,
     DateTime ExpectedDate,
-    PurchaseOrderStatus Status,
-    List<CreatePurchaseOrderItemInput> Items
+    List<CreatePurchaseOrderItemInput> Items,
+    Guid IdempotencyKey
 ) : IRequest<PurchaseOrderDto>;
