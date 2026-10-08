@@ -10,8 +10,7 @@ public record CreatePurchaseOrderItemInput(
     Guid ProductId,
     decimal Quantity,
     decimal UnitPrice,
-    long UomId,
-    decimal ReceivedQuantity = 0
+    long UomId
 );
 
 public record CreatePurchaseOrderCommand(
