@@ -5,6 +5,7 @@ import { environment } from '../../../../environments/environment';
 import { RootModel } from '../../models/root.model';
 import { PurchaseOrderFilterModel, PurchaseOrderModel } from '../../models/process/purchase-order.model';
 import { PurchaseOrderEmailPreviewModel } from '../../models/process/purchase-order-email-preview.model';
+import { PurchaseOrderEmailStatusModel } from '../../models/process/purchase-order-email-status.model';
 
 @Injectable({
   providedIn: 'root',
@@ -60,9 +61,16 @@ export class PurchaseOrdersService {
     return this.http.get<Omit<RootModel, 'data'> & { data: PurchaseOrderEmailPreviewModel | null }>(url);
   }
 
-  sendEmail(id: string): Observable<RootModel> {
+  sendEmail(id: string, idempotencyKey: string): Observable<Omit<RootModel, 'data'> & { data: { emailId: string } }> {
     const url = `${environment.main_url}/process/purchase-orders/${id}/send-email`;
-    return this.http.post<RootModel>(url, null);
+    return this.http.post<Omit<RootModel, 'data'> & { data: { emailId: string } }>(url, null, {
+      headers: { 'Idempotency-Key': idempotencyKey }
+    });
+  }
+
+  getEmailStatus(id: string, emailId: string): Observable<Omit<RootModel, 'data'> & { data: PurchaseOrderEmailStatusModel }> {
+    const url = `${environment.main_url}/process/purchase-orders/${id}/emails/${emailId}`;
+    return this.http.get<Omit<RootModel, 'data'> & { data: PurchaseOrderEmailStatusModel }>(url);
   }
 
   create(model: PurchaseOrderModel): Observable<RootModel> {
