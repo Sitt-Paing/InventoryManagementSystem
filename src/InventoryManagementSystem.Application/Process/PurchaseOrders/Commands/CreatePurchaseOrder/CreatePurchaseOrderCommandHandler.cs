@@ -15,17 +15,34 @@ namespace InventoryManagementSystem.Application.Process.PurchaseOrders.Commands.
 public class CreatePurchaseOrderCommandHandler : IRequestHandler<CreatePurchaseOrderCommand, PurchaseOrderDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public CreatePurchaseOrderCommandHandler(IApplicationDbContext context)
+    public CreatePurchaseOrderCommandHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
     {
         _context = context;
+        _currentUserService = currentUserService;
     }
 
     public async Task<PurchaseOrderDto> Handle(CreatePurchaseOrderCommand request, CancellationToken cancellationToken)
     {
+        var companyId = _currentUserService.CompanyId
+            ?? throw new InvalidOperationException("A company context is required to create a purchase order.");
+
+        var validSupplier = await _context.Suppliers.AsNoTracking()
+            .AnyAsync(s => s.Id == request.SupplierId
+                && s.CompanyId == companyId
+                && !s.DeletedOn.HasValue
+                && s.Status, cancellationToken);
+
+        if (!validSupplier)
+        {
+            throw new InvalidOperationException("The supplier must exist, be active, and belong to the purchase order's company.");
+        }
+
         var purchaseOrder = new PurchaseOrder
         {
             Id = Guid.NewGuid(),
+            CompanyId = companyId,
             PurchaseOrderNo = request.PurchaseOrderNo.Trim(),
             SupplierId = request.SupplierId,
             WarehouseId = request.WarehouseId,
