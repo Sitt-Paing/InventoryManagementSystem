@@ -18,7 +18,7 @@ import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 
-import { PurchaseOrderModel, PurchaseOrderItemModel, PurchaseOrderStatus, PURCHASE_ORDER_STATUS_OPTIONS } from '../../../core/models/process/purchase-order.model';
+import { PurchaseOrderModel, PurchaseOrderSaveModel, PurchaseOrderItemModel, PurchaseOrderStatus, PURCHASE_ORDER_STATUS_OPTIONS } from '../../../core/models/process/purchase-order.model';
 import { PurchaseOrderEmailPreviewModel } from '../../../core/models/process/purchase-order-email-preview.model';
 import { SuppliersModel } from '../../../core/models/master/suppliers.model';
 import { WarehouseModel } from '../../../core/models/master/warehouse.model';
@@ -66,6 +66,11 @@ export class PurchaseOrdersComponent implements OnInit {
   isLoading: boolean = false;
   isSubmitting: boolean = false;
   isEdit: boolean = false;
+  private createRequestKey: string = '';
+  cancelModalVisible: boolean = false;
+  cancellationReason: string = '';
+  isCancelling: boolean = false;
+  private cancelOrderId: string | null = null;
   modalVisible: boolean = false;
   detailModalVisible: boolean = false;
   printModalVisible: boolean = false;
@@ -116,7 +121,7 @@ export class PurchaseOrdersComponent implements OnInit {
   private formBuilder = inject(FormBuilder);
   public purchaseOrderForm = this.formBuilder.group({
     id: [null as string | null],
-    purchaseOrderNo: ['', Validators.required],
+    purchaseOrderNo: [''],
     supplierId: [null as number | null, [Validators.required, Validators.min(1)]],
     warehouseId: [null as number | null, [Validators.required, Validators.min(1)]],
     orderDate: [new Date(), Validators.required],
@@ -146,6 +151,11 @@ export class PurchaseOrdersComponent implements OnInit {
         label: 'Delete',
         icon: 'pi pi-trash',
         command: () => this.delete()
+      },
+      {
+        label: 'Cancel Order',
+        icon: 'pi pi-ban',
+        command: () => this.openCancellation()
       },
       {
         label: 'Email Preview',
@@ -226,10 +236,11 @@ export class PurchaseOrdersComponent implements OnInit {
 
   create(): void {
     this.isEdit = false;
+    this.createRequestKey = crypto.randomUUID();
     this.selectedPurchaseOrder = null;
     this.purchaseOrderForm.reset({
       id: null,
-      purchaseOrderNo: this.generatePoNumber(),
+      purchaseOrderNo: '',
       supplierId: null,
       warehouseId: null,
       orderDate: new Date(),
@@ -253,6 +264,7 @@ export class PurchaseOrdersComponent implements OnInit {
   }
 
   onSubmit(): void {
+    if (this.isSubmitting) return;
     if (this.purchaseOrderForm.invalid) {
       Object.keys(this.purchaseOrderForm.controls).forEach(field => {
         const control = this.purchaseOrderForm.get(field);
@@ -262,8 +274,8 @@ export class PurchaseOrdersComponent implements OnInit {
     }
 
     // Validate line items
-    const invalidItem = this.formItems.find(i => !i.productId || i.quantity <= 0 || !i.uomId);
-    if (invalidItem) {
+    const invalidItem = this.formItems.find(i => !i.productId || !Number.isFinite(i.quantity) || i.quantity <= 0 || !i.uomId || !Number.isFinite(i.unitPrice) || i.unitPrice < 0);
+    if (this.formItems.length === 0 || invalidItem) {
       this.messageService.add({
         key: 'globalMessage',
         severity: 'error',
@@ -276,14 +288,13 @@ export class PurchaseOrdersComponent implements OnInit {
     this.isSubmitting = true;
     const formVal = this.purchaseOrderForm.value;
 
-    const payload: PurchaseOrderModel = {
+    const payload: PurchaseOrderSaveModel = {
       id: formVal.id ?? undefined,
-      purchaseOrderNo: formVal.purchaseOrderNo!,
       supplierId: formVal.supplierId!,
       warehouseId: formVal.warehouseId!,
       orderDate: formVal.orderDate ? (this.datePipe.transform(formVal.orderDate, 'yyyy-MM-ddTHH:mm:ss') ?? new Date().toISOString()) : new Date().toISOString(),
       expectedDate: formVal.expectedDate ? (this.datePipe.transform(formVal.expectedDate, 'yyyy-MM-ddTHH:mm:ss') ?? new Date().toISOString()) : new Date().toISOString(),
-      status: formVal.status ?? PurchaseOrderStatus.Pending,
+      idempotencyKey: this.isEdit ? undefined : this.createRequestKey,
       items: this.formItems.map(i => ({
         id: i.id,
         productId: i.productId,
@@ -764,10 +775,34 @@ export class PurchaseOrdersComponent implements OnInit {
     }
   }
 
-  private generatePoNumber(): string {
-    const today = new Date();
-    const dateStr = this.datePipe.transform(today, 'yyyyMMdd') ?? '';
-    const rand = Math.floor(1000 + Math.random() * 9000);
-    return `PO-${dateStr}-${rand}`;
+  openCancellation(): void {
+    if (!this.selectedPurchaseOrder?.id || this.selectedPurchaseOrder.status !== PurchaseOrderStatus.Pending) {
+      this.messageService.add({ key: 'globalMessage', severity: 'warn', summary: 'Cancel Order', detail: 'Select an unreceived, pending purchase order.' });
+      return;
+    }
+    this.cancelOrderId = this.selectedPurchaseOrder.id;
+    this.cancellationReason = '';
+    this.cancelModalVisible = true;
+  }
+
+  cancelOrder(): void {
+    const reason = this.cancellationReason.trim();
+    if (!this.cancelOrderId || this.isCancelling || !reason || reason.length > 500) return;
+    this.isCancelling = true;
+    this.purchaseOrdersService.cancel(this.cancelOrderId, reason).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.isCancelling = false;
+        this.cancelModalVisible = false;
+        this.selectedPurchaseOrder = null;
+        this.loadData();
+        this.messageService.add({ key: 'globalMessage', severity: 'success', summary: 'Cancelled', detail: 'Purchase order cancelled.' });
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.isCancelling = false;
+        this.messageService.add({ key: 'globalMessage', severity: 'error', summary: 'Error', detail: err.error?.message || 'Unable to cancel purchase order.' });
+        this.cdr.markForCheck();
+      }
+    });
   }
 }
