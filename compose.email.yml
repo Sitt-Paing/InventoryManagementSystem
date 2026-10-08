@@ -1,0 +1,12 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4-management
+    ports:
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
+    volumes:
+      - inventory-rabbitmq:/var/lib/rabbitmq
+    restart: unless-stopped
+
+volumes:
+  inventory-rabbitmq:
