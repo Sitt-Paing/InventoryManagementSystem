@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, DestroyRef, inject, OnInit, ViewChild } f
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
@@ -75,6 +75,10 @@ export class PurchaseOrdersComponent implements OnInit {
   emailPreview: PurchaseOrderEmailPreviewModel | null = null;
   emailOrder: PurchaseOrderModel | null = null;
   emailError: string = '';
+  emailStatus: string = '';
+  acceptedEmailId: string | null = null;
+  private emailRequestKeys = new Map<string, string>();
+  private emailStatusClosed = new Subject<void>();
   private emailPreviewRequestId: number = 0;
   private destroyRef = inject(DestroyRef);
 
@@ -529,6 +533,8 @@ export class PurchaseOrdersComponent implements OnInit {
 
     const requestId = ++this.emailPreviewRequestId;
     this.emailOrder = target;
+    this.emailStatus = '';
+    this.acceptedEmailId = null;
     this.emailPreview = null;
     this.emailError = '';
     this.emailModalVisible = true;
@@ -557,24 +563,30 @@ export class PurchaseOrdersComponent implements OnInit {
   }
 
   sendOrderEmail(): void {
-    if (this.isSendingEmail || this.isLoadingEmailPreview || !this.emailPreview || !this.emailOrder?.id) {
+    if (this.isSendingEmail || this.isLoadingEmailPreview || this.acceptedEmailId || !this.emailPreview || !this.emailOrder?.id) {
       return;
     }
 
     this.isSendingEmail = true;
     this.emailError = '';
-    this.purchaseOrdersService.sendEmail(this.emailOrder.id)
+    const orderId = this.emailOrder.id;
+    const requestKey = this.emailRequestKeys.get(orderId) ?? crypto.randomUUID();
+    this.emailRequestKeys.set(orderId, requestKey);
+    this.purchaseOrdersService.sendEmail(orderId, requestKey)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
           this.isSendingEmail = false;
           if (res.success) {
-            this.emailModalVisible = false;
+            this.emailRequestKeys.delete(orderId);
+            this.acceptedEmailId = res.data.emailId;
+            this.emailStatus = 'Pending';
+            this.watchEmailStatus(orderId, res.data.emailId);
             this.messageService.add({
               key: 'globalMessage',
               severity: 'success',
               summary: 'Success',
-              detail: 'Purchase order email submitted successfully.'
+              detail: 'Email queued. Sending will continue in the background.'
             });
           } else {
             this.emailError = res.message || 'Failed to send the purchase order email.';
@@ -590,11 +602,35 @@ export class PurchaseOrdersComponent implements OnInit {
   }
 
   onEmailDialogHide(): void {
+    this.emailStatusClosed.next();
+    this.emailStatus = '';
+    this.acceptedEmailId = null;
     ++this.emailPreviewRequestId;
     this.isLoadingEmailPreview = false;
     this.emailPreview = null;
     this.emailOrder = null;
     this.emailError = '';
+  }
+
+  private watchEmailStatus(orderId: string, emailId: string): void {
+    timer(0, 3000).pipe(
+      switchMap(() => this.purchaseOrdersService.getEmailStatus(orderId, emailId)),
+      takeWhile(res => res.data.status === 'Pending' || res.data.status === 'Sending', true),
+      takeUntil(this.emailStatusClosed),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: (res) => {
+        this.emailStatus = res.data.status;
+        if (res.data.status === 'Failed') {
+          this.emailError = 'Email sending failed. Review the delivery result before creating another send request.';
+        }
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.emailError = 'Unable to check status. Your queued email request is retained.';
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   printOrder(order?: PurchaseOrderModel): void {
