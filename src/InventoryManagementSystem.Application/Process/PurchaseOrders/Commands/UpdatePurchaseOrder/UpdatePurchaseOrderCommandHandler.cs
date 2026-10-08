@@ -26,7 +26,23 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
 
         if (purchaseOrder == null) return null;
 
-        // Validate identities before changing the tracked order or its items.
+        if (!purchaseOrder.CompanyId.HasValue)
+        {
+            throw new InvalidOperationException("The purchase order must belong to a company.");
+        }
+
+        var validSupplier = await _context.Suppliers.AsNoTracking()
+            .AnyAsync(s => s.Id == request.SupplierId
+                && s.CompanyId == purchaseOrder.CompanyId
+                && !s.DeletedOn.HasValue
+                && s.Status, cancellationToken);
+
+        if (!validSupplier)
+        {
+            throw new InvalidOperationException(
+                "The supplier must exist, be active, and belong to the purchase order's company.");
+        }
+
         var activeItemIds = purchaseOrder.Items
             .Where(i => !i.DeletedOn.HasValue)
             .Select(i => i.Id)
@@ -34,7 +50,6 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
         var inputItemIds = new HashSet<long>();
         foreach (var item in request.Items)
         {
-            // Null or zero identifies a new line; negative IDs are invalid.
             if (!item.Id.HasValue || item.Id.Value == 0) continue;
 
             if (item.Id.Value < 0 || !activeItemIds.Contains(item.Id.Value))
