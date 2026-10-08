@@ -1,5 +1,13 @@
 <p-toast key="globalMessage" position="top-right"></p-toast>
 <p-confirmDialog key="positionDialog" position="bottom" rejectButtonStyleClass="p-button-outlined"></p-confirmDialog>
+<p-dialog header="Cancel Purchase Order" [(visible)]="cancelModalVisible" [modal]="true" [closable]="!isCancelling">
+    <div class="flex flex-col gap-3">
+        <label for="cancelReason">Cancellation reason</label>
+        <textarea id="cancelReason" pInputText [(ngModel)]="cancellationReason" maxlength="500" rows="3" [disabled]="isCancelling"></textarea>
+        <p-button label="Cancel Order" severity="danger" [loading]="isCancelling"
+            [disabled]="isCancelling || !cancellationReason.trim()" (onClick)="cancelOrder()"></p-button>
+    </div>
+</p-dialog>
 
 <div class="table-card p-4 space-y-2">
     <!-- Top Action Bar -->
@@ -130,9 +138,9 @@
             <!-- Master Details Section -->
             <div class="grid grid-cols-12 gap-3 mb-4">
                 <div class="col-span-12 lg:col-span-4 flex flex-col gap-1">
-                    <label for="purchaseOrderNo" class="text-xs font-semibold">PO Number *</label>
+                    <label for="purchaseOrderNo" class="text-xs font-semibold">PO Number</label>
                     <input type="text" id="purchaseOrderNo" formControlName="purchaseOrderNo" pInputText
-                        placeholder="PO Number" required>
+                        placeholder="Assigned when saved" readonly>
                     @if(purchaseOrderForm.controls['purchaseOrderNo'].invalid &&
                     purchaseOrderForm.get('purchaseOrderNo')?.dirty){
                     <small class="text-xs text-red-500">PO Number is required.</small>
@@ -175,10 +183,8 @@
                 </div>
 
                 <div class="col-span-12 lg:col-span-4 flex flex-col gap-1">
-                    <label for="status" class="text-xs font-semibold">Status *</label>
-                    <p-select id="status" formControlName="status" [options]="statusOptions"
-                        optionLabel="label" optionValue="value" appendTo="body" size="small"
-                        [fluid]="true" class="w-full"></p-select>
+                    <label class="text-xs font-semibold">Status</label>
+                    <span>{{ getStatusLabel(purchaseOrderForm.controls.status.value ?? 0) }}</span>
                 </div>
             </div>
 
