@@ -63,3 +63,13 @@ export interface PurchaseOrderFilterModel {
     pageSize?: number;
 }
 
+export interface PurchaseOrderSaveModel {
+    id?: string;
+    supplierId: number;
+    warehouseId: number;
+    orderDate: Date | string;
+    expectedDate: Date | string;
+    idempotencyKey?: string;
+    items: { id?: number; productId: string; quantity: number; unitPrice: number; uomId: number }[];
+}
+
