@@ -16,11 +16,9 @@ public record UpdatePurchaseOrderItemInput(
 
 public record UpdatePurchaseOrderCommand(
     Guid Id,
-    string PurchaseOrderNo,
     int SupplierId,
     int WarehouseId,
     DateTime OrderDate,
     DateTime ExpectedDate,
-    PurchaseOrderStatus Status,
     List<UpdatePurchaseOrderItemInput> Items
 ) : IRequest<PurchaseOrderDto?>;
