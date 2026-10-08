@@ -15,6 +15,8 @@ public class PurchaseOrder : BaseAuditableEntity<Guid>, IMustHaveCompany
     public DateTime ExpectedDate { get; set; }
     public PurchaseOrderStatus Status { get; set; } = PurchaseOrderStatus.Pending;
     public decimal TotalAmount { get; set; }
+    public string? CreateRequestHash { get; set; }
+    public string? CancellationReason { get; set; }
 
     [JsonIgnore]
     public virtual Supplier? Supplier { get; set; }
