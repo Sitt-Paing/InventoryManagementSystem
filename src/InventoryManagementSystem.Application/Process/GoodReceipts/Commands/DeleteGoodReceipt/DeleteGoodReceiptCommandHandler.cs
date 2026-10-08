@@ -24,7 +24,12 @@ public class DeleteGoodReceiptCommandHandler : IRequestHandler<DeleteGoodReceipt
 
     public async Task<GoodReceiptDto?> Handle(DeleteGoodReceiptCommand request, CancellationToken cancellationToken)
     {
+        var orderId = await _context.GoodReceipts.AsNoTracking()
+            .Where(gr => gr.Id == request.Id && !gr.DeletedOn.HasValue)
+            .Select(gr => (Guid?)gr.PurchaseOrderId).FirstOrDefaultAsync(cancellationToken);
+        if (!orderId.HasValue) return null;
         await using var databaseTransaction = await _context.BeginTransactionAsync(cancellationToken);
+        await _context.LockPurchaseOrderAsync(orderId.Value, cancellationToken);
 
         var goodReceipt = await _context.GoodReceipts
             .Include(gr => gr.Items)
