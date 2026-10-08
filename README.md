@@ -13,7 +13,7 @@ Manage product catalogs, suppliers, purchasing, goods receipts, and warehouse st
 ![SQL Server](https://img.shields.io/badge/SQL_Server-EF_Core-CC2927?style=for-the-badge)
 ![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Background_Email-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)
 
-**Clean Architecture · CQRS · CSRF Protection · Multi-company Tenancy · Printing · Queued Email**
+**Clean Architecture · CQRS · CSRF Protection · Multi-company Tenancy · Barcode · Printing · Queued Email**
 
 [Features](#-features) · [Skills demonstrated](#-skills-demonstrated) · [Security and tenancy](#-security-and-tenancy) · [Architecture](#-architecture) · [Email delivery](#-background-email-delivery) · [Run locally](#-run-locally) · [Roadmap](#-roadmap)
 
