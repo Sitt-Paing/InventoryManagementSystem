@@ -43,7 +43,7 @@ public class CreatePurchaseOrderCommandHandler : IRequestHandler<CreatePurchaseO
                 Quantity = item.Quantity,
                 UnitPrice = item.UnitPrice,
                 UomId = item.UomId,
-                ReceivedQuantity = item.ReceivedQuantity
+                ReceivedQuantity = 0
             });
         }
 
