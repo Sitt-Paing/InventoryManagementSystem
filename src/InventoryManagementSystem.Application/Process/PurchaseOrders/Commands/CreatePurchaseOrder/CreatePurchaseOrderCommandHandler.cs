@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.DTOs;
 using InventoryManagementSystem.Domain.Entities;
+using InventoryManagementSystem.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,7 +31,7 @@ public class CreatePurchaseOrderCommandHandler : IRequestHandler<CreatePurchaseO
             WarehouseId = request.WarehouseId,
             OrderDate = request.OrderDate,
             ExpectedDate = request.ExpectedDate,
-            Status = request.Status,
+            Status = PurchaseOrderStatus.Pending,
             TotalAmount = request.Items.Sum(i => i.Quantity * i.UnitPrice)
         };
 
