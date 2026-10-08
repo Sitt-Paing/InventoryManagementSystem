@@ -63,7 +63,6 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
                     existing.Quantity = inputItem.Quantity;
                     existing.UnitPrice = inputItem.UnitPrice;
                     existing.UomId = inputItem.UomId;
-                    existing.ReceivedQuantity = inputItem.ReceivedQuantity;
                     existing.DeletedOn = null;
                 }
             }
@@ -76,7 +75,7 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
                     Quantity = inputItem.Quantity,
                     UnitPrice = inputItem.UnitPrice,
                     UomId = inputItem.UomId,
-                    ReceivedQuantity = inputItem.ReceivedQuantity
+                    ReceivedQuantity = 0
                 });
             }
         }
