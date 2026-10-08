@@ -38,6 +38,7 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
     public async Task<GoodReceiptDto> Handle(CreateGoodReceiptCommand request, CancellationToken cancellationToken)
     {
         await using var databaseTransaction = await _context.BeginTransactionAsync(cancellationToken);
+        await _context.LockPurchaseOrderAsync(request.PurchaseOrderId, cancellationToken);
 
         var companyId = _currentUserService.CompanyId;
         var requestHash = CalculateRequestHash(request);
