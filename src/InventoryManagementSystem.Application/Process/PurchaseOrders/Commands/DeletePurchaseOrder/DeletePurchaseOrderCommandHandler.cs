@@ -20,6 +20,7 @@ public class DeletePurchaseOrderCommandHandler : IRequestHandler<DeletePurchaseO
     public async Task<PurchaseOrderDto?> Handle(DeletePurchaseOrderCommand request, CancellationToken cancellationToken)
     {
         await using var databaseTransaction = await _context.BeginTransactionAsync(cancellationToken);
+        await _context.LockPurchaseOrderAsync(request.Id, cancellationToken);
 
         var purchaseOrder = await _context.PurchaseOrders
             .Include(p => p.Items)
