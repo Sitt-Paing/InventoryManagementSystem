@@ -22,7 +22,11 @@ public interface IApplicationDbContext
     DbSet<Company> Companies { get; }
     DbSet<EmailOutbox> EmailOutboxes { get; }
 
-    Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
+    Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTransactionAsync(
+        CancellationToken cancellationToken = default,
+        System.Data.IsolationLevel isolationLevel = System.Data.IsolationLevel.Serializable);
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    Task LockPurchaseOrderAsync(Guid purchaseOrderId, CancellationToken cancellationToken = default);
+    Task<long> NextPurchaseOrderNumberAsync(CancellationToken cancellationToken = default);
 }
