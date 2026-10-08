@@ -20,6 +20,7 @@ public interface IApplicationDbContext
     DbSet<GoodReceipt> GoodReceipts { get; }
     DbSet<GoodReceiptItem> GoodReceiptItems { get; }
     DbSet<Company> Companies { get; }
+    DbSet<EmailOutbox> EmailOutboxes { get; }
 
     Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
 
