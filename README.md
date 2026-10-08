@@ -11,10 +11,11 @@ Manage product catalogs, suppliers, purchasing, goods receipts, and warehouse st
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![SQL Server](https://img.shields.io/badge/SQL_Server-EF_Core-CC2927?style=for-the-badge)
+![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Background_Email-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)
 
-**Clean Architecture · CQRS · Cookie-based JWT · Multi-company Tenancy · Printing · SMTP Email**
+**Clean Architecture · CQRS · CSRF Protection · Multi-company Tenancy · Printing · Queued Email**
 
-[Features](#-features) · [Skills demonstrated](#-skills-demonstrated) · [Security and tenancy](#-security-and-tenancy) · [Architecture](#-architecture) · [Run locally](#-run-locally) · [Roadmap](#-roadmap)
+[Features](#-features) · [Skills demonstrated](#-skills-demonstrated) · [Security and tenancy](#-security-and-tenancy) · [Architecture](#-architecture) · [Email delivery](#-background-email-delivery) · [Run locally](#-run-locally) · [Roadmap](#-roadmap)
 
 </div>
 
@@ -28,10 +29,12 @@ Manage product catalogs, suppliers, purchasing, goods receipts, and warehouse st
 | **Units of measure** | UOM categories, units, and product-specific conversions |
 | **Supplier management** | Supplier records supporting purchasing workflows |
 | **Warehouse organization** | Warehouses and storage locations |
-| **Purchasing** | Purchase orders with printable document views |
+| **Purchasing** | Purchase orders with server-side pagination, search, sorting, filters, and printable document views |
 | **Goods receiving** | Goods receipt records and printable receipt views |
 | **Document printing** | Dedicated purchase-order and goods-receipt preview dialogs with browser printing |
-| **Supplier email** | Purchase-order email previews and SMTP delivery through MailKit |
+| **Supplier email** | Purchase-order email previews, database outbox, RabbitMQ background processing, and MailKit SMTP delivery |
+| **Email delivery tracking** | Pending, Sending, Sent, and Failed states displayed in the purchase-order email dialog |
+| **Resilient email processing** | Idempotency keys, persistent queue messages, publisher confirmations, and bounded retries for eligible transient failures |
 | **Inventory tracking** | Stock transaction browsing |
 | **Dashboard** | Product counts, low-stock indicators, stock valuation, and recent transactions |
 | **Company management** | Company records and company-scoped inventory data |
@@ -58,7 +61,9 @@ This project highlights implementation skills across the frontend, backend, and 
 | **Browser authentication integration** | HttpOnly authentication cookies, globally validated antiforgery tokens, trusted-origin CORS, and an Angular HTTP interceptor |
 | **Multi-tenant data access** | Current-user company context, company assignment on insert, and global query filters |
 | **Role-aware application behavior** | Role claims and privileged-role checks in the current-user service |
-| **Email integration** | MailKit SMTP service, purchase-order email previews, and application-layer delivery commands |
+| **Email integration** | MailKit SMTP transport, purchase-order email previews, and persisted recipient/subject/body snapshots |
+| **Background processing** | API-hosted BackgroundService coordinating a database outbox with a durable RabbitMQ queue |
+| **Reliability engineering** | Idempotency-key deduplication, transactional outbox claims, delivery status polling, and bounded transient retries |
 | **Print workflows** | Dedicated Angular document dialogs and iframe-based browser printing |
 | **Audit tracking** | Automatic creation and modification metadata in the EF Core save pipeline |
 | **Business workflow modeling** | Purchase orders, goods receipts, stock records, and UOM conversions |
@@ -90,10 +95,15 @@ flowchart LR
     Infrastructure --> Application
     Infrastructure --> Domain
     Infrastructure --> Database[(SQL Server)]
-    Infrastructure --> SMTP[SMTP Email Server]
+    Infrastructure --> Worker[API-hosted Email Worker]
+    Worker <--> Database
+    Worker <--> RabbitMQ[Durable RabbitMQ Queue]
+    Worker --> SMTP[SMTP Email Server]
 ```
 
 The Application layer defines use cases and interfaces. Infrastructure implements persistence and external services. The API composes these layers and exposes HTTP endpoints, while the Angular client provides the user interface.
+
+The email worker runs inside the API process. The database retains pending email requests while RabbitMQ is unavailable; the queue coordinates background delivery when the broker is reachable.
 
 ```text
 src/
@@ -111,11 +121,47 @@ src/
 | **Frontend** | Angular 20, TypeScript 5.9, RxJS, PrimeNG 20, PrimeIcons, Tailwind CSS 4 |
 | **Backend** | C#, ASP.NET Core / .NET 10, MediatR, FluentValidation |
 | **Database** | SQL Server, Entity Framework Core 10 |
-| **Authentication and security** | ASP.NET Core Identity, JWT bearer authentication, HttpOnly cookies, antiforgery token integration |
-| **Email** | MailKit, configurable SMTP transport |
+| **Authentication and security** | ASP.NET Core Identity, JWT bearer authentication, HttpOnly cookies, global antiforgery validation, trusted-origin CORS |
+| **Messaging and email** | RabbitMQ.Client 7, BackgroundService, database outbox, MailKit, configurable SMTP transport |
+| **Local infrastructure** | Docker Compose for RabbitMQ with a persistent data volume |
 | **API tooling** | OpenAPI, Scalar |
 | **Data and documents** | ExcelJS, SheetJS, ClosedXML, CsvHelper, JsBarcode |
 | **Frontend test tooling** | Jasmine, Karma |
+
+## ✉️ Background email delivery
+
+```mermaid
+sequenceDiagram
+    participant UI as Angular Client
+    participant API as Purchase Order API
+    participant DB as SQL Server Outbox
+    participant Worker as Email Worker
+    participant Queue as RabbitMQ
+    participant SMTP as SMTP Server
+    UI->>API: Send email with CSRF token and Idempotency-Key
+    API->>DB: Save recipient, subject, and body snapshot
+    API-->>UI: 202 Accepted with emailId and status URL
+    Worker->>DB: Read due Pending requests
+    Worker->>Queue: Publish persistent email IDs
+    Worker->>Queue: Retrieve queued ID
+    Worker->>DB: Claim request and record Sending
+    Worker->>SMTP: Send email outside database transaction
+    Worker->>DB: Save Sent, retry schedule, or Failed
+    Worker->>Queue: Acknowledge handled message
+    UI->>API: Poll delivery status
+    API-->>UI: Pending / Sending / Sent / Failed
+```
+
+| Behavior | Implementation |
+| :--- | :--- |
+| **Request acceptance** | `POST /api/process/purchase-orders/{id}/send-email` persists an outbox request and returns HTTP 202 |
+| **Status lookup** | `GET /api/process/purchase-orders/{id}/emails/{emailId}` returns the company-filtered request status |
+| **Deduplication** | Reusing an `Idempotency-Key` UUID for the same purchase order returns the original request and email snapshot |
+| **Broker recovery** | Pending database rows remain available when RabbitMQ is down |
+| **Retry policy** | Eligible pre-send connection failures and SMTP 4xx rejections receive up to three attempts, with 30- and 60-second retry delays |
+| **Uncertain delivery** | Failures during sending and stale Sending requests require delivery review before resubmission |
+
+`Sent` means the SMTP server accepted the message; it does not guarantee inbox delivery. SMTP and SQL Server cannot commit atomically, so the worker does not promise exactly-once delivery. Check uncertain outcomes before sending a new request. The UI retains its idempotency key for request retries within the current component instance; clients needing retries across reloads must persist that key.
 
 ## 🚀 Run locally
 
@@ -125,6 +171,7 @@ src/
 - Node.js compatible with the Angular CLI version in the client lockfile
 - npm
 - A running SQL Server instance with permission to create or migrate the application database
+- For background email: Docker Desktop with Linux containers, or another RabbitMQ broker, plus SMTP connection settings
 
 ### 1. Clone the repository
 
@@ -175,11 +222,32 @@ The development client points to `https://localhost:7152/api` in `src/InventoryM
 
 Sign in with the administrator credentials configured above.
 
-### Optional: configure purchase-order email
+### 5. Optional: enable background purchase-order email
+
+From the repository root, start the included RabbitMQ service:
+
+```powershell
+docker compose -f compose.email.yml up -d
+```
+
+| RabbitMQ service | Local address |
+| :--- | :--- |
+| **AMQP** | `localhost:5672` |
+| **Management UI** | http://localhost:15672 |
+
+The compose service binds its ports to localhost and persists broker data in a named volume. Local credentials are `guest` / `guest`.
 
 Set `SmtpSettings:Host`, `Port`, `UserName`, `Password`, `FromEmail`, `FromName`, and `UserStartTls` through user secrets or environment variables. `UserStartTls` is the configuration key used by the code. Use your SMTP provider's connection settings and your own test recipient when trying the send action.
 
-The committed implementation supports SMTP delivery. A RabbitMQ-backed outbox worker with delivery status, retries, and idempotency is currently being developed in the local working tree and is not included in this README-only commit.
+Configure `RabbitMqEmail:Enabled` as `true` and restart the API. Development configuration already enables the worker. Broker settings are `Host`, `Port`, `UserName`, `Password`, `VirtualHost`, and `Queue` under `RabbitMqEmail`; the defaults target the local broker and the `inventory.purchase-order-emails` queue.
+
+For example, enable the worker through local user secrets:
+
+```powershell
+dotnet user-secrets set "RabbitMqEmail:Enabled" "true" --project src/InventoryManagementSystem.Api
+```
+
+Use deployment secrets for broker and SMTP credentials in other environments. With the worker disabled, accepted requests remain Pending until an enabled worker processes them. To try the workflow, preview a purchase order addressed to your own test mailbox, select **Send Email**, and follow its status in the dialog.
 
 ### CSRF requirements for API clients
 
