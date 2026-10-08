@@ -24,9 +24,11 @@ public partial class InventoryManagementDbContext : IApplicationDbContext
         _currentUserService = currentUserService;
     }
 
-    public Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+    public Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTransactionAsync(
+        CancellationToken cancellationToken = default,
+        System.Data.IsolationLevel isolationLevel = System.Data.IsolationLevel.Serializable)
     {
-        return Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, cancellationToken);
+        return Database.BeginTransactionAsync(isolationLevel, cancellationToken);
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -62,6 +64,26 @@ public partial class InventoryManagementDbContext : IApplicationDbContext
         }
 
         return await base.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task LockPurchaseOrderAsync(Guid purchaseOrderId, CancellationToken cancellationToken = default)
+    {
+        if (Database.CurrentTransaction == null)
+            throw new InvalidOperationException("Purchase order locking requires a database transaction.");
+        var resource = $"PurchaseOrder:{purchaseOrderId:N}";
+        await Database.ExecuteSqlInterpolatedAsync($@"
+            DECLARE @result int;
+            EXEC @result = sys.sp_getapplock @Resource = {resource},
+                @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 10000;
+            IF @result < 0 THROW 51001, 'Unable to lock purchase order. Retry the operation.', 1;", cancellationToken);
+    }
+
+    public async Task<long> NextPurchaseOrderNumberAsync(CancellationToken cancellationToken = default)
+    {
+        var values = await Database.SqlQueryRaw<long>(
+            "SELECT NEXT VALUE FOR dbo.PurchaseOrderNumberSequence AS Value")
+            .ToListAsync(cancellationToken);
+        return values.Single();
     }
 
     private static void ApplyAuditValues<TId>(
