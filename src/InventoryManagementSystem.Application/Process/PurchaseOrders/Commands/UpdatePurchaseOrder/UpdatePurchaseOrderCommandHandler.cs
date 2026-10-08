@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using InventoryManagementSystem.Domain.Enums;
 using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.DTOs;
 using InventoryManagementSystem.Domain.Entities;
@@ -22,31 +18,68 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
 
     public async Task<PurchaseOrderDto?> Handle(UpdatePurchaseOrderCommand request, CancellationToken cancellationToken)
     {
+        await using var databaseTransaction = await _context.BeginTransactionAsync(cancellationToken);
+
         var purchaseOrder = await _context.PurchaseOrders
             .Include(p => p.Items)
             .FirstOrDefaultAsync(p => p.Id == request.Id && !p.DeletedOn.HasValue, cancellationToken);
 
         if (purchaseOrder == null) return null;
 
+        // Validate identities before changing the tracked order or its items.
+        var activeItemIds = purchaseOrder.Items
+            .Where(i => !i.DeletedOn.HasValue)
+            .Select(i => i.Id)
+            .ToHashSet();
+        var inputItemIds = new HashSet<long>();
+        foreach (var item in request.Items)
+        {
+            // Null or zero identifies a new line; negative IDs are invalid.
+            if (!item.Id.HasValue || item.Id.Value == 0) continue;
+
+            if (item.Id.Value < 0 || !activeItemIds.Contains(item.Id.Value))
+            {
+                throw new InvalidOperationException(
+                    "Every existing item must belong to this purchase order and must not be deleted.");
+            }
+
+            if (!inputItemIds.Add(item.Id.Value))
+            {
+                throw new InvalidOperationException(
+                    "The same purchase order item cannot appear more than once.");
+            }
+        }
+
+        if (request.SupplierId != purchaseOrder.SupplierId)
+        {
+            var hasActiveReceipts = await _context.GoodReceipts
+                .AnyAsync(
+                    gr => gr.PurchaseOrderId == purchaseOrder.Id
+                        && !gr.DeletedOn.HasValue,
+                    cancellationToken);
+
+            if (hasActiveReceipts)
+            {
+                throw new InvalidOperationException(
+                    "Cannot change the supplier of a purchase order with active goods receipts.");
+            }
+        }
+
         purchaseOrder.PurchaseOrderNo = request.PurchaseOrderNo.Trim();
         purchaseOrder.SupplierId = request.SupplierId;
         purchaseOrder.WarehouseId = request.WarehouseId;
         purchaseOrder.OrderDate = request.OrderDate;
         purchaseOrder.ExpectedDate = request.ExpectedDate;
-        purchaseOrder.Status = request.Status;
-        purchaseOrder.TotalAmount = request.Items.Sum(i => i.Quantity * i.UnitPrice);
-
-        // Update items (sync line items)
-        var inputItemIds = request.Items
-            .Where(i => i.Id.HasValue && i.Id.Value > 0)
-            .Select(i => i.Id!.Value)
-            .ToHashSet();
 
         // Mark items not in payload as deleted or remove
         foreach (var existingItem in purchaseOrder.Items.Where(i => !i.DeletedOn.HasValue).ToList())
         {
             if (!inputItemIds.Contains(existingItem.Id))
             {
+                if(existingItem.ReceivedQuantity > 0)
+                {
+                    throw new InvalidOperationException("Cannot remove a purchase order item that has received goods.");
+                }
                 existingItem.DeletedOn = DateTime.UtcNow;
             }
         }
@@ -56,9 +89,19 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
         {
             if (inputItem.Id.HasValue && inputItem.Id.Value > 0)
             {
-                var existing = purchaseOrder.Items.FirstOrDefault(i => i.Id == inputItem.Id.Value);
+                var existing = purchaseOrder.Items.Single(i => i.Id == inputItem.Id.Value && !i.DeletedOn.HasValue);
                 if (existing != null)
                 {
+                    if(existing.ReceivedQuantity > 0 && (existing.ProductId != inputItem.ProductId || existing.UomId != inputItem.UomId))
+                    {
+                        throw new InvalidOperationException("Cannot change the product or UOM of a purchase order item that has received goods.");
+                    }
+
+                    if (inputItem.Quantity < existing.ReceivedQuantity)
+                    {
+                        throw new InvalidOperationException($"Ordered quantity cannot be less than the received quantity ({existing.ReceivedQuantity}).");
+                    }
+
                     existing.ProductId = inputItem.ProductId;
                     existing.Quantity = inputItem.Quantity;
                     existing.UnitPrice = inputItem.UnitPrice;
@@ -80,7 +123,30 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
             }
         }
 
+        purchaseOrder.TotalAmount = purchaseOrder.Items
+            .Where(i => !i.DeletedOn.HasValue)
+            .Sum(i => i.Quantity * i.UnitPrice);
+
+        if(purchaseOrder.Status != PurchaseOrderStatus.Cancelled)
+        {
+            var activeItems = purchaseOrder.Items.Where(i => !i.DeletedOn.HasValue).ToList();
+            if(activeItems.Count > 0 && activeItems.All(i => i.ReceivedQuantity >= i.Quantity))
+            {
+                purchaseOrder.Status = PurchaseOrderStatus.Completed;
+            } 
+            else if (activeItems.Any(i => i.ReceivedQuantity > 0))
+            {
+                purchaseOrder.Status = PurchaseOrderStatus.PartiallyReceived;
+            }
+            else
+            {
+                purchaseOrder.Status = PurchaseOrderStatus.Pending;
+            }
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
+
+        await databaseTransaction.CommitAsync(cancellationToken);
 
         // Fetch supplier & warehouse details
         var supplier = await _context.Suppliers.AsNoTracking()
