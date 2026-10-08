@@ -54,8 +54,24 @@ public partial class InventoryManagementDbContext : DbContext
 
     public virtual DbSet<Company> Companies { get; set; }
 
+    public virtual DbSet<EmailOutbox> EmailOutboxes { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<EmailOutbox>(entity =>
+        {
+            entity.ToTable("EmailOutboxes");
+            entity.HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
+            entity.Property(e => e.To).HasMaxLength(320);
+            entity.Property(e => e.Subject).HasMaxLength(998);
+            entity.Property(e => e.CreatedBy).HasMaxLength(256);
+            entity.Property(e => e.UpdatedBy).HasMaxLength(256);
+            entity.Property(e => e.DeletedBy).HasMaxLength(256);
+            entity.HasIndex(e => new { e.Status, e.NextAttemptOn });
+            entity.HasOne<PurchaseOrder>().WithMany().HasForeignKey(e => e.PurchaseOrderId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
         modelBuilder.Entity<AspNetRole>(entity =>
         {
             entity.HasIndex(e => e.NormalizedName, "RoleNameIndex")
