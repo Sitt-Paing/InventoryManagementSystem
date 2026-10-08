@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, DestroyRef, inject, OnInit, ViewChild } f
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { forkJoin, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
+import { exhaustMap, forkJoin, Subject, take, takeUntil, takeWhile, timer } from 'rxjs';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
@@ -290,7 +290,6 @@ export class PurchaseOrdersComponent implements OnInit {
         quantity: i.quantity,
         unitPrice: i.unitPrice,
         uomId: i.uomId,
-        receivedQuantity: i.receivedQuantity ?? 0
       }))
     };
 
@@ -380,7 +379,6 @@ export class PurchaseOrdersComponent implements OnInit {
       unitPrice: i.unitPrice,
       uomId: i.uomId,
       uomName: i.uomName,
-      receivedQuantity: i.receivedQuantity ?? 0,
       subTotal: i.quantity * i.unitPrice
     }));
 
@@ -613,8 +611,10 @@ export class PurchaseOrdersComponent implements OnInit {
   }
 
   private watchEmailStatus(orderId: string, emailId: string): void {
-    timer(0, 3000).pipe(
-      switchMap(() => this.purchaseOrdersService.getEmailStatus(orderId, emailId)),
+    this.emailStatusClosed.next();
+    timer(0, 10000).pipe(
+      exhaustMap(() => this.purchaseOrdersService.getEmailStatus(orderId, emailId)),
+      take(13),
       takeWhile(res => res.data.status === 'Pending' || res.data.status === 'Sending', true),
       takeUntil(this.emailStatusClosed),
       takeUntilDestroyed(this.destroyRef)
@@ -629,8 +629,32 @@ export class PurchaseOrdersComponent implements OnInit {
       error: () => {
         this.emailError = 'Unable to check status. Your queued email request is retained.';
         this.cdr.markForCheck();
+      },
+      complete: () => {
+        if (this.emailModalVisible && (this.emailStatus === 'Pending' || this.emailStatus === 'Sending')) {
+          this.emailError = 'Automatic status checks stopped. Your email is still queued; use Check Status to check again.';
+          this.cdr.markForCheck();
+        }
       }
     });
+  }
+
+  checkEmailStatus(): void {
+    if (!this.emailOrder?.id || !this.acceptedEmailId) return;
+    this.emailError = '';
+    this.purchaseOrdersService.getEmailStatus(this.emailOrder.id, this.acceptedEmailId)
+      .pipe(takeUntil(this.emailStatusClosed), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: res => {
+          this.emailStatus = res.data.status;
+          if (res.data.status === 'Failed') this.emailError = 'Email sending failed. Review delivery before resending.';
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.emailError = 'Unable to check email status.';
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   printOrder(order?: PurchaseOrderModel): void {
