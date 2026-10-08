@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { RootModel } from '../../models/root.model';
-import { PurchaseOrderFilterModel, PurchaseOrderModel } from '../../models/process/purchase-order.model';
+import { PurchaseOrderFilterModel, PurchaseOrderSaveModel } from '../../models/process/purchase-order.model';
 import { PurchaseOrderEmailPreviewModel } from '../../models/process/purchase-order-email-preview.model';
 import { PurchaseOrderEmailStatusModel } from '../../models/process/purchase-order-email-status.model';
 
@@ -73,12 +73,17 @@ export class PurchaseOrdersService {
     return this.http.get<Omit<RootModel, 'data'> & { data: PurchaseOrderEmailStatusModel }>(url);
   }
 
-  create(model: PurchaseOrderModel): Observable<RootModel> {
+  cancel(id: string, reason: string): Observable<RootModel> {
+    const url = `${environment.main_url}/process/purchase-orders/${id}/cancel`;
+    return this.http.post<RootModel>(url, { id, reason });
+  }
+
+  create(model: PurchaseOrderSaveModel): Observable<RootModel> {
     const url = `${environment.main_url}/process/purchase-orders`;
     return this.http.post<RootModel>(url, JSON.stringify(model));
   }
 
-  update(model: PurchaseOrderModel): Observable<RootModel> {
+  update(model: PurchaseOrderSaveModel): Observable<RootModel> {
     const url = `${environment.main_url}/process/purchase-orders/${model.id}`;
     return this.http.put<RootModel>(url, JSON.stringify(model));
   }
