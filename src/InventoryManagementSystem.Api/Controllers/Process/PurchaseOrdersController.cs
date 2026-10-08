@@ -1,4 +1,5 @@
 using System;
+using InventoryManagementSystem.Application.Process.PurchaseOrders.Commands.CancelPurchaseOrder;
 using System.Threading.Tasks;
 using InventoryManagementSystem.Application.Common.Models;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.Commands.CreatePurchaseOrder;
@@ -23,6 +24,24 @@ namespace InventoryManagementSystem.Api.Controllers.Process;
 [ApiController]
 public class PurchaseOrdersController : ApiControllerBase
 {
+    [HttpPost("{id:guid}/cancel")]
+    public async Task<IActionResult> CancelPurchaseOrder(Guid id, [FromBody] CancelPurchaseOrderCommand command, CancellationToken cancellationToken)
+    {
+        if (id != command.Id) return BadRequest(new DefaultResponseModel
+        {
+            Success = false, StatusCode = 400, Message = "Purchase order ID mismatch."
+        });
+        var found = await Mediator.Send(command, cancellationToken);
+        if (!found) return NotFound(new DefaultResponseModel
+        {
+            Success = false, StatusCode = 404, Message = "Purchase order not found."
+        });
+        return Ok(new DefaultResponseModel
+        {
+            Success = true, StatusCode = 200, Message = "Purchase order cancelled."
+        });
+    }
+
     [HttpGet]
     [EndpointSummary("Get all purchase orders with server-side pagination, search, and sorting")]
     public async Task<IActionResult> GetPurchaseOrders(
