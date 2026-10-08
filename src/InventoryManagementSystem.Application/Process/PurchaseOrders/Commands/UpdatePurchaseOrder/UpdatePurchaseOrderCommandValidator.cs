@@ -9,9 +9,6 @@ public class UpdatePurchaseOrderCommandValidator : AbstractValidator<UpdatePurch
         RuleFor(v => v.Id)
             .NotEmpty().WithMessage("Purchase Order ID is required.");
 
-        RuleFor(v => v.PurchaseOrderNo)
-            .NotEmpty().WithMessage("Purchase Order Number is required.")
-            .MaximumLength(50).WithMessage("Purchase Order Number cannot exceed 50 characters.");
 
         RuleFor(v => v.SupplierId)
             .GreaterThan(0).WithMessage("A valid Supplier must be selected.");
@@ -28,6 +25,12 @@ public class UpdatePurchaseOrderCommandValidator : AbstractValidator<UpdatePurch
 
         RuleFor(v => v.Items)
             .NotEmpty().WithMessage("At least one purchase order item is required.");
+        RuleFor(v => v.Items).Must(items =>
+        {
+            if (items == null) return true;
+            try { return items.Sum(i => i.Quantity * i.UnitPrice) <= 9999999999999999.99m; }
+            catch (OverflowException) { return false; }
+        }).WithMessage("The purchase order total exceeds the supported amount.");
 
         RuleForEach(v => v.Items).ChildRules(item =>
         {
@@ -35,10 +38,12 @@ public class UpdatePurchaseOrderCommandValidator : AbstractValidator<UpdatePurch
                 .NotEmpty().WithMessage("Product is required for each item.");
 
             item.RuleFor(i => i.Quantity)
-                .GreaterThan(0).WithMessage("Quantity must be greater than 0.");
+                .GreaterThan(0).WithMessage("Quantity must be greater than 0.")
+                .PrecisionScale(18, 4, true);
 
             item.RuleFor(i => i.UnitPrice)
-                .GreaterThanOrEqualTo(0).WithMessage("Unit Price must be 0 or greater.");
+                .GreaterThanOrEqualTo(0).WithMessage("Unit Price must be 0 or greater.")
+                .PrecisionScale(18, 2, true);
 
             item.RuleFor(i => i.UomId)
                 .GreaterThan(0).WithMessage("UOM is required for each item.");
