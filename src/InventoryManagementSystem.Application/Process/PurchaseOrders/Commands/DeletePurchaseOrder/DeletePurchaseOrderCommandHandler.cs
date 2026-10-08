@@ -19,11 +19,17 @@ public class DeletePurchaseOrderCommandHandler : IRequestHandler<DeletePurchaseO
 
     public async Task<PurchaseOrderDto?> Handle(DeletePurchaseOrderCommand request, CancellationToken cancellationToken)
     {
+        await using var databaseTransaction = await _context.BeginTransactionAsync(cancellationToken);
+
         var purchaseOrder = await _context.PurchaseOrders
             .Include(p => p.Items)
             .FirstOrDefaultAsync(p => p.Id == request.Id && !p.DeletedOn.HasValue, cancellationToken);
 
         if (purchaseOrder == null) return null;
+
+        var haveReceipt = await _context.GoodReceipts.AnyAsync(x => x.PurchaseOrderId == purchaseOrder.Id && !x.DeletedOn.HasValue,cancellationToken);
+
+        if (haveReceipt) throw new InvalidOperationException("Cannot delete a purchase order with active goods receipts.");
 
         var now = DateTime.UtcNow;
         purchaseOrder.DeletedOn = now;
@@ -34,6 +40,8 @@ public class DeletePurchaseOrderCommandHandler : IRequestHandler<DeletePurchaseO
         }
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        await databaseTransaction.CommitAsync(cancellationToken);
 
         return new PurchaseOrderDto
         {
