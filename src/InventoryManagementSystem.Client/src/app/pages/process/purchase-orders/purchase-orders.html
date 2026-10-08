@@ -395,6 +395,10 @@
             }
         </div>
         <ng-template #footer>
+            @if (acceptedEmailId && emailStatus !== 'Sent' && emailStatus !== 'Failed') {
+            <p-button label="Check Status" icon="pi pi-refresh" severity="secondary"
+                (onClick)="checkEmailStatus()"></p-button>
+            }
             <p-button label="Close" icon="pi pi-times" severity="secondary" [disabled]="isSendingEmail"
                 (onClick)="emailModalVisible = false"></p-button>
             <p-button label="Send Email" icon="pi pi-send" [loading]="isSendingEmail"
