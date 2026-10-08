@@ -369,6 +369,14 @@
                 {{ emailError }}
             </div>
             }
+            @if (emailStatus) {
+            <div role="status" class="rounded-lg border border-slate-200 dark:border-slate-700 p-3">
+                Email status: {{ emailStatus }}
+                @if (emailStatus === 'Sent') {
+                <span> — Accepted by the mail server.</span>
+                }
+            </div>
+            }
             @if (emailPreview; as preview) {
             <div class="space-y-3 text-slate-800 dark:text-slate-200">
                 <div>
@@ -390,7 +398,7 @@
             <p-button label="Close" icon="pi pi-times" severity="secondary" [disabled]="isSendingEmail"
                 (onClick)="emailModalVisible = false"></p-button>
             <p-button label="Send Email" icon="pi pi-send" [loading]="isSendingEmail"
-                [disabled]="isSendingEmail || isLoadingEmailPreview || !emailPreview" (onClick)="sendOrderEmail()"></p-button>
+                [disabled]="isSendingEmail || isLoadingEmailPreview || !emailPreview || !!acceptedEmailId" (onClick)="sendOrderEmail()"></p-button>
         </ng-template>
     </p-dialog>
 
