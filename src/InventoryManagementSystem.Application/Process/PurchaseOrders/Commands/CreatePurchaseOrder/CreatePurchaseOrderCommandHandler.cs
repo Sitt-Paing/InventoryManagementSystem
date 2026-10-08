@@ -9,6 +9,9 @@ using InventoryManagementSystem.Domain.Entities;
 using InventoryManagementSystem.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text.Json;
+using InventoryManagementSystem.Application.Process.PurchaseOrders.Queries.GetPurchaseOrderById;
 
 namespace InventoryManagementSystem.Application.Process.PurchaseOrders.Commands.CreatePurchaseOrder;
 
@@ -25,37 +28,93 @@ public class CreatePurchaseOrderCommandHandler : IRequestHandler<CreatePurchaseO
 
     public async Task<PurchaseOrderDto> Handle(CreatePurchaseOrderCommand request, CancellationToken cancellationToken)
     {
+        if (request.IdempotencyKey == Guid.Empty)
+            throw new InvalidOperationException("A non-empty idempotency key is required.");
+        // Per-key transaction lock serializes retries without range-locking other new POs.
+        await using var transaction = await _context.BeginTransactionAsync(cancellationToken, System.Data.IsolationLevel.ReadCommitted);
+        await _context.LockPurchaseOrderAsync(request.IdempotencyKey, cancellationToken);
         var companyId = _currentUserService.CompanyId
             ?? throw new InvalidOperationException("A company context is required to create a purchase order.");
 
+        var requestHash = Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new
+        {
+            request.SupplierId, request.WarehouseId, request.OrderDate, request.ExpectedDate,
+            Items = request.Items.OrderBy(i => i.ProductId).ThenBy(i => i.UomId)
+                .ThenBy(i => i.Quantity).ThenBy(i => i.UnitPrice).ToArray()
+        })));
+        var previous = await _context.PurchaseOrders.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == request.IdempotencyKey, cancellationToken);
+        if (previous != null)
+        {
+            if (previous.CompanyId != companyId || previous.DeletedOn.HasValue || previous.CreateRequestHash != requestHash)
+                throw new InvalidOperationException("This idempotency key was already used for another or deleted request.");
+            var previousDto = await new GetPurchaseOrderByIdQueryHandler(_context)
+                .Handle(new GetPurchaseOrderByIdQuery(previous.Id), cancellationToken)
+                ?? throw new InvalidOperationException("The previously created purchase order is unavailable.");
+            await transaction.CommitAsync(cancellationToken);
+            return previousDto;
+        }
+
         var validSupplier = await _context.Suppliers.AsNoTracking()
             .AnyAsync(s => s.Id == request.SupplierId
-                && s.CompanyId == companyId
                 && !s.DeletedOn.HasValue
-                && s.Status, cancellationToken);
+                && s.Status
+                && s.CompanyId == companyId, cancellationToken);
 
         if (!validSupplier)
         {
-            throw new InvalidOperationException("The supplier must exist, be active, and belong to the purchase order's company.");
+            throw new InvalidOperationException(
+                "The supplier must exist, be active, and belong to the purchase order's company.");
         }
 
+        var validWarehouse = await _context.Warehouses.AsNoTracking()
+            .AnyAsync(w => w.Id == request.WarehouseId
+                && !w.DeletedOn.HasValue
+                && w.Status
+                && w.CompanyId == companyId, cancellationToken);
+
+        if (!validWarehouse)
+        {
+            throw new InvalidOperationException(
+                "The warehouse must exist, be active, and belong to the purchase order's company.");
+        }
+
+        var sequenceNumber = await _context.NextPurchaseOrderNumberAsync(cancellationToken);
+        var orderNumber = $"PO-{request.OrderDate:yyyy}-{sequenceNumber:D8}";
         var purchaseOrder = new PurchaseOrder
         {
-            Id = Guid.NewGuid(),
+            Id = request.IdempotencyKey,
             CompanyId = companyId,
-            PurchaseOrderNo = request.PurchaseOrderNo.Trim(),
+            PurchaseOrderNo = orderNumber,
+            CreateRequestHash = requestHash,
             SupplierId = request.SupplierId,
             WarehouseId = request.WarehouseId,
             OrderDate = request.OrderDate,
             ExpectedDate = request.ExpectedDate,
             Status = PurchaseOrderStatus.Pending,
-            TotalAmount = request.Items.Sum(i => i.Quantity * i.UnitPrice)
+            TotalAmount = decimal.Round(request.Items.Sum(i => i.Quantity * i.UnitPrice), 2, MidpointRounding.AwayFromZero)
         };
 
         foreach (var item in request.Items)
         {
+            var product = await _context.Products.AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == item.ProductId && p.CompanyId == companyId
+                    && !p.DeletedOn.HasValue && p.Status, cancellationToken)
+                ?? throw new InvalidOperationException("The product must be active and belong to the PO's company.");
+            var validUoms = await _context.UnitOfMeasures.AsNoTracking()
+                .Where(u => (u.Id == item.UomId || u.Id == product.BaseUomId)
+                    && u.CompanyId == companyId && !u.DeletedOn.HasValue && u.IsActive)
+                .Select(u => u.Id).ToListAsync(cancellationToken);
+            if (!validUoms.Contains(item.UomId) || !validUoms.Contains(product.BaseUomId))
+                throw new InvalidOperationException("The ordered and base UOMs must be active and belong to the PO's company.");
+            if (item.UomId != product.BaseUomId && !await _context.ProductUomConversions.AnyAsync(c =>
+                c.ProductId == item.ProductId && c.FromUomId == item.UomId && c.ToUomId == product.BaseUomId
+                && c.CompanyId == companyId && !c.DeletedOn.HasValue && c.IsActive && c.ConversionFactor > 0,
+                cancellationToken))
+                throw new InvalidOperationException("An active conversion to the product's base UOM is required.");
             purchaseOrder.Items.Add(new PurchaseOrderItem
             {
+                CompanyId = companyId,
                 PurchaseOrderId = purchaseOrder.Id,
                 ProductId = item.ProductId,
                 Quantity = item.Quantity,
@@ -67,6 +126,7 @@ public class CreatePurchaseOrderCommandHandler : IRequestHandler<CreatePurchaseO
 
         _context.PurchaseOrders.Add(purchaseOrder);
         await _context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         // Fetch supplier & warehouse details for return DTO
         var supplier = await _context.Suppliers.AsNoTracking()
