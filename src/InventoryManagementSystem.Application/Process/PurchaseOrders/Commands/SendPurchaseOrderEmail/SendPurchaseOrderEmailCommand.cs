@@ -5,4 +5,4 @@ using System.Text;
 
 namespace InventoryManagementSystem.Application.Process.PurchaseOrders.Commands.SendPurchaseOrderEmail;
 
-public record SendPurchaseOrderEmailCommand(Guid PoId) : IRequest;
+public record SendPurchaseOrderEmailCommand(Guid PoId, Guid IdempotencyKey) : IRequest<Guid>;
