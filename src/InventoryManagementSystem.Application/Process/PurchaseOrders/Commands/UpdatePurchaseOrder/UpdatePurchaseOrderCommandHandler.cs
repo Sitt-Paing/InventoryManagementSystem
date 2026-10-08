@@ -19,12 +19,15 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
     public async Task<PurchaseOrderDto?> Handle(UpdatePurchaseOrderCommand request, CancellationToken cancellationToken)
     {
         await using var databaseTransaction = await _context.BeginTransactionAsync(cancellationToken);
+        await _context.LockPurchaseOrderAsync(request.Id, cancellationToken);
 
         var purchaseOrder = await _context.PurchaseOrders
             .Include(p => p.Items)
             .FirstOrDefaultAsync(p => p.Id == request.Id && !p.DeletedOn.HasValue, cancellationToken);
 
         if (purchaseOrder == null) return null;
+        if (purchaseOrder.Status == PurchaseOrderStatus.Cancelled)
+            throw new InvalidOperationException("A cancelled purchase order cannot be edited.");
 
         if (!purchaseOrder.CompanyId.HasValue)
         {
@@ -33,14 +36,26 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
 
         var validSupplier = await _context.Suppliers.AsNoTracking()
             .AnyAsync(s => s.Id == request.SupplierId
-                && s.CompanyId == purchaseOrder.CompanyId
                 && !s.DeletedOn.HasValue
-                && s.Status, cancellationToken);
+                && s.Status
+                && s.CompanyId == purchaseOrder.CompanyId, cancellationToken);
 
         if (!validSupplier)
         {
             throw new InvalidOperationException(
                 "The supplier must exist, be active, and belong to the purchase order's company.");
+        }
+
+        var validWarehouse = await _context.Warehouses.AsNoTracking()
+            .AnyAsync(w => w.Id == request.WarehouseId
+                && !w.DeletedOn.HasValue
+                && w.Status
+                && w.CompanyId == purchaseOrder.CompanyId, cancellationToken);
+
+        if (!validWarehouse)
+        {
+            throw new InvalidOperationException(
+                "The warehouse must exist, be active, and belong to the purchase order's company.");
         }
 
         var activeItemIds = purchaseOrder.Items
@@ -80,7 +95,6 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
             }
         }
 
-        purchaseOrder.PurchaseOrderNo = request.PurchaseOrderNo.Trim();
         purchaseOrder.SupplierId = request.SupplierId;
         purchaseOrder.WarehouseId = request.WarehouseId;
         purchaseOrder.OrderDate = request.OrderDate;
@@ -102,6 +116,26 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
         // Add or update items
         foreach (var inputItem in request.Items)
         {
+            var product = await _context.Products.AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == inputItem.ProductId && p.CompanyId == purchaseOrder.CompanyId
+                    && !p.DeletedOn.HasValue && p.Status, cancellationToken)
+                ?? throw new InvalidOperationException("The product must be active and belong to the PO's company.");
+
+            var validUoms = await _context.UnitOfMeasures.AsNoTracking()
+                .Where(u => (u.Id == inputItem.UomId || u.Id == product.BaseUomId)
+                    && u.CompanyId == purchaseOrder.CompanyId && !u.DeletedOn.HasValue && u.IsActive)
+                .Select(u => u.Id).ToListAsync(cancellationToken);
+
+            if (!validUoms.Contains(inputItem.UomId) || !validUoms.Contains(product.BaseUomId))
+                throw new InvalidOperationException("The ordered and base UOMs must be active and belong to the PO's company.");
+
+            if (inputItem.UomId != product.BaseUomId && !await _context.ProductUomConversions.AnyAsync(c =>
+                c.ProductId == inputItem.ProductId && c.FromUomId == inputItem.UomId && c.ToUomId == product.BaseUomId
+                && c.CompanyId == purchaseOrder.CompanyId && !c.DeletedOn.HasValue && c.IsActive && c.ConversionFactor > 0,
+                cancellationToken))
+                throw new InvalidOperationException("An active conversion to the product's base UOM is required.");
+
+
             if (inputItem.Id.HasValue && inputItem.Id.Value > 0)
             {
                 var existing = purchaseOrder.Items.Single(i => i.Id == inputItem.Id.Value && !i.DeletedOn.HasValue);
@@ -128,6 +162,7 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
             {
                 purchaseOrder.Items.Add(new PurchaseOrderItem
                 {
+                    CompanyId = purchaseOrder.CompanyId,
                     PurchaseOrderId = purchaseOrder.Id,
                     ProductId = inputItem.ProductId,
                     Quantity = inputItem.Quantity,
@@ -138,9 +173,9 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
             }
         }
 
-        purchaseOrder.TotalAmount = purchaseOrder.Items
+        purchaseOrder.TotalAmount = decimal.Round(purchaseOrder.Items
             .Where(i => !i.DeletedOn.HasValue)
-            .Sum(i => i.Quantity * i.UnitPrice);
+            .Sum(i => i.Quantity * i.UnitPrice), 2, MidpointRounding.AwayFromZero);
 
         if(purchaseOrder.Status != PurchaseOrderStatus.Cancelled)
         {
