@@ -58,6 +58,7 @@ public partial class InventoryManagementDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasSequence<long>("PurchaseOrderNumberSequence");
         modelBuilder.Entity<EmailOutbox>(entity =>
         {
             entity.ToTable("EmailOutboxes");
@@ -375,6 +376,9 @@ public partial class InventoryManagementDbContext : DbContext
             entity.ToTable("PurchaseOrders");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.PurchaseOrderNo).HasMaxLength(50).IsRequired();
+            entity.HasIndex(e => new { e.CompanyId, e.PurchaseOrderNo }).IsUnique();
+            entity.Property(e => e.CreateRequestHash).HasMaxLength(64);
+            entity.Property(e => e.CancellationReason).HasMaxLength(500);
             entity.Property(e => e.TotalAmount).HasColumnType("decimal(18,2)");
             entity.Property(e => e.Status).HasConversion<int>();
             entity.HasOne(d => d.Supplier)
