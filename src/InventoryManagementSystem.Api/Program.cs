@@ -49,7 +49,8 @@ if (app.Environment.IsDevelopment())
     }
 
     app.MapOpenApi();
-    app.MapScalarApiReference("/docs/scalar");
+    app.MapScalarApiReference("/docs/scalar", options =>
+        options.WithJavaScriptConfiguration("/scalar/config.js"));
 }
 
 
