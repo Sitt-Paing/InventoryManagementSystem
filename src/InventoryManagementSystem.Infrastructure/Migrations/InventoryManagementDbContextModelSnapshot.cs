@@ -737,6 +737,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("ApprovalStatus")
+                        .HasColumnType("int");
+
                     b.Property<string>("CancellationReason")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
