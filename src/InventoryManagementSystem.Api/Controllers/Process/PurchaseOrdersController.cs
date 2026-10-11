@@ -16,6 +16,7 @@ using InventoryManagementSystem.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using InventoryManagementSystem.Application.Process.PurchaseOrders.Commands.SubmitPurchaseOrder;
 
 namespace InventoryManagementSystem.Api.Controllers.Process;
 
@@ -153,6 +154,31 @@ public class PurchaseOrdersController : ApiControllerBase
             StatusCode = StatusCodes.Status201Created,
             Success = true,
             Message = "Purchase order created successfully.",
+            Data = result
+        });
+    }
+
+    [HttpPost("{id:guid}/submit")]
+    [EndpointSummary("Submit a purchase order for approval")]
+    public async Task<IActionResult> SubmitPurchaseOrder(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await Mediator.Send(new SubmitPurchaseOrderCommand(id), cancellationToken);
+        if (result == false)
+        {
+            return NotFound(new DefaultResponseModel
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Success = false,
+                Message = $"Purchase order with ID {id} not found.",
+                Data = null
+            });
+        }
+
+        return Ok(new DefaultResponseModel
+        {
+            StatusCode = StatusCodes.Status200OK,
+            Success = true,
+            Message = "Purchase order submitted for approval successfully.",
             Data = result
         });
     }
