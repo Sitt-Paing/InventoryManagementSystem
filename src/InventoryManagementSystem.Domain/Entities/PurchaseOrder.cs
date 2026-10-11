@@ -19,7 +19,7 @@ public class PurchaseOrder : BaseAuditableEntity<Guid>, IMustHaveCompany
     public string? CancellationReason { get; set; }
     public PurchaseOrderApprovalStatus ApprovalStatus { get; private set; } = PurchaseOrderApprovalStatus.Draft;
     public string? ApprovedBy { get;private set; }
-    public DateTime ApprovedOn { get;private set; }
+    public DateTime? ApprovedOn { get;private set; }
     [JsonIgnore]
     public virtual Supplier? Supplier { get; set; }
     [JsonIgnore]
@@ -60,5 +60,7 @@ public class PurchaseOrder : BaseAuditableEntity<Guid>, IMustHaveCompany
             throw new InvalidOperationException("Only submitted purchase orders can be approved.");
         }
         ApprovalStatus = PurchaseOrderApprovalStatus.Approved;
+        ApprovedBy = approvedBy;
+        ApprovedOn = now;
     }
 }
