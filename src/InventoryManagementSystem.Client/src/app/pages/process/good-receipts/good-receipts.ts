@@ -18,7 +18,7 @@ import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 
 import { GoodReceiptModel, GoodReceiptItemModel } from '../../../core/models/process/good-receipt.model';
-import { PurchaseOrderModel, PurchaseOrderStatus } from '../../../core/models/process/purchase-order.model';
+import { PurchaseOrderApprovalStatus, PurchaseOrderModel, PurchaseOrderStatus } from '../../../core/models/process/purchase-order.model';
 import { SuppliersModel } from '../../../core/models/master/suppliers.model';
 import { WarehouseModel } from '../../../core/models/master/warehouse.model';
 import { ProductModel } from '../../../core/models/master/product.model';
@@ -176,21 +176,34 @@ export class GoodReceiptsComponent implements OnInit {
 
   loadDropdownData(): void {
     forkJoin({
-      purchaseOrders: this.purchaseOrdersService.getPaged({ pageSize: 100, excludeCompleted: true }),
+      purchaseOrders: this.purchaseOrdersService.getReceivableOrders(),
       suppliers: this.suppliersService.get(),
       warehouses: this.warehouseService.get(),
       products: this.productService.get(),
       uoms: this.uomService.get()
     }).subscribe({
       next: (res) => {
-        const allPos = (res.purchaseOrders?.data?.items || []) as PurchaseOrderModel[];
+        const allPos = res.purchaseOrders;
+        const existingOrder = this.isEdit
+          ? this.purchaseOrders.find(po => po.id === this.goodReceiptForm.controls.purchaseOrderId.value)
+          : undefined;
         this.purchaseOrders = allPos.filter(
-          (po) => po.status !== PurchaseOrderStatus.Completed && po.status !== PurchaseOrderStatus.Cancelled
+          (po) => po.approvalStatus === PurchaseOrderApprovalStatus.Approved
+            && po.status !== PurchaseOrderStatus.Completed && po.status !== PurchaseOrderStatus.Cancelled
         );
+        // Existing receipts keep their original PO visible even when it is fully received.
+        if (existingOrder && !this.purchaseOrders.some(po => po.id === existingOrder.id)) {
+          this.purchaseOrders = [existingOrder, ...this.purchaseOrders];
+        }
         this.suppliers = (res.suppliers?.data || []) as SuppliersModel[];
         this.warehouses = (res.warehouses?.data || []) as WarehouseModel[];
         this.products = (res.products?.data?.items || []) as ProductModel[];
         this.uoms = (res.uoms?.data || []) as UnitOfMeasureModel[];
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.purchaseOrders = [];
+        this.messageService.add({ key: 'globalMessage', severity: 'error', summary: 'Error', detail: 'Unable to load approved purchase orders. Reopen the form to retry.' });
         this.cdr.markForCheck();
       }
     });
@@ -445,11 +458,22 @@ export class GoodReceiptsComponent implements OnInit {
   }
 
   onPurchaseOrderSelected(poId: string): void {
+    if (this.isEdit) return;
+    this.formItems = [];
+    this.goodReceiptForm.patchValue({ supplierId: null, warehouseId: null });
     if (!poId) return;
 
     this.purchaseOrdersService.getById(poId).subscribe({
       next: (res) => {
+        if (this.isEdit || this.goodReceiptForm.controls.purchaseOrderId.value !== poId) return;
         const po = res.data as PurchaseOrderModel;
+        if (po && (po.approvalStatus !== PurchaseOrderApprovalStatus.Approved
+          || po.status === PurchaseOrderStatus.Completed || po.status === PurchaseOrderStatus.Cancelled)) {
+          this.goodReceiptForm.patchValue({ purchaseOrderId: '' });
+          this.messageService.add({ key: 'globalMessage', severity: 'warn', summary: 'Cannot Receive', detail: 'Select an approved purchase order with outstanding quantity.' });
+          this.cdr.markForCheck();
+          return;
+        }
         if (po) {
           this.goodReceiptForm.patchValue({
             supplierId: po.supplierId,
@@ -480,6 +504,12 @@ export class GoodReceiptsComponent implements OnInit {
 
           this.cdr.markForCheck();
         }
+      },
+      error: err => {
+        if (this.goodReceiptForm.controls.purchaseOrderId.value !== poId) return;
+        this.goodReceiptForm.patchValue({ purchaseOrderId: '' });
+        this.messageService.add({ key: 'globalMessage', severity: 'error', summary: 'Error', detail: err.error?.message ?? 'Unable to load purchase order.' });
+        this.cdr.markForCheck();
       }
     });
   }
