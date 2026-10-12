@@ -10,10 +10,12 @@ namespace InventoryManagementSystem.Application.Process.PurchaseOrders.Commands.
 public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseOrderCommand, PurchaseOrderDto?>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IIdentityService _identityService;
 
-    public UpdatePurchaseOrderCommandHandler(IApplicationDbContext context)
+    public UpdatePurchaseOrderCommandHandler(IApplicationDbContext context, IIdentityService identityService)
     {
         _context = context;
+        _identityService = identityService;
     }
 
     public async Task<PurchaseOrderDto?> Handle(UpdatePurchaseOrderCommand request, CancellationToken cancellationToken)
@@ -215,6 +217,9 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
             .Where(u => uomIds.Contains(u.Id))
             .ToDictionaryAsync(u => u.Id, u => u, cancellationToken);
 
+        var approverNames = await _identityService.GetUserNamesAsync(
+            purchaseOrder.ApprovedBy == null ? Array.Empty<string>() : new[] { purchaseOrder.ApprovedBy }, cancellationToken);
+
         return new PurchaseOrderDto
         {
             Id = purchaseOrder.Id,
@@ -229,6 +234,7 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
             Status = purchaseOrder.Status,
             ApprovalStatus = purchaseOrder.ApprovalStatus,
             ApprovedBy = purchaseOrder.ApprovedBy,
+            ApprovedByName = purchaseOrder.ApprovedBy != null && approverNames.TryGetValue(purchaseOrder.ApprovedBy, out var name) ? name : null,
             ApprovedOn = purchaseOrder.ApprovedOn,
             TotalAmount = purchaseOrder.TotalAmount,
             CreatedOn = purchaseOrder.CreatedOn,
