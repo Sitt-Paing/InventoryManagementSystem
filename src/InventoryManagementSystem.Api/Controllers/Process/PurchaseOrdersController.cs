@@ -56,7 +56,8 @@ public class PurchaseOrdersController : ApiControllerBase
         [FromQuery] string? sortField,
         [FromQuery] int order = -1,
         [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 20)
+        [FromQuery] int pageSize = 20,
+        [FromQuery] PurchaseOrderApprovalStatus? approvalStatus = null)
     {
         var result = await Mediator.Send(new GetPurchaseOrdersQuery(
             q,
@@ -68,7 +69,8 @@ public class PurchaseOrdersController : ApiControllerBase
             sortField,
             order,
             pageNumber,
-            pageSize));
+            pageSize,
+            approvalStatus));
 
         return Ok(new DefaultResponseModel
         {
@@ -279,7 +281,8 @@ public class PurchaseOrdersController : ApiControllerBase
         [FromQuery] int? warehouseId,
         [FromQuery] PurchaseOrderStatus? status,
         [FromQuery] string format = "excel",
-        [FromQuery] string fontName = "Pyidaungsu")
+        [FromQuery] string fontName = "Pyidaungsu",
+        [FromQuery] PurchaseOrderApprovalStatus? approvalStatus = null)
     {
         var result = await Mediator.Send(new ExportPurchaseOrdersQuery(
             q,
@@ -288,7 +291,8 @@ public class PurchaseOrdersController : ApiControllerBase
             warehouseId,
             status,
             format,
-            fontName));
+            fontName,
+            approvalStatus));
 
         return File(result.Content, result.ContentType, result.FileName);
     }
