@@ -72,6 +72,9 @@ export class PurchaseOrdersComponent implements OnInit {
   cancellationReason: string = '';
   isCancelling: boolean = false;
   approvalActionId: string | null = null;
+  rejectionModalVisible: boolean = false;
+  rejectionReason: string = '';
+  rejectionOrder: PurchaseOrderModel | null = null;
   private authService = inject(AuthService);
   private cancelOrderId: string | null = null;
   modalVisible: boolean = false;
@@ -156,6 +159,7 @@ export class PurchaseOrdersComponent implements OnInit {
       {
         label: 'Edit',
         icon: 'pi pi-pencil',
+        disabled: true,
         command: () => this.update()
       },
       {
@@ -211,6 +215,7 @@ export class PurchaseOrdersComponent implements OnInit {
           this.totalRecords = 0;
         }
         this.isLoading = false;
+        this.syncEditMenu();
         this.cdr.detectChanges();
       },
       error: () => {
@@ -380,6 +385,11 @@ export class PurchaseOrdersComponent implements OnInit {
       return;
     }
 
+    if (!this.canEdit(this.selectedPurchaseOrder)) {
+      this.messageService.add({ key: 'globalMessage', severity: 'warn', summary: 'Cannot Edit', detail: 'Approved or cancelled purchase orders cannot be edited.' });
+      return;
+    }
+
     this.isEdit = true;
     const po = this.selectedPurchaseOrder;
     this.purchaseOrderForm.patchValue({
@@ -519,6 +529,56 @@ export class PurchaseOrdersComponent implements OnInit {
   clearSearch(): void {
     this.searchKeyword = '';
     this.onSearch();
+  }
+
+  canEdit(order: PurchaseOrderModel): boolean {
+    return order.status !== PurchaseOrderStatus.Cancelled
+      && order.approvalStatus !== PurchaseOrderApprovalStatus.Approved;
+  }
+
+  syncEditMenu(): void {
+    const edit = this.items.find(item => item.label === 'Edit');
+    if (edit) edit.disabled = !this.selectedPurchaseOrder || !this.canEdit(this.selectedPurchaseOrder);
+    this.items = [...this.items];
+  }
+
+  openRejection(order: PurchaseOrderModel): void {
+    if (!this.canApprove(order) || this.approvalActionId) return;
+    this.rejectionOrder = order;
+    this.rejectionReason = '';
+    this.rejectionModalVisible = true;
+  }
+
+  rejectOrder(): void {
+    const order = this.rejectionOrder;
+    const reason = this.rejectionReason.trim();
+    if (!order?.id || !this.canApprove(order) || this.approvalActionId || !reason || reason.length > 500) return;
+    this.approvalActionId = order.id;
+    this.purchaseOrdersService.reject(order.id, reason).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => { this.approvalActionId = null; this.cdr.markForCheck(); })
+    ).subscribe({
+      next: res => {
+        if (!res.success) {
+          this.messageService.add({ key: 'globalMessage', severity: 'error', summary: 'Error', detail: res.message ?? 'Unable to reject purchase order.' });
+          return;
+        }
+        this.rejectionModalVisible = false;
+        this.rejectionOrder = null;
+        this.selectedPurchaseOrder = null;
+        if (this.detailOrder?.id === order.id) {
+          this.detailModalVisible = false;
+          this.detailOrder = null;
+        }
+        this.messageService.add({ key: 'globalMessage', severity: 'success', summary: 'Rejected', detail: res.message ?? 'Purchase order rejected.' });
+        this.syncEditMenu();
+        this.loadData();
+      },
+      error: err => {
+        this.messageService.add({ key: 'globalMessage', severity: 'error', summary: 'Error', detail: err.status === 403 ? 'You do not have permission to reject purchase orders.' : err.error?.message ?? 'Unable to reject purchase order.' });
+        this.loadData();
+      }
+    });
   }
 
   canSubmitForApproval(order: PurchaseOrderModel): boolean {
