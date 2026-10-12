@@ -45,6 +45,17 @@ public class IdentityService : IIdentityService
         _logger = logger;
     }
 
+    public async Task<Dictionary<string, string>> GetUserNamesAsync(IEnumerable<string> userIds, CancellationToken cancellationToken = default)
+    {
+        var ids = userIds.Where(id => !string.IsNullOrWhiteSpace(id)).Distinct().ToArray();
+        if (ids.Length == 0) return new Dictionary<string, string>();
+
+        return await _userManager.Users.AsNoTracking()
+            .Where(user => ids.Contains(user.Id) && user.UserName != null)
+            .Select(user => new { user.Id, user.UserName })
+            .ToDictionaryAsync(user => user.Id, user => user.UserName!, cancellationToken);
+    }
+
     public async Task<AuthResultDto> RegisterAsync(RegisterRequest request)
     {
         _logger.LogInformation("Registration attempt for user: {UserName}, Email: {Email}", request.UserName, request.Email);
