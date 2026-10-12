@@ -11,10 +11,12 @@ namespace InventoryManagementSystem.Application.Process.PurchaseOrders.Queries.G
 public class GetPurchaseOrderByIdQueryHandler : IRequestHandler<GetPurchaseOrderByIdQuery, PurchaseOrderDto?>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IIdentityService _identityService;
 
-    public GetPurchaseOrderByIdQueryHandler(IApplicationDbContext context)
+    public GetPurchaseOrderByIdQueryHandler(IApplicationDbContext context, IIdentityService identityService)
     {
         _context = context;
+        _identityService = identityService;
     }
 
     public async Task<PurchaseOrderDto?> Handle(GetPurchaseOrderByIdQuery request, CancellationToken cancellationToken)
@@ -31,6 +33,9 @@ public class GetPurchaseOrderByIdQueryHandler : IRequestHandler<GetPurchaseOrder
 
         if (po == null) return null;
 
+        var approverNames = await _identityService.GetUserNamesAsync(
+            po.ApprovedBy == null ? Array.Empty<string>() : new[] { po.ApprovedBy }, cancellationToken);
+
         return new PurchaseOrderDto
         {
             Id = po.Id,
@@ -45,6 +50,7 @@ public class GetPurchaseOrderByIdQueryHandler : IRequestHandler<GetPurchaseOrder
             Status = po.Status,
             ApprovalStatus = po.ApprovalStatus,
             ApprovedBy = po.ApprovedBy,
+            ApprovedByName = po.ApprovedBy != null && approverNames.TryGetValue(po.ApprovedBy, out var name) ? name : null,
             ApprovedOn = po.ApprovedOn,
             TotalAmount = po.TotalAmount,
             CreatedOn = po.CreatedOn,
