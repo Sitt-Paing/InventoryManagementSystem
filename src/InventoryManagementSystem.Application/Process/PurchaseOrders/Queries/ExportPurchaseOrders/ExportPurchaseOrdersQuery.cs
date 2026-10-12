@@ -12,5 +12,6 @@ public record ExportPurchaseOrdersQuery(
     int? WarehouseId = null,
     PurchaseOrderStatus? Status = null,
     string Format = "excel",
-    string FontName = "Pyidaungsu"
+    string FontName = "Pyidaungsu",
+    PurchaseOrderApprovalStatus? ApprovalStatus = null
 ) : IRequest<ExportFileDto>;
