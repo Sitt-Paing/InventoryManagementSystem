@@ -125,9 +125,12 @@
                 <div class="col-span-12 lg:col-span-4 flex flex-col gap-1">
                     <label class="text-xs font-semibold">Purchase Order *</label>
                     <p-select formControlName="purchaseOrderId" [options]="purchaseOrders" optionLabel="purchaseOrderNo"
-                        optionValue="id" placeholder="Select Purchase Order" [filter]="true" filterBy="purchaseOrderNo"
+                        optionValue="id" placeholder="Select Approved Purchase Order" [filter]="true" filterBy="purchaseOrderNo" [readonly]="isEdit"
                         (onChange)="onPurchaseOrderSelected($event.value)" appendTo="body" [fluid]="true" class="w-full">
                     </p-select>
+                    @if (!isEdit) {
+                    <small>Only approved POs with outstanding quantity can be received.</small>
+                    }
                     @if(goodReceiptForm.controls['purchaseOrderId'].invalid && goodReceiptForm.get('purchaseOrderId')?.dirty){
                     <small class="text-xs text-red-500">Purchase Order is required.</small>
                     }
