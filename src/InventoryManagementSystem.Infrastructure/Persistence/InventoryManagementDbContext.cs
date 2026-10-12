@@ -379,6 +379,7 @@ public partial class InventoryManagementDbContext : DbContext
             entity.HasIndex(e => new { e.CompanyId, e.PurchaseOrderNo }).IsUnique();
             entity.Property(e => e.CreateRequestHash).HasMaxLength(64);
             entity.Property(e => e.CancellationReason).HasMaxLength(500);
+            entity.Property(e => e.RejectionReason).HasMaxLength(500);
             entity.Property(e => e.TotalAmount).HasColumnType("decimal(18,2)");
             entity.Property(e => e.Status).HasConversion<int>();
             entity.HasOne(d => d.Supplier)
