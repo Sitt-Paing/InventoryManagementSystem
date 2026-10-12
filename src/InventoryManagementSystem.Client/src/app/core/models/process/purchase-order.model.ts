@@ -52,6 +52,9 @@ export interface PurchaseOrderModel {
     approvedBy: string | null;
     approvedByName: string | null;
     approvedOn: string | null;
+    rejectionReason: string | null;
+    rejectedBy: string | null;
+    rejectedOn: string | null;
     totalAmount?: number;
     totalItems?: number;
     items: PurchaseOrderItemModel[];
