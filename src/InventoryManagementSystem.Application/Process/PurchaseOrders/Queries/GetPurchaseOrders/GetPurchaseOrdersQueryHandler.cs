@@ -13,10 +13,12 @@ namespace InventoryManagementSystem.Application.Process.PurchaseOrders.Queries.G
 public class GetPurchaseOrdersQueryHandler : IRequestHandler<GetPurchaseOrdersQuery, PagedResult<PurchaseOrderDto>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IIdentityService _identityService;
 
-    public GetPurchaseOrdersQueryHandler(IApplicationDbContext context)
+    public GetPurchaseOrdersQueryHandler(IApplicationDbContext context, IIdentityService identityService)
     {
         _context = context;
+        _identityService = identityService;
     }
 
     public async Task<PagedResult<PurchaseOrderDto>> Handle(GetPurchaseOrdersQuery request, CancellationToken cancellationToken)
@@ -53,6 +55,11 @@ public class GetPurchaseOrdersQueryHandler : IRequestHandler<GetPurchaseOrdersQu
             query = query.Where(po => po.Status != Domain.Enums.PurchaseOrderStatus.Completed && po.Status != Domain.Enums.PurchaseOrderStatus.Cancelled);
         }
 
+
+        if (request.ApprovalStatus.HasValue)
+        {
+            query = query.Where(po => po.ApprovalStatus == request.ApprovalStatus.Value);
+        }
 
         if (request.OrderDate.HasValue)
         {
@@ -123,6 +130,14 @@ public class GetPurchaseOrdersQueryHandler : IRequestHandler<GetPurchaseOrdersQu
                     }).ToList()
             })
             .ToListAsync(cancellationToken);
+
+        var approverNames = await _identityService.GetUserNamesAsync(
+            items.Where(item => item.ApprovedBy != null).Select(item => item.ApprovedBy!), cancellationToken);
+        foreach (var item in items)
+        {
+            item.ApprovedByName = item.ApprovedBy != null && approverNames.TryGetValue(item.ApprovedBy, out var name)
+                ? name : null;
+        }
 
         return new PagedResult<PurchaseOrderDto>
         {
