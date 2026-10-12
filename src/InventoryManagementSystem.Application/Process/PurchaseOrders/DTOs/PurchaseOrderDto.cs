@@ -20,6 +20,9 @@ public class PurchaseOrderDto
     public string? ApprovedBy { get; set; }
     public string? ApprovedByName { get; set; }
     public DateTime? ApprovedOn { get; set; }
+    public string? RejectionReason { get; set; }
+    public string? RejectedBy { get; set; }
+    public DateTime? RejectedOn { get; set; }
     public decimal TotalAmount { get; set; }
     public int TotalItems => Items?.Count ?? 0;
     public DateTime? CreatedOn { get; set; }
