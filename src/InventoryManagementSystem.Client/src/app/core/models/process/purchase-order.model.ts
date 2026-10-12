@@ -50,6 +50,7 @@ export interface PurchaseOrderModel {
     status: PurchaseOrderStatus;
     approvalStatus: PurchaseOrderApprovalStatus;
     approvedBy: string | null;
+    approvedByName: string | null;
     approvedOn: string | null;
     totalAmount?: number;
     totalItems?: number;
@@ -67,6 +68,7 @@ export interface PurchaseOrderFilterModel {
     warehouseId?: number | null;
     status?: PurchaseOrderStatus | null;
     excludeCompleted?: boolean | null;
+    approvalStatus?: PurchaseOrderApprovalStatus | null;
     sortField?: string | null;
     order?: number | null;
     pageNumber?: number;
