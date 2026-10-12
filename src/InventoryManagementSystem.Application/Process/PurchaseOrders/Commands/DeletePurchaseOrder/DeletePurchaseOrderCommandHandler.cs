@@ -11,10 +11,12 @@ namespace InventoryManagementSystem.Application.Process.PurchaseOrders.Commands.
 public class DeletePurchaseOrderCommandHandler : IRequestHandler<DeletePurchaseOrderCommand, PurchaseOrderDto?>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IIdentityService _identityService;
 
-    public DeletePurchaseOrderCommandHandler(IApplicationDbContext context)
+    public DeletePurchaseOrderCommandHandler(IApplicationDbContext context, IIdentityService identityService)
     {
         _context = context;
+        _identityService = identityService;
     }
 
     public async Task<PurchaseOrderDto?> Handle(DeletePurchaseOrderCommand request, CancellationToken cancellationToken)
@@ -44,6 +46,9 @@ public class DeletePurchaseOrderCommandHandler : IRequestHandler<DeletePurchaseO
 
         await databaseTransaction.CommitAsync(cancellationToken);
 
+        var approverNames = await _identityService.GetUserNamesAsync(
+            purchaseOrder.ApprovedBy == null ? Array.Empty<string>() : new[] { purchaseOrder.ApprovedBy }, cancellationToken);
+
         return new PurchaseOrderDto
         {
             Id = purchaseOrder.Id,
@@ -55,6 +60,7 @@ public class DeletePurchaseOrderCommandHandler : IRequestHandler<DeletePurchaseO
             Status = purchaseOrder.Status,
             ApprovalStatus = purchaseOrder.ApprovalStatus,
             ApprovedBy = purchaseOrder.ApprovedBy,
+            ApprovedByName = purchaseOrder.ApprovedBy != null && approverNames.TryGetValue(purchaseOrder.ApprovedBy, out var name) ? name : null,
             ApprovedOn = purchaseOrder.ApprovedOn,
             TotalAmount = purchaseOrder.TotalAmount,
             DeletedOn = purchaseOrder.DeletedOn
