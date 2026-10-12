@@ -9,6 +9,20 @@
     </div>
 </p-dialog>
 
+<p-dialog header="Reject Purchase Order" [(visible)]="rejectionModalVisible" [modal]="true"
+    [closable]="approvalActionId === null" [closeOnEscape]="approvalActionId === null" [style]="{ width: '30rem' }">
+    <div class="flex flex-col gap-3">
+        <span class="font-semibold">{{ rejectionOrder?.purchaseOrderNo }}</span>
+        <label for="rejectionReason">Rejection reason *</label>
+        <textarea id="rejectionReason" pInputText [(ngModel)]="rejectionReason" maxlength="500" rows="4"
+            [disabled]="approvalActionId !== null"></textarea>
+        <small>The maker must edit and submit this PO again before it can be approved.</small>
+        <p-button label="Reject" icon="pi pi-times" severity="danger" [loading]="approvalActionId !== null"
+            [disabled]="approvalActionId !== null || !rejectionReason.trim() || rejectionReason.trim().length > 500"
+            (onClick)="rejectOrder()"></p-button>
+    </div>
+</p-dialog>
+
 <div class="table-card p-4 space-y-2">
     <!-- Top Action Bar -->
     <div class="flex flex-wrap justify-between items-center gap-2">
@@ -63,6 +77,7 @@
 
     <!-- Purchase Orders Table (API Paging, Search, Sorting) -->
     <p-table #tblPurchaseOrders [value]="purchaseOrders" [(selection)]="selectedPurchaseOrder" dataKey="id"
+        (onRowSelect)="syncEditMenu()" (onRowUnselect)="syncEditMenu()"
         selectionMode="single" stripedRows="true" [lazy]="true" (onLazyLoad)="onLazyLoad($event)"
         [totalRecords]="totalRecords" [rows]="pageSize" [paginator]="true" paginatorDropdownAppendTo="body"
         [rowsPerPageOptions]="[10, 20, 50, 100]" [showCurrentPageReport]="true"
@@ -118,6 +133,9 @@
                         <p-button label="Approve" icon="pi pi-check" size="small" [text]="true" severity="success"
                             [loading]="approvalActionId === po.id" [disabled]="approvalActionId !== null"
                             (onClick)="confirmApprovalAction(po, true); $event.stopPropagation()"></p-button>
+                        <p-button label="Reject" icon="pi pi-times" size="small" [text]="true" severity="danger"
+                            [disabled]="approvalActionId !== null"
+                            (onClick)="openRejection(po); $event.stopPropagation()"></p-button>
                         }
                     </div>
                 </td>
@@ -153,6 +171,11 @@
     }" [modal]="true" [style]="{ 'min-width': '65vw' }" [draggable]="false" [resizable]="false"
         (onHide)="onDialogHide()">
         <form [formGroup]="purchaseOrderForm" (ngSubmit)="onSubmit()">
+            @if (isEdit && selectedPurchaseOrder?.approvalStatus !== 0) {
+            <p class="mb-3 text-sm text-amber-700 dark:text-amber-300">
+                Saving changes returns this PO to Draft. Submit it again for approval.
+            </p>
+            }
             <!-- Master Details Section -->
             <div class="grid grid-cols-12 gap-3 mb-4">
                 <div class="col-span-12 lg:col-span-4 flex flex-col gap-1">
@@ -299,6 +322,8 @@
                 <p-button label="Approve" icon="pi pi-check" size="small" severity="success"
                     [loading]="approvalActionId === detailOrder.id" [disabled]="approvalActionId !== null"
                     (onClick)="confirmApprovalAction(detailOrder, true)"></p-button>
+                <p-button label="Reject" icon="pi pi-times" size="small" severity="danger"
+                    [disabled]="approvalActionId !== null" (onClick)="openRejection(detailOrder)"></p-button>
                 }
                 <p-button icon="pi pi-envelope" label="Email Preview" size="small" severity="secondary" [outlined]="true"
                     [disabled]="isLoadingEmailPreview || isSendingEmail" (onClick)="previewEmail(detailOrder)"></p-button>
@@ -356,6 +381,14 @@
                     <span>{{ (detailOrder.approvedOn | date:'dd/MMM/yyyy hh:mm a') || '-' }}</span>
                 </div>
             </div>
+
+            @if (detailOrder.rejectionReason) {
+            <div class="rounded-lg border border-red-200 dark:border-red-800 p-3">
+                <span class="font-semibold">Last rejection reason</span>
+                <p class="whitespace-pre-wrap break-words">{{ detailOrder.rejectionReason }}</p>
+                <span>{{ detailOrder.rejectedOn | date:'dd/MMM/yyyy hh:mm a' }}</span>
+            </div>
+            }
 
             <div>
                 <table class="w-full text-xs text-left border border-slate-200 dark:border-slate-700/80 rounded-lg overflow-hidden">
