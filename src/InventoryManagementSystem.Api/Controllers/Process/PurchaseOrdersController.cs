@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.Commands.SubmitPurchaseOrder;
+using InventoryManagementSystem.Application.Process.PurchaseOrders.Commands.ApprovePurchaseOrder;
 
 namespace InventoryManagementSystem.Api.Controllers.Process;
 
@@ -179,6 +180,31 @@ public class PurchaseOrdersController : ApiControllerBase
             StatusCode = StatusCodes.Status200OK,
             Success = true,
             Message = "Purchase order submitted for approval successfully.",
+            Data = result
+        });
+    }
+
+    [HttpPost("{id:guid}/approve")]
+    [Authorize(Roles = "SuperAdmin,Administrator")]
+    [EndpointSummary("Approve a submitted purchase order")]
+    public async Task<IActionResult> ApproveOrder(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await Mediator.Send(new ApprovePurchaseOrderCommand(id), cancellationToken);
+        if (result == false)
+        {
+            return NotFound(new DefaultResponseModel
+            {
+                StatusCode = StatusCodes.Status404NotFound,
+                Success = false,
+                Message = $"Purchase order with ID {id} not found.",
+                Data = null
+            });
+        }
+        return Ok(new DefaultResponseModel
+        {
+            StatusCode = StatusCodes.Status200OK,
+            Success = true,
+            Message = "Purchase order approved successfully.",
             Data = result
         });
     }
