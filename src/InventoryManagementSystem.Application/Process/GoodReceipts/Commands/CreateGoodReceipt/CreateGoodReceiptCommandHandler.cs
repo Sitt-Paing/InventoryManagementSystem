@@ -86,6 +86,11 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
             throw new KeyNotFoundException($"Purchase Order with ID '{request.PurchaseOrderId}' was not found.");
         }
 
+        if( purchaseOrder.ApprovalStatus != PurchaseOrderApprovalStatus.Approved)
+        {
+            throw new InvalidOperationException("Only approved purchase orders can be received.");
+        }
+
         if (purchaseOrder.Status == PurchaseOrderStatus.Completed)
         {
             throw new InvalidOperationException($"Purchase Order '{purchaseOrder.PurchaseOrderNo}' has already been fully received.");
