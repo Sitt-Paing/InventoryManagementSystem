@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.Commands.SubmitPurchaseOrder;
 using InventoryManagementSystem.Application.Process.PurchaseOrders.Commands.ApprovePurchaseOrder;
+using InventoryManagementSystem.Application.Process.PurchaseOrders.Commands.RejectPurchaseOrder;
 
 namespace InventoryManagementSystem.Api.Controllers.Process;
 
@@ -208,6 +209,26 @@ public class PurchaseOrdersController : ApiControllerBase
             Success = true,
             Message = "Purchase order approved successfully.",
             Data = result
+        });
+    }
+
+    [HttpPost("{id:guid}/reject")]
+    [Authorize(Roles = "SuperAdmin,Administrator")]
+    [EndpointSummary("Reject a submitted purchase order with a reason")]
+    public async Task<IActionResult> RejectPurchaseOrder(Guid id, [FromBody] RejectPurchaseOrderCommand command, CancellationToken cancellationToken)
+    {
+        if (id != command.Id) return BadRequest(new DefaultResponseModel
+        {
+            Success = false, StatusCode = 400, Message = "Purchase order ID mismatch."
+        });
+        var found = await Mediator.Send(command, cancellationToken);
+        if (!found) return NotFound(new DefaultResponseModel
+        {
+            Success = false, StatusCode = 404, Message = "Purchase order not found."
+        });
+        return Ok(new DefaultResponseModel
+        {
+            Success = true, StatusCode = 200, Message = "Purchase order rejected."
         });
     }
 
