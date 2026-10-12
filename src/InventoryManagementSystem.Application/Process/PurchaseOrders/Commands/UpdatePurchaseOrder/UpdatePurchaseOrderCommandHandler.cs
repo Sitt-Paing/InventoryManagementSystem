@@ -28,8 +28,7 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
             .FirstOrDefaultAsync(p => p.Id == request.Id && !p.DeletedOn.HasValue, cancellationToken);
 
         if (purchaseOrder == null) return null;
-        if (purchaseOrder.Status == PurchaseOrderStatus.Cancelled)
-            throw new InvalidOperationException("A cancelled purchase order cannot be edited.");
+        purchaseOrder.PrepareForEdit();
 
         if (!purchaseOrder.CompanyId.HasValue)
         {
@@ -236,6 +235,9 @@ public class UpdatePurchaseOrderCommandHandler : IRequestHandler<UpdatePurchaseO
             ApprovedBy = purchaseOrder.ApprovedBy,
             ApprovedByName = purchaseOrder.ApprovedBy != null && approverNames.TryGetValue(purchaseOrder.ApprovedBy, out var name) ? name : null,
             ApprovedOn = purchaseOrder.ApprovedOn,
+            RejectionReason = purchaseOrder.RejectionReason,
+            RejectedBy = purchaseOrder.RejectedBy,
+            RejectedOn = purchaseOrder.RejectedOn,
             TotalAmount = purchaseOrder.TotalAmount,
             CreatedOn = purchaseOrder.CreatedOn,
             CreatedBy = purchaseOrder.CreatedBy,
