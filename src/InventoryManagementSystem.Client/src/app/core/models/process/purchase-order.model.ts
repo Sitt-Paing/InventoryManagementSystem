@@ -5,6 +5,13 @@ export enum PurchaseOrderStatus {
     Cancelled = 3
 }
 
+export enum PurchaseOrderApprovalStatus {
+    Draft = 0,
+    Submitted = 1,
+    Approved = 2,
+    Rejected = 3
+}
+
 export const PURCHASE_ORDER_STATUS_OPTIONS = [
     { label: 'Pending', value: PurchaseOrderStatus.Pending },
     { label: 'Partially Received', value: PurchaseOrderStatus.PartiallyReceived },
@@ -41,6 +48,9 @@ export interface PurchaseOrderModel {
     orderDate: Date | string;
     expectedDate: Date | string;
     status: PurchaseOrderStatus;
+    approvalStatus: PurchaseOrderApprovalStatus;
+    approvedBy: string | null;
+    approvedOn: string | null;
     totalAmount?: number;
     totalItems?: number;
     items: PurchaseOrderItemModel[];
