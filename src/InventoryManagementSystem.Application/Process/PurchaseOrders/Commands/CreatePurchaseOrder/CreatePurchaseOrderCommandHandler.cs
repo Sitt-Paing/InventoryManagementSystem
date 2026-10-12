@@ -19,11 +19,13 @@ public class CreatePurchaseOrderCommandHandler : IRequestHandler<CreatePurchaseO
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IIdentityService _identityService;
 
-    public CreatePurchaseOrderCommandHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
+    public CreatePurchaseOrderCommandHandler(IApplicationDbContext context, ICurrentUserService currentUserService, IIdentityService identityService)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _identityService = identityService;
     }
 
     public async Task<PurchaseOrderDto> Handle(CreatePurchaseOrderCommand request, CancellationToken cancellationToken)
@@ -48,7 +50,7 @@ public class CreatePurchaseOrderCommandHandler : IRequestHandler<CreatePurchaseO
         {
             if (previous.CompanyId != companyId || previous.DeletedOn.HasValue || previous.CreateRequestHash != requestHash)
                 throw new InvalidOperationException("This idempotency key was already used for another or deleted request.");
-            var previousDto = await new GetPurchaseOrderByIdQueryHandler(_context)
+            var previousDto = await new GetPurchaseOrderByIdQueryHandler(_context, _identityService)
                 .Handle(new GetPurchaseOrderByIdQuery(previous.Id), cancellationToken)
                 ?? throw new InvalidOperationException("The previously created purchase order is unavailable.");
             await transaction.CommitAsync(cancellationToken);
