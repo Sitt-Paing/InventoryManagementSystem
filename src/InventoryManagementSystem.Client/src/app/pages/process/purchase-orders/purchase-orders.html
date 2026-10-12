@@ -46,6 +46,11 @@
                 class="w-44">
             </p-select>
 
+            <p-select [(ngModel)]="filterApprovalStatus" (onChange)="onStatusChange()"
+                [options]="approvalFilterOptions" optionLabel="label" optionValue="value"
+                placeholder="All Approvals" [showClear]="true" appendTo="body" size="small" class="w-44">
+            </p-select>
+
             <p-iconfield iconPosition="left" class="xl:ml-auto 2xl:ml-auto">
                 <p-inputicon>
                     <i class="pi pi-search cursor-pointer text-gray-500 hover:text-gray-800" (click)="onSearch()" title="Search"></i>
@@ -76,6 +81,7 @@
                 <th pSortableColumn="totalAmount">Total Amount <p-sortIcon field="totalAmount"></p-sortIcon></th>
                 <th [style]="{ width: '230px' }">Actions</th>
                 <th pSortableColumn="status">Status <p-sortIcon field="status"></p-sortIcon></th>
+                <th>Approval Status</th>
                 <th pSortableColumn="createdOn">Created On <p-sortIcon field="createdOn"></p-sortIcon></th>
                 <th pSortableColumn="createdBy">Created By <p-sortIcon field="createdBy"></p-sortIcon></th>
             </tr>
@@ -103,6 +109,16 @@
                         <p-button label="Email" icon="pi pi-envelope" size="small" [text]="true" severity="secondary"
                             [disabled]="isLoadingEmailPreview || isSendingEmail"
                             (onClick)="previewEmail(po); $event.stopPropagation()"></p-button>
+                        @if (canSubmitForApproval(po)) {
+                        <p-button label="Submit" icon="pi pi-send" size="small" [text]="true"
+                            [loading]="approvalActionId === po.id" [disabled]="approvalActionId !== null"
+                            (onClick)="confirmApprovalAction(po, false); $event.stopPropagation()"></p-button>
+                        }
+                        @if (canApprove(po)) {
+                        <p-button label="Approve" icon="pi pi-check" size="small" [text]="true" severity="success"
+                            [loading]="approvalActionId === po.id" [disabled]="approvalActionId !== null"
+                            (onClick)="confirmApprovalAction(po, true); $event.stopPropagation()"></p-button>
+                        }
                     </div>
                 </td>
                 <td>
@@ -110,6 +126,8 @@
                         [icon]="getStatusIcon(po.status)"
                         [severity]="getStatusSeverity(po.status)"></p-tag>
                 </td>
+                <td><p-tag [value]="getApprovalLabel(po.approvalStatus)" size="small"
+                    [severity]="getApprovalSeverity(po.approvalStatus)"></p-tag></td>
                 <td>{{ po.createdOn | date:'dd/MMM/yyyy hh:mm a' }}</td>
                 <td>{{ po.createdBy || '-' }}</td>
             </tr>
@@ -117,7 +135,7 @@
 
         <ng-template #emptymessage>
             <tr>
-                <td colspan="12" class="text-center p-4 text-gray-500">
+                <td colspan="13" class="text-center p-4 text-gray-500">
                     No purchase orders found.
                 </td>
             </tr>
@@ -272,6 +290,16 @@
         @if (detailOrder) {
         <div class="space-y-4 text-xs">
             <div class="flex justify-end gap-2">
+                @if (canSubmitForApproval(detailOrder)) {
+                <p-button label="Submit for Approval" icon="pi pi-send" size="small"
+                    [loading]="approvalActionId === detailOrder.id" [disabled]="approvalActionId !== null"
+                    (onClick)="confirmApprovalAction(detailOrder, false)"></p-button>
+                }
+                @if (canApprove(detailOrder)) {
+                <p-button label="Approve" icon="pi pi-check" size="small" severity="success"
+                    [loading]="approvalActionId === detailOrder.id" [disabled]="approvalActionId !== null"
+                    (onClick)="confirmApprovalAction(detailOrder, true)"></p-button>
+                }
                 <p-button icon="pi pi-envelope" label="Email Preview" size="small" severity="secondary" [outlined]="true"
                     [disabled]="isLoadingEmailPreview || isSendingEmail" (onClick)="previewEmail(detailOrder)"></p-button>
                 <p-button icon="pi pi-print" label="Print Voucher" size="small" severity="secondary" [outlined]="true"
@@ -313,6 +341,19 @@
                 <div>
                     <span class="text-slate-500 dark:text-slate-400 block font-medium">Created By</span>
                     <span class="text-slate-800 dark:text-slate-200">{{ detailOrder.createdBy || '-' }}</span>
+                </div>
+                <div>
+                    <span class="text-slate-500 dark:text-slate-400 block font-medium">Approval Status</span>
+                    <p-tag [value]="getApprovalLabel(detailOrder.approvalStatus)" size="small"
+                        [severity]="getApprovalSeverity(detailOrder.approvalStatus)"></p-tag>
+                </div>
+                <div>
+                    <span class="text-slate-500 dark:text-slate-400 block font-medium">Approved By</span>
+                    <span>{{ detailOrder.approvedByName || (detailOrder.approvedBy ? 'Unknown user' : '-') }}</span>
+                </div>
+                <div>
+                    <span class="text-slate-500 dark:text-slate-400 block font-medium">Approved On</span>
+                    <span>{{ (detailOrder.approvedOn | date:'dd/MMM/yyyy hh:mm a') || '-' }}</span>
                 </div>
             </div>
 
@@ -387,15 +428,15 @@
             <div class="space-y-3 text-slate-800 dark:text-slate-200">
                 <div>
                     <span class="block text-xs font-semibold text-slate-500 dark:text-slate-400">To</span>
-                    <div class="break-all">{{ preview.to }}</div>
+                    <div class="wrap-break-word">{{ preview.to }}</div>
                 </div>
                 <div>
                     <span class="block text-xs font-semibold text-slate-500 dark:text-slate-400">Subject</span>
-                    <div class="break-words font-medium">{{ preview.subject }}</div>
+                    <div class="wrap-break-word font-medium">{{ preview.subject }}</div>
                 </div>
                 <div>
                     <span class="mb-1 block text-xs font-semibold text-slate-500 dark:text-slate-400">Message</span>
-                    <pre class="max-h-[45vh] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 text-xs font-mono">{{ preview.body }}</pre>
+                    <pre class="max-h-[45vh] overflow-auto whitespace-pre-wrap wrap-break-word rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 text-xs font-mono">{{ preview.body }}</pre>
                 </div>
             </div>
             }
