@@ -16,6 +16,9 @@ public class PurchaseOrderDto
     public DateTime OrderDate { get; set; }
     public DateTime ExpectedDate { get; set; }
     public PurchaseOrderStatus Status { get; set; }
+    public PurchaseOrderApprovalStatus ApprovalStatus { get; set; }
+    public string? ApprovedBy { get; set; }
+    public DateTime? ApprovedOn { get; set; }
     public decimal TotalAmount { get; set; }
     public int TotalItems => Items?.Count ?? 0;
     public DateTime? CreatedOn { get; set; }
