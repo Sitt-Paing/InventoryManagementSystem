@@ -617,7 +617,7 @@ export class PurchaseOrdersComponent implements OnInit {
       icon: 'pi pi-question-circle',
       accept: () => this.runApprovalAction(order, approve)
     });
-  }
+  } 
 
   private runApprovalAction(order: PurchaseOrderModel, approve: boolean): void {
     if (!order.id || this.approvalActionId || !(approve ? this.canApprove(order) : this.canSubmitForApproval(order))) return;
@@ -629,6 +629,7 @@ export class PurchaseOrdersComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef),
       finalize(() => {
         this.approvalActionId = null;
+
         this.cdr.markForCheck();
       })
     ).subscribe({
