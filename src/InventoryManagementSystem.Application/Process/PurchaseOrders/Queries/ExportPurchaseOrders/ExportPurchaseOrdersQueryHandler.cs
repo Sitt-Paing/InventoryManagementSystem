@@ -56,6 +56,11 @@ public class ExportPurchaseOrdersQueryHandler : IRequestHandler<ExportPurchaseOr
         }
 
 
+        if (request.ApprovalStatus.HasValue)
+        {
+            query = query.Where(po => po.ApprovalStatus == request.ApprovalStatus.Value);
+        }
+
         if (request.OrderDate.HasValue)
         {
             var date = request.OrderDate.Value.Date;
