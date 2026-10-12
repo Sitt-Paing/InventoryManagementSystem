@@ -33,6 +33,9 @@ export class PurchaseOrdersService {
     if (filter?.excludeCompleted !== undefined && filter?.excludeCompleted !== null) {
       params = params.set('excludeCompleted', filter.excludeCompleted.toString());
     }
+    if (filter?.approvalStatus !== undefined && filter.approvalStatus !== null) {
+      params = params.set('approvalStatus', filter.approvalStatus.toString());
+    }
 
     if (filter?.sortField) {
       params = params.set('sortField', filter.sortField);
@@ -78,6 +81,16 @@ export class PurchaseOrdersService {
     return this.http.post<RootModel>(url, { id, reason });
   }
 
+  submitForApproval(id: string): Observable<RootModel> {
+    const url = `${environment.main_url}/process/purchase-orders/${id}/submit`;
+    return this.http.post<RootModel>(url, null);
+  }
+
+  approve(id: string): Observable<RootModel> {
+    const url = `${environment.main_url}/process/purchase-orders/${id}/approve`;
+    return this.http.post<RootModel>(url, null);
+  }
+
   create(model: PurchaseOrderSaveModel): Observable<RootModel> {
     const url = `${environment.main_url}/process/purchase-orders`;
     return this.http.post<RootModel>(url, JSON.stringify(model));
@@ -95,6 +108,9 @@ export class PurchaseOrdersService {
 
   export(filter?: PurchaseOrderFilterModel): Observable<Blob> {
     let params = new HttpParams();
+    if (filter?.approvalStatus !== undefined && filter.approvalStatus !== null) {
+      params = params.set('approvalStatus', filter.approvalStatus.toString());
+    }
     if (filter?.q && filter.q.trim()) {
       params = params.set('q', filter.q.trim());
     }
