@@ -69,7 +69,7 @@ public class GetPurchaseOrdersQueryHandler : IRequestHandler<GetPurchaseOrdersQu
         }
 
         // Sorting
-        query = request.SortField?.ToLower() switch
+        var orderedQuery = request.SortField?.ToLower() switch
         {
             "purchaseorderno" => request.Order == 1 ? query.OrderBy(p => p.PurchaseOrderNo) : query.OrderByDescending(p => p.PurchaseOrderNo),
             "suppliername" => request.Order == 1 ? query.OrderBy(p => p.Supplier!.CompanyName) : query.OrderByDescending(p => p.Supplier!.CompanyName),
@@ -80,6 +80,8 @@ public class GetPurchaseOrdersQueryHandler : IRequestHandler<GetPurchaseOrdersQu
             "status" => request.Order == 1 ? query.OrderBy(p => p.Status) : query.OrderByDescending(p => p.Status),
             _ => request.Order == 1 ? query.OrderBy(p => p.CreatedOn) : query.OrderByDescending(p => p.CreatedOn ?? p.OrderDate)
         };
+
+        query = orderedQuery.ThenBy(po => po.Id);
 
         var totalRecords = await query.CountAsync(cancellationToken);
 
@@ -104,6 +106,9 @@ public class GetPurchaseOrdersQueryHandler : IRequestHandler<GetPurchaseOrdersQu
                 ApprovalStatus = po.ApprovalStatus,
                 ApprovedBy = po.ApprovedBy,
                 ApprovedOn = po.ApprovedOn,
+                RejectionReason = po.RejectionReason,
+                RejectedBy = po.RejectedBy,
+                RejectedOn = po.RejectedOn,
                 TotalAmount = po.TotalAmount,
                 CreatedOn = po.CreatedOn,
                 CreatedBy = po.CreatedBy,
