@@ -16,6 +16,7 @@ public record GetPurchaseOrdersQuery(
     string? SortField = null,
     int Order = -1,
     int PageNumber = 1,
-    int PageSize = 20
+    int PageSize = 20,
+    PurchaseOrderApprovalStatus? ApprovalStatus = null
 ) : IRequest<PagedResult<PurchaseOrderDto>>;
 
