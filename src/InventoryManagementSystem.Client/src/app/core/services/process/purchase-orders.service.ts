@@ -1,9 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { EMPTY, expand, map, Observable, reduce } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { RootModel } from '../../models/root.model';
-import { PurchaseOrderFilterModel, PurchaseOrderSaveModel } from '../../models/process/purchase-order.model';
+import { PurchaseOrderApprovalStatus, PurchaseOrderFilterModel, PurchaseOrderModel, PurchaseOrderSaveModel } from '../../models/process/purchase-order.model';
 import { PurchaseOrderEmailPreviewModel } from '../../models/process/purchase-order-email-preview.model';
 import { PurchaseOrderEmailStatusModel } from '../../models/process/purchase-order-email-status.model';
 
@@ -59,6 +59,25 @@ export class PurchaseOrdersService {
     return this.http.get<RootModel>(url);
   }
 
+  getReceivableOrders(): Observable<PurchaseOrderModel[]> {
+    const getPage = (pageNumber: number) => this.getPaged({
+      pageNumber, pageSize: 100, excludeCompleted: true,
+      approvalStatus: PurchaseOrderApprovalStatus.Approved,
+      sortField: 'purchaseOrderNo', order: 1
+    }).pipe(map(response => ({
+      pageNumber,
+      items: (response.data?.items ?? []) as PurchaseOrderModel[],
+      totalRecords: response.data?.totalRecords ?? 0
+    })));
+
+    // Load subsequent pages too, rather than silently hiding eligible POs after the first 100.
+    return getPage(1).pipe(
+      expand(page => page.items.length > 0 && page.pageNumber * 100 < page.totalRecords
+        ? getPage(page.pageNumber + 1) : EMPTY),
+      reduce((orders, page) => [...orders, ...page.items], [] as PurchaseOrderModel[])
+    );
+  }
+
   getEmailPreview(id: string): Observable<Omit<RootModel, 'data'> & { data: PurchaseOrderEmailPreviewModel | null }> {
     const url = `${environment.main_url}/process/purchase-orders/${id}/email-preview`;
     return this.http.get<Omit<RootModel, 'data'> & { data: PurchaseOrderEmailPreviewModel | null }>(url);
@@ -89,6 +108,11 @@ export class PurchaseOrdersService {
   approve(id: string): Observable<RootModel> {
     const url = `${environment.main_url}/process/purchase-orders/${id}/approve`;
     return this.http.post<RootModel>(url, null);
+  }
+
+  reject(id: string, reason: string): Observable<RootModel> {
+    const url = `${environment.main_url}/process/purchase-orders/${id}/reject`;
+    return this.http.post<RootModel>(url, { id, reason });
   }
 
   create(model: PurchaseOrderSaveModel): Observable<RootModel> {
