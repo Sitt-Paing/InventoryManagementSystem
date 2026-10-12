@@ -62,6 +62,9 @@ public class DeletePurchaseOrderCommandHandler : IRequestHandler<DeletePurchaseO
             ApprovedBy = purchaseOrder.ApprovedBy,
             ApprovedByName = purchaseOrder.ApprovedBy != null && approverNames.TryGetValue(purchaseOrder.ApprovedBy, out var name) ? name : null,
             ApprovedOn = purchaseOrder.ApprovedOn,
+            RejectionReason = purchaseOrder.RejectionReason,
+            RejectedBy = purchaseOrder.RejectedBy,
+            RejectedOn = purchaseOrder.RejectedOn,
             TotalAmount = purchaseOrder.TotalAmount,
             DeletedOn = purchaseOrder.DeletedOn
         };
