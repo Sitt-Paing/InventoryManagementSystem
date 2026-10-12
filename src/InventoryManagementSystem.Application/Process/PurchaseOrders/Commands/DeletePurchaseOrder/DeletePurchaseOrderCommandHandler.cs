@@ -53,6 +53,9 @@ public class DeletePurchaseOrderCommandHandler : IRequestHandler<DeletePurchaseO
             OrderDate = purchaseOrder.OrderDate,
             ExpectedDate = purchaseOrder.ExpectedDate,
             Status = purchaseOrder.Status,
+            ApprovalStatus = purchaseOrder.ApprovalStatus,
+            ApprovedBy = purchaseOrder.ApprovedBy,
+            ApprovedOn = purchaseOrder.ApprovedOn,
             TotalAmount = purchaseOrder.TotalAmount,
             DeletedOn = purchaseOrder.DeletedOn
         };
