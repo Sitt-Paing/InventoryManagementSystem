@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, DestroyRef, inject, OnInit, ViewChild } f
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { exhaustMap, forkJoin, Subject, take, takeUntil, takeWhile, timer } from 'rxjs';
+import { exhaustMap, finalize, forkJoin, Subject, take, takeUntil, takeWhile, timer } from 'rxjs';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
@@ -18,7 +18,8 @@ import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 
-import { PurchaseOrderModel, PurchaseOrderSaveModel, PurchaseOrderItemModel, PurchaseOrderStatus, PURCHASE_ORDER_STATUS_OPTIONS } from '../../../core/models/process/purchase-order.model';
+import { PurchaseOrderModel, PurchaseOrderSaveModel, PurchaseOrderItemModel, PurchaseOrderStatus, PurchaseOrderApprovalStatus, PURCHASE_ORDER_STATUS_OPTIONS } from '../../../core/models/process/purchase-order.model';
+import { AuthService } from '../../../core/services/auth.service';
 import { PurchaseOrderEmailPreviewModel } from '../../../core/models/process/purchase-order-email-preview.model';
 import { SuppliersModel } from '../../../core/models/master/suppliers.model';
 import { WarehouseModel } from '../../../core/models/master/warehouse.model';
@@ -70,6 +71,8 @@ export class PurchaseOrdersComponent implements OnInit {
   cancelModalVisible: boolean = false;
   cancellationReason: string = '';
   isCancelling: boolean = false;
+  approvalActionId: string | null = null;
+  private authService = inject(AuthService);
   private cancelOrderId: string | null = null;
   modalVisible: boolean = false;
   detailModalVisible: boolean = false;
@@ -101,6 +104,14 @@ export class PurchaseOrdersComponent implements OnInit {
   searchKeyword: string = '';
   filterOrderDate: Date | null = null;
   filterStatus: PurchaseOrderStatus | null = null;
+  filterApprovalStatus: PurchaseOrderApprovalStatus | null = null;
+  approvalFilterOptions = [
+    { label: 'All Approvals', value: null },
+    { label: 'Draft', value: PurchaseOrderApprovalStatus.Draft },
+    { label: 'Submitted', value: PurchaseOrderApprovalStatus.Submitted },
+    { label: 'Approved', value: PurchaseOrderApprovalStatus.Approved },
+    { label: 'Rejected', value: PurchaseOrderApprovalStatus.Rejected }
+  ];
   statusOptions = PURCHASE_ORDER_STATUS_OPTIONS;
   statusFilterOptions = [
     { label: 'All Status', value: null },
@@ -185,6 +196,7 @@ export class PurchaseOrdersComponent implements OnInit {
       q: this.searchKeyword,
       orderDate: orderDateStr,
       status: this.filterStatus,
+      approvalStatus: this.filterApprovalStatus,
       sortField: this.sortField,
       order: this.sortOrder,
       pageNumber: this.pageNumber,
@@ -454,7 +466,8 @@ export class PurchaseOrdersComponent implements OnInit {
     this.purchaseOrdersService.export({
       q: this.searchKeyword,
       orderDate: orderDateStr,
-      status: this.filterStatus
+      status: this.filterStatus,
+      approvalStatus: this.filterApprovalStatus
     }).subscribe({
       next: (blob) => {
         this.exportService.excel_blob('Purchase_Orders', blob);
@@ -506,6 +519,78 @@ export class PurchaseOrdersComponent implements OnInit {
   clearSearch(): void {
     this.searchKeyword = '';
     this.onSearch();
+  }
+
+  canSubmitForApproval(order: PurchaseOrderModel): boolean {
+    return order.status !== PurchaseOrderStatus.Cancelled
+      && order.approvalStatus === PurchaseOrderApprovalStatus.Draft;
+  }
+
+  canApprove(order: PurchaseOrderModel): boolean {
+    const roles = this.authService.userRolesSignal();
+    return roles.some(role => role === 'Administrator' || role === 'SuperAdmin')
+      && order.status !== PurchaseOrderStatus.Cancelled
+      && order.approvalStatus === PurchaseOrderApprovalStatus.Submitted;
+  }
+
+  getApprovalLabel(status: PurchaseOrderApprovalStatus): string {
+    return this.approvalFilterOptions.find(option => option.value === status)?.label ?? 'Unknown';
+  }
+
+  getApprovalSeverity(status: PurchaseOrderApprovalStatus): 'secondary' | 'info' | 'success' | 'danger' {
+    switch (status) {
+      case PurchaseOrderApprovalStatus.Submitted: return 'info';
+      case PurchaseOrderApprovalStatus.Approved: return 'success';
+      case PurchaseOrderApprovalStatus.Rejected: return 'danger';
+      default: return 'secondary';
+    }
+  }
+
+  confirmApprovalAction(order: PurchaseOrderModel, approve: boolean): void {
+    if (!order.id || this.approvalActionId || !(approve ? this.canApprove(order) : this.canSubmitForApproval(order))) return;
+    this.confirmationService.confirm({
+      key: 'positionDialog',
+      header: approve ? 'Approve Purchase Order' : 'Submit for Approval',
+      message: approve
+        ? `Approve purchase order "${order.purchaseOrderNo}" for ${order.totalAmount ?? 0}? Review its items before approving.`
+        : `Submit purchase order "${order.purchaseOrderNo}" for approval?`,
+      icon: 'pi pi-question-circle',
+      accept: () => this.runApprovalAction(order, approve)
+    });
+  }
+
+  private runApprovalAction(order: PurchaseOrderModel, approve: boolean): void {
+    if (!order.id || this.approvalActionId || !(approve ? this.canApprove(order) : this.canSubmitForApproval(order))) return;
+    this.approvalActionId = order.id;
+    const request = approve
+      ? this.purchaseOrdersService.approve(order.id)
+      : this.purchaseOrdersService.submitForApproval(order.id);
+    request.pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => {
+        this.approvalActionId = null;
+        this.cdr.markForCheck();
+      })
+    ).subscribe({
+      next: res => {
+        if (!res.success) {
+          this.messageService.add({ key: 'globalMessage', severity: 'error', summary: 'Error', detail: res.message ?? 'Unable to change approval status.' });
+          return;
+        }
+        this.messageService.add({ key: 'globalMessage', severity: 'success', summary: 'Success', detail: res.message ?? 'Approval status updated.' });
+        this.selectedPurchaseOrder = null;
+        // Close the old detail snapshot so it cannot show a stale approval or audit time.
+        if (this.detailOrder?.id === order.id) {
+          this.detailModalVisible = false;
+          this.detailOrder = null;
+        }
+        this.loadData();
+      },
+      error: err => {
+        this.messageService.add({ key: 'globalMessage', severity: 'error', summary: 'Error', detail: err.status === 403 ? 'You do not have permission to approve purchase orders.' : err.error?.message ?? 'Unable to change approval status.' });
+        this.loadData();
+      }
+    });
   }
 
   viewDetails(order?: PurchaseOrderModel): void {
