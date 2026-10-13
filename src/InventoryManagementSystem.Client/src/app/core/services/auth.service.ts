@@ -18,6 +18,7 @@ export class AuthService {
   private readonly ROLES_KEY = 'userRoles';
   private readonly THEME_KEY = 'theme';
   private readonly REMEMBER_ME_KEY = 'rememberMe';
+  private readonly TAB_SESSION_KEY = 'inventory.tabAuthenticated';
 
   public userNameSignal = signal<string>(this.getStoredUserName());
   public userRolesSignal = signal<string[]>(this.getStoredUserRoles());
@@ -26,6 +27,11 @@ export class AuthService {
   private csrfToken$: Observable<string | null> | null = null;
 
   initializeAuth(): Observable<boolean> {
+    if (!this.hasTabSession()) {
+      this.clearTabSession();
+      this.authInitializedSubject.next(true);
+      return of(false);
+    }
 
     return this.getProfile().pipe(
 
@@ -87,6 +93,7 @@ export class AuthService {
           const dto = res.data as AuthResponseModel;
 
           this.currentUserSubject.next(dto);
+          sessionStorage.setItem(this.TAB_SESSION_KEY, 'true');
 
           this.storeFlatUserData({
             userName: dto.userName ?? '',
@@ -104,6 +111,11 @@ export class AuthService {
    * Refresh session using HttpOnly refresh token cookie (deduplicated across concurrent 401s)
    */
   refreshToken(): Observable<RootModel> {
+    if (!this.hasTabSession()) {
+      this.clearTabSession();
+      return of({ success: false, message: 'Login is required in this tab.' } as RootModel);
+    }
+
     if (this.refreshToken$) {
       return this.refreshToken$;
     }
@@ -111,7 +123,7 @@ export class AuthService {
     const url = `${environment.main_url}/Auth/refresh-token`;
     this.refreshToken$ = this.http.post<RootModel>(url, {}, { withCredentials: true }).pipe(
       tap(res => {
-        if (res.success && res.data) {
+        if (res.success && res.data && this.hasTabSession()) {
           const dto = res.data as any;
           if (dto.userName) {
 
@@ -143,6 +155,7 @@ export class AuthService {
    */
   logout(): Observable<RootModel> {
     const url = `${environment.main_url}/Auth/logout`;
+    this.clearTabSession();
     return this.http.post<RootModel>(url, {}, { withCredentials: true }).pipe(
       tap(() => this.clearLocalUser()),
       catchError(() => {
@@ -156,6 +169,10 @@ export class AuthService {
    * Fetch current authenticated profile from server
    */
   getProfile(): Observable<AuthResponseModel | null> {
+    if (!this.hasTabSession()) {
+      this.clearTabSession();
+      return of(null);
+    }
     const url = `${environment.main_url}/Auth/me`;
 
     return this.http.get<RootModel>(
@@ -164,7 +181,7 @@ export class AuthService {
     ).pipe(
       map(res => {
 
-        if (res.success && res.data) {
+        if (res.success && res.data && this.hasTabSession()) {
 
           const dto = res.data as AuthResponseModel;
 
@@ -221,7 +238,7 @@ export class AuthService {
     this.authInitializedSubject.asObservable();
 
   isAuthenticated(): boolean {
-    return this.currentUserSubject.value !== null;
+    return this.hasTabSession() && this.currentUserSubject.value !== null;
   }
 
   getUserName(): string {
@@ -252,6 +269,28 @@ export class AuthService {
     return localStorage.getItem(this.REMEMBER_ME_KEY) === 'true';
   }
 
+
+  hasTabSession(): boolean {
+    try {
+      return typeof sessionStorage !== 'undefined'
+        && sessionStorage.getItem(this.TAB_SESSION_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  clearTabSession(): void {
+    try {
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.removeItem(this.TAB_SESSION_KEY);
+      }
+    } catch {
+      // Still clear this tab's memory state if browser storage is unavailable.
+    }
+    this.userNameSignal.set('Guest');
+    this.userRolesSignal.set([]);
+    this.currentUserSubject.next(null);
+  }
   /**
    * Read cookie value by name from document.cookie (used for XSRF-TOKEN)
    */
@@ -302,6 +341,7 @@ export class AuthService {
   }
 
   private clearLocalUser(): void {
+    this.clearTabSession();
     if (typeof localStorage === 'undefined') return;
 
     localStorage.removeItem(this.USERNAME_KEY);
