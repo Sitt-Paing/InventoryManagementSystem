@@ -23,6 +23,20 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
+  const authPath = requestUrl.pathname.slice(apiUrl.pathname.replace(/\/$/, '').length).toLowerCase();
+  const publicAuthPaths = [
+    '/auth/login', '/auth/register', '/auth/csrf-token',
+    '/auth/generate-reset-token', '/auth/reset-password', '/auth/logout'
+  ];
+  if (!authService.hasTabSession() && !publicAuthPaths.includes(authPath)) {
+    authService.clearTabSession();
+    router.navigate(['/auth/login']);
+    // Do not send shared cookies or attempt refresh from a tab that has not logged in.
+    return throwError(() => new HttpErrorResponse({
+      status: 401, statusText: 'Login is required in this tab.', url: req.url
+    }));
+  }
+
   const isMutatingMethod = !['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(req.method.toUpperCase());
   const sendRequest = () => defer(() =>
     isMutatingMethod ? authService.getCsrfToken() : of(null)
@@ -42,22 +56,26 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
         // If not already on login or refresh-token endpoint, try refresh or navigate to login
-        const isAuthEndpoint = req.url.includes('/Auth/login') ||
-          req.url.includes('/Auth/refresh-token') ||
-          req.url.includes('/Auth/me');
+        const isAuthEndpoint = publicAuthPaths.includes(authPath) ||
+          authPath === '/auth/refresh-token' || authPath === '/auth/me';
         if (!isAuthEndpoint) {
+          if (!authService.hasTabSession()) {
+            authService.clearTabSession();
+            router.navigate(['/auth/login']);
+            return throwError(() => error);
+          }
           return authService.refreshToken().pipe(
             switchMap(res => {
-              if (res.success) {
+              if (res.success && authService.hasTabSession()) {
                 // Retry failed request with new credentials
                 return sendRequest();
               }
-              authService.logout();
+              authService.clearTabSession();
               router.navigate(['/auth/login']);
               return throwError(() => error);
             }),
             catchError(refreshErr => {
-              authService.logout();
+              authService.clearTabSession();
               router.navigate(['/auth/login']);
               return throwError(() => refreshErr);
             })
