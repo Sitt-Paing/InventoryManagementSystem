@@ -128,6 +128,8 @@ public partial class InventoryManagementDbContext : IApplicationDbContext
         modelBuilder.Entity<GoodReceipt>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
         modelBuilder.Entity<StockTransaction>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
         modelBuilder.Entity<WarehouseStocks>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<PurchaseReturn>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<PurchaseReturnItem>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
 
         modelBuilder.Entity<Product>(entity =>
         {
