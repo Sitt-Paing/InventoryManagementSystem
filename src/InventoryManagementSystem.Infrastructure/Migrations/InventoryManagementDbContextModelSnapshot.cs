@@ -883,6 +883,134 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.ToTable("PurchaseOrderItems", (string)null);
                 });
 
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.PurchaseReturn", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("CreatedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid?>("IdempotencyKey")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("IdempotencyRequestHash")
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("PostedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("PostedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<DateTime>("ReturnDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("ReturnNo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ReturnReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SupplierId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SupplierId");
+
+                    b.HasIndex("CompanyId", "IdempotencyKey")
+                        .IsUnique()
+                        .HasFilter("[IdempotencyKey] IS NOT NULL");
+
+                    b.HasIndex("CompanyId", "ReturnNo")
+                        .IsUnique();
+
+                    b.ToTable("PurchaseReturns", (string)null);
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.PurchaseReturnItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("GoodReceiptItemId")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("PurchaseReturnId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("ReturnQuantity")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GoodReceiptItemId");
+
+                    b.HasIndex("PurchaseReturnId", "GoodReceiptItemId")
+                        .IsUnique();
+
+                    b.ToTable("PurchaseReturnItems", (string)null);
+                });
+
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.StockTransaction", b =>
                 {
                     b.Property<long>("Id")
@@ -1613,6 +1741,36 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Navigation("Uom");
                 });
 
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.PurchaseReturn", b =>
+                {
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.Supplier", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Supplier");
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.PurchaseReturnItem", b =>
+                {
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.GoodReceiptItem", "GoodReceiptItem")
+                        .WithMany()
+                        .HasForeignKey("GoodReceiptItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.PurchaseReturn", "PurchaseReturn")
+                        .WithMany("Items")
+                        .HasForeignKey("PurchaseReturnId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GoodReceiptItem");
+
+                    b.Navigation("PurchaseReturn");
+                });
+
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.StockTransaction", b =>
                 {
                     b.HasOne("InventoryManagementSystem.Domain.Entities.GoodReceipt", "GoodReceipt")
@@ -1737,6 +1895,11 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.PurchaseOrder", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.PurchaseReturn", b =>
                 {
                     b.Navigation("Items");
                 });
