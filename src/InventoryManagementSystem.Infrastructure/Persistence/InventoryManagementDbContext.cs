@@ -56,6 +56,10 @@ public partial class InventoryManagementDbContext : DbContext
 
     public virtual DbSet<EmailOutbox> EmailOutboxes { get; set; }
 
+    public virtual DbSet<PurchaseReturn> PurchaseReturns { get; set; }
+
+    public virtual DbSet<PurchaseReturnItem> PurchaseReturnItems { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasSequence<long>("PurchaseOrderNumberSequence");
@@ -497,6 +501,58 @@ public partial class InventoryManagementDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(d => d.UomId)
                   .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PurchaseReturn>(entity =>
+        {
+            entity.ToTable("PurchaseReturns");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ReturnNo).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.ReturnDate).HasColumnType("datetime");
+            entity.Property(e => e.PostedBy).HasMaxLength(100);
+            entity.Property(e => e.PostedOn).HasColumnType("datetime");
+            entity.Property(e => e.ReturnReason).HasMaxLength(500);
+            entity.Property(e => e.TotalAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.Status).HasConversion<int>();
+            entity.Property(e => e.CreatedBy).HasMaxLength(50);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedBy).HasMaxLength(50);
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+            entity.Property(e => e.DeletedBy).HasMaxLength(50);
+            entity.Property(e => e.DeletedOn).HasColumnType("datetime");
+            entity.HasOne(d => d.Supplier)
+                  .WithMany()
+                  .HasForeignKey(d => d.SupplierId)
+                  .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(d => new { d.CompanyId, d.IdempotencyKey })
+                  .IsUnique()
+                  .HasFilter("[IdempotencyKey] IS NOT NULL");
+            entity.HasIndex(e => new { e.CompanyId, e.ReturnNo }).IsUnique().HasFilter(null);
+            entity.Property(d => d.IdempotencyRequestHash)
+                  .HasMaxLength(64)
+                  .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<PurchaseReturnItem>(entity =>
+        {
+            entity.ToTable("PurchaseReturnItems");
+            entity.Property(e => e.Id);
+            entity.Property(e => e.PurchaseReturnId);
+            entity.Property(e => e.GoodReceiptItemId);
+            entity.Property(e => e.ReturnQuantity).HasColumnType("decimal(18,4)");
+            entity.HasOne(d => d.PurchaseReturn)
+                  .WithMany(p => p.Items)
+                  .HasForeignKey(d => d.PurchaseReturnId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(d => d.GoodReceiptItem)
+                  .WithMany()
+                  .HasForeignKey(d => d.GoodReceiptItemId)
+                  .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(e => new
+            {
+                e.PurchaseReturnId,
+                e.GoodReceiptItemId
+            }).IsUnique();
         });
 
         modelBuilder.Entity<WarehouseStocks>(entity =>
