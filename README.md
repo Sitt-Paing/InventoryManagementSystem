@@ -1,109 +1,37 @@
-<div align="center">
+# Inventory Management System
 
-# 📦 Inventory Management System
+An inventory application built with Angular, ASP.NET Core, and SQL Server. It covers product setup, purchasing, goods receiving, and warehouse stock.
 
-### From purchasing to stock visibility — one connected workspace.
+## Features
 
-A full-stack inventory application built with **Angular**, **ASP.NET Core**, and **SQL Server**.
-Manage product catalogs, suppliers, purchasing, goods receipts, and warehouse stock through a unified web interface.
+- Products, categories, packaging, barcodes, and units of measure
+- Suppliers, warehouses, and storage locations
+- Purchase orders with approval, rejection, cancellation, and printable views
+- Partial and full goods receipts, receipt reversal, and stock transactions
+- Purchase-order emails with background delivery and status tracking
+- Dashboard with product counts, low-stock indicators, stock valuation, and recent transactions
+- Company records and company-scoped inventory data
+- Cookie-based authentication using ASP.NET Core Identity and JWT tokens
 
-![Angular](https://img.shields.io/badge/Angular-20-DD0031?style=for-the-badge&logo=angular&logoColor=white)
-![.NET](https://img.shields.io/badge/.NET-10-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![SQL Server](https://img.shields.io/badge/SQL_Server-EF_Core-CC2927?style=for-the-badge)
-![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Background_Email-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)
+Reporting, approval history, and additional management features are still planned.
 
-**Clean Architecture · CQRS · CSRF Protection · Multi-company Tenancy · Barcode · Printing · Queued Email**
+## Authentication and company access
 
-[Features](#-features) · [Skills demonstrated](#-skills-demonstrated) · [Security and tenancy](#-security-and-tenancy) · [Architecture](#-architecture) · [Email delivery](#-background-email-delivery) · [Run locally](#-run-locally) · [Roadmap](#-roadmap)
+Access and refresh tokens are stored in HttpOnly cookies. Protected inventory endpoints require authentication. Purchase-order approval and rejection require the `Administrator` or `SuperAdmin` role; role restrictions for other management operations are still planned.
 
-</div>
+Unsafe controller requests require an antiforgery token, including login, refresh, and logout. Angular gets the token and sends it in `X-XSRF-TOKEN`. Missing or invalid tokens return HTTP 400. The antiforgery cookie requires HTTPS. See [API client setup](#csrf-requirements-for-api-clients) below for manual requests.
 
----
+Credentialed browser requests are limited to `Cors:AllowedOrigins`. Development allows `http://localhost:4200` and `https://localhost:4200` by default.
 
-## ✨ Features
+EF Core query filters scope inventory records to the current company. New company-aware records inherit that company when one is not supplied. Currently, both `Administrator` and `SuperAdmin` bypass these filters, as does a request without an authenticated user context. Company-boundary checks and administrator scope still need further work.
 
-| Area | Capabilities |
-| :--- | :--- |
-| **Product catalog** | Products, categories, packaging, and barcode generation |
-| **Units of measure** | UOM categories, units, and product-specific conversions |
-| **Supplier management** | Supplier records supporting purchasing workflows |
-| **Warehouse organization** | Warehouses and storage locations |
-| **Purchasing** | Purchase orders with server-side pagination, search, sorting, filters, and printable document views |
-| **Goods receiving** | Goods receipt records and printable receipt views |
-| **Document printing** | Dedicated purchase-order and goods-receipt preview dialogs with browser printing |
-| **Supplier email** | Purchase-order email previews, database outbox, RabbitMQ background processing, and MailKit SMTP delivery |
-| **Email delivery tracking** | Pending, Sending, Sent, and Failed states displayed in the purchase-order email dialog |
-| **Resilient email processing** | Idempotency keys, persistent queue messages, publisher confirmations, and bounded retries for eligible transient failures |
-| **Inventory tracking** | Stock transaction browsing |
-| **Dashboard** | Product counts, low-stock indicators, stock valuation, and recent transactions |
-| **Company management** | Company records and company-scoped inventory data |
-| **Authentication** | ASP.NET Core Identity, JWT access and refresh tokens stored in HttpOnly cookies |
-| **Role-aware behavior** | Identity roles and role claims, including Administrator and SuperAdmin |
-| **Tenant-aware persistence** | Company context, automatic company assignment, and EF Core global query filters |
-| **CSRF protection** | Global server-side antiforgery validation and Angular X-XSRF-TOKEN request headers |
-| **Audit metadata** | Creation and modification metadata applied during persistence |
-| **Data exchange** | Spreadsheet and CSV export infrastructure |
-| **API exploration** | OpenAPI documentation with a Scalar interface in Development |
+The persistence layer also records who created or modified auditable records and when.
 
-## 🧠 Skills demonstrated
+## Project structure
 
-This project highlights implementation skills across the frontend, backend, and data layers.
+The backend is split into Domain, Application, Infrastructure, and API projects. Application contains commands, queries, validation, and service interfaces. Infrastructure provides database access, Identity, and external services. The Angular client lives in a separate project.
 
-| Skill | Evidence in the codebase |
-| :--- | :--- |
-| **Full-stack development** | Angular feature pages integrated with ASP.NET Core API controllers |
-| **Application architecture** | Separate Domain, Application, Infrastructure, API, and Client projects |
-| **CQRS and request handling** | Commands and queries organized by feature, using MediatR |
-| **Input validation** | FluentValidation validators in the application layer |
-| **Relational data modeling** | EF Core entities, SQL Server persistence, and database migrations |
-| **Identity and access** | Identity users and roles, JWT validation, and token refresh handling |
-| **Browser authentication integration** | HttpOnly authentication cookies, globally validated antiforgery tokens, trusted-origin CORS, and an Angular HTTP interceptor |
-| **Multi-tenant data access** | Current-user company context, company assignment on insert, and global query filters |
-| **Role-aware application behavior** | Role claims and privileged-role checks in the current-user service |
-| **Email integration** | MailKit SMTP transport, purchase-order email previews, and persisted recipient/subject/body snapshots |
-| **Background processing** | API-hosted BackgroundService coordinating a database outbox with a durable RabbitMQ queue |
-| **Reliability engineering** | Idempotency-key deduplication, transactional outbox claims, delivery status polling, and bounded transient retries |
-| **Print workflows** | Dedicated Angular document dialogs and iframe-based browser printing |
-| **Audit tracking** | Automatic creation and modification metadata in the EF Core save pipeline |
-| **Business workflow modeling** | Purchase orders, goods receipts, stock records, and UOM conversions |
-| **Frontend engineering** | TypeScript models and services, Angular routing, and reusable dialogs |
-| **UI development** | PrimeNG components, Tailwind CSS, and feature-specific styles |
-| **Document and data tooling** | Barcode generation, printable documents, and spreadsheet/CSV libraries |
-| **API design** | Feature-based controllers, OpenAPI, and centralized exception handling |
-| **Dependency injection** | Service registration and application interfaces separating implementation details |
-
-## 🔐 Security and tenancy
-
-- **Authentication:** Access and refresh tokens use HttpOnly cookies; cookie security settings adapt to HTTPS. Protected inventory controllers require authentication.
-- **CSRF protection:** A global `AutoValidateAntiforgeryTokenAttribute` rejects unsafe controller requests with missing or invalid antiforgery tokens with HTTP 400, including login, refresh, and logout. Angular fetches a current-identity token before each mutation and uses the response token in `X-XSRF-TOKEN`. The secure, HttpOnly antiforgery correlation cookie is required alongside it. GET, HEAD, OPTIONS, and TRACE do not require validation.
-- **Trusted browser origins:** Credentialed CORS accepts only `Cors:AllowedOrigins`. Development defaults to `http://localhost:4200` and `https://localhost:4200`; other environments require explicit configuration for cross-origin clients. HTTPS is required for the antiforgery cookie.
-- **Role-based foundations:** Identity maintains roles and emits role claims. The current-user service checks `Administrator` and `SuperAdmin` for privileged data access. Fine-grained role restrictions on management endpoints remain a roadmap item.
-- **Company tenancy:** Inventory entities use company-scoped EF Core query filters, and new company-aware entities inherit the current company when none is supplied. The current implementation lets both `Administrator` and `SuperAdmin` bypass company filters; it also bypasses filters when no authenticated user context exists. These filters are an application data-access mechanism, not a claim of audited tenant isolation.
-- **Audit metadata:** The persistence layer records who created or modified auditable entities and when.
-
-The antiforgery flow follows [ASP.NET Core's antiforgery guidance](https://learn.microsoft.com/aspnet/core/security/anti-request-forgery).
-
-## 🏗 Architecture
-
-```mermaid
-flowchart LR
-    Client[Angular Client] --> API[ASP.NET Core API]
-    API --> Application[Application: commands, queries, validation]
-    API --> Infrastructure[Infrastructure: persistence and services]
-    Application --> Domain[Domain: entities and business models]
-    Infrastructure --> Application
-    Infrastructure --> Domain
-    Infrastructure --> Database[(SQL Server)]
-    Infrastructure --> Worker[API-hosted Email Worker]
-    Worker <--> Database
-    Worker <--> RabbitMQ[Durable RabbitMQ Queue]
-    Worker --> SMTP[SMTP Email Server]
-```
-
-The Application layer defines use cases and interfaces. Infrastructure implements persistence and external services. The API composes these layers and exposes HTTP endpoints, while the Angular client provides the user interface.
-
-The email worker runs inside the API process. The database retains pending email requests while RabbitMQ is unavailable; the queue coordinates background delivery when the broker is reachable.
+The email worker runs in the API process and uses a SQL Server outbox and RabbitMQ queue.
 
 ```text
 src/
@@ -114,7 +42,7 @@ src/
 └── InventoryManagementSystem.Client/          # Angular pages, models, services, UI
 ```
 
-## 🛠 Technology stack
+## Technology stack
 
 | Layer | Technologies |
 | :--- | :--- |
@@ -128,29 +56,33 @@ src/
 | **Data and documents** | ExcelJS, SheetJS, ClosedXML, CsvHelper, JsBarcode |
 | **Frontend test tooling** | Jasmine, Karma |
 
-## ✉️ Background email delivery
+## Purchase-order workflow
+
+Purchase orders track approval separately from receiving progress:
 
 ```mermaid
-sequenceDiagram
-    participant UI as Angular Client
-    participant API as Purchase Order API
-    participant DB as SQL Server Outbox
-    participant Worker as Email Worker
-    participant Queue as RabbitMQ
-    participant SMTP as SMTP Server
-    UI->>API: Send email with CSRF token and Idempotency-Key
-    API->>DB: Save recipient, subject, and body snapshot
-    API-->>UI: 202 Accepted with emailId and status URL
-    Worker->>DB: Read due Pending requests
-    Worker->>Queue: Publish persistent email IDs
-    Worker->>Queue: Retrieve queued ID
-    Worker->>DB: Claim request and record Sending
-    Worker->>SMTP: Send email outside database transaction
-    Worker->>DB: Save Sent, retry schedule, or Failed
-    Worker->>Queue: Acknowledge handled message
-    UI->>API: Poll delivery status
-    API-->>UI: Pending / Sending / Sent / Failed
+flowchart LR
+    Draft -->|Submit| Submitted
+    Submitted -->|Approve| Approved
+    Submitted -->|Reject with reason| Rejected
+    Submitted -->|Save an edit| Draft
+    Rejected -->|Save an edit| Draft
+    Approved -->|Post a goods receipt| Receiving[Pending / PartiallyReceived / Completed]
 ```
+
+- New orders begin with **Draft** approval status and **Pending** receiving status. The server generates the order number and calculates totals from the order lines.
+- Administrators and SuperAdmins can approve or reject a Submitted order. Rejection requires a trimmed reason of 1–500 characters; the order records the actor and time for approval or rejection.
+- Editing a Submitted or Rejected order returns it to Draft for resubmission. Approved and Cancelled orders cannot be edited. The latest rejection details remain visible after resubmission.
+- New goods receipts require an Approved, non-cancelled order with outstanding quantities. Partial receipts update receiving progress; receipt reversal adjusts received quantities and stock.
+- Cancellation requires a reason and is limited to unreceived orders. Active receipts prevent order deletion and supplier changes.
+- Order references must belong to the order's company, and non-base purchase units require an active positive UOM conversion. Received quantities are maintained by receipts rather than editable order inputs.
+- SQL Server transaction locks coordinate changes to the same order. Create and receipt retries use idempotency keys. These locks preserve receiving invariants; stale header edits still require a separate edit-version policy.
+
+The workflow currently records document metadata rather than a full approval-event history. Separation between the creator and approver is a future policy decision.
+
+## Purchase-order email
+
+Sending a purchase-order email saves the recipient, subject, and body in the database. The background worker queues the request through RabbitMQ, sends it through SMTP, and updates its status. The client polls for Pending, Sending, Sent, or Failed.
 
 | Behavior | Implementation |
 | :--- | :--- |
@@ -163,7 +95,7 @@ sequenceDiagram
 
 `Sent` means the SMTP server accepted the message; it does not guarantee inbox delivery. SMTP and SQL Server cannot commit atomically, so the worker does not promise exactly-once delivery. Check uncertain outcomes before sending a new request. The UI retains its idempotency key for request retries within the current component instance; clients needing retries across reloads must persist that key.
 
-## 🚀 Run locally
+## Run locally
 
 ### Prerequisites
 
@@ -255,22 +187,19 @@ Before any POST, PUT, PATCH, DELETE, or other unsafe controller request, call `G
 
 For a deployed frontend on another origin, configure `Cors:AllowedOrigins` as an array of exact trusted origins, without trailing slashes. Environment variables can use `Cors__AllowedOrigins__0`, `Cors__AllowedOrigins__1`, and so on. Browser restrictions on cross-site cookies still apply.
 
-## 🗺 Roadmap
-
-Upcoming product features:
+## Planned work
 
 - [ ] **Reporting:** Add dedicated reporting features.
 - [ ] **Expanded management:** Add further management features beyond the existing company and master-data screens.
+- [ ] **Purchasing controls:** Add creator/approver separation, approval history, and edit-version conflict handling.
 
-Security follow-ups identified in the current implementation:
+Access-control work:
 
-- [x] Enforce server-side antiforgery validation for unsafe controller requests.
 - [ ] Apply explicit role authorization to privileged management operations.
 - [ ] Refine tenant administrator scope and verify company boundaries across reads and writes.
 
-Reporting and expanded management are planned additions, not completed modules.
 
-## ✅ Development commands
+## Development commands
 
 Build the API and its referenced projects from the repository root:
 
@@ -284,6 +213,14 @@ Run the database-free CSRF/CORS integration checks:
 dotnet run --project tests/InventoryManagementSystem.CsrfChecks
 ```
 
+Run the SQL Server purchase-order integration checks:
+
+```powershell
+dotnet run --project tests/InventoryManagementSystem.PurchaseOrderChecks
+```
+
+These checks require Windows integrated authentication to the local default SQL Server instance and permission to create and drop a database. They create a uniquely named `IMS_PO_Checks_<UUID>` database and remove it during cleanup. Coverage includes reference validation, quantity precision, numbering, cancellation, idempotent retries, company visibility, and concurrent order/receipt changes. Approval and rejection browser flows require separate verification.
+
 Run frontend commands from `src/InventoryManagementSystem.Client`:
 
 ```bash
@@ -291,14 +228,6 @@ npm run build
 npm test
 ```
 
-`npm test` launches the configured Karma/Jasmine runner and requires a compatible browser. These are development commands; their presence does not imply a passing test suite or a published deployment.
+`npm test` launches the configured Karma/Jasmine runner and requires a compatible browser.
 
----
-
-<div align="center">
-
-**Built by [Sitt-Paing](https://github.com/Sitt-Paing)**
-
-Exploring practical inventory workflows through full-stack software engineering.
-
-</div>
+Maintained by [Sitt-Paing](https://github.com/Sitt-Paing).
