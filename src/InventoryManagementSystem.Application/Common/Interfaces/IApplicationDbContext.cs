@@ -30,5 +30,6 @@ public interface IApplicationDbContext
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task LockPurchaseOrderAsync(Guid purchaseOrderId, CancellationToken cancellationToken = default);
+
     Task<long> NextPurchaseOrderNumberAsync(CancellationToken cancellationToken = default);
 }
