@@ -1,8 +1,9 @@
-﻿using InventoryManagementSystem.Application.Common.Interfaces;
+using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Application.Process.PurchaseReturns.DTOs;
 using InventoryManagementSystem.Domain.Entities;
 using InventoryManagementSystem.Domain.Enums;
 using MediatR;
+using InventoryManagementSystem.Application.Process.PurchaseReturns.Queries.GetPurchaseReturnById;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -17,18 +18,21 @@ public class CreatePurchaseReturnCommandHandler : IRequestHandler<CreatePurchase
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
-    private readonly IIdentityService _identityService;
-    public CreatePurchaseReturnCommandHandler(IApplicationDbContext context, ICurrentUserService currentUserService, IIdentityService identityService)
+    private readonly ISender _sender;
+    public CreatePurchaseReturnCommandHandler(IApplicationDbContext context, ICurrentUserService currentUserService, ISender sender)
     {
         _context = context;
         _currentUserService = currentUserService;
-        _identityService = identityService;
+        _sender = sender;
     }
 
     public async Task<PurchaseReturnDto> Handle(CreatePurchaseReturnCommand request, CancellationToken cancellationToken)
     {
         int? companyId = _currentUserService.CompanyId;
         string requestHash = CalculateRequestHash(request);
+        await using var transaction = await _context.BeginTransactionAsync(cancellationToken);
+
+
         PurchaseReturn? existingReturn = await _context.PurchaseReturns
             .AsNoTracking()
             .SingleOrDefaultAsync(pr => pr.IdempotencyKey == request.IdempotencyKey && pr.CompanyId == companyId, cancellationToken);
@@ -50,8 +54,17 @@ public class CreatePurchaseReturnCommandHandler : IRequestHandler<CreatePurchase
                     "This idempotency key was already used for a different request.");
             }
 
-            return await GetResponseAsync(existingReturn.Id, companyId, cancellationToken);
+            var existingResponse = await _sender.Send(new GetPurchaseReturnByIdQuery(existingReturn.Id), cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return existingResponse;
         }
+
+        var returnNo = request.ReturnNo.Trim();
+        var numberExists = await _context.PurchaseReturns
+            .AnyAsync(pr => pr.CompanyId == companyId && pr.ReturnNo == returnNo, cancellationToken);
+        if (numberExists)
+            throw new InvalidOperationException($"Purchase Return number '{returnNo}' is already in use.");
+
         bool supplierExists = await _context.Suppliers.AnyAsync(s => s.Id == request.SupplierId && s.CompanyId == companyId && !s.DeletedOn.HasValue, cancellationToken);
         if(supplierExists == false)
         {
@@ -119,7 +132,7 @@ public class CreatePurchaseReturnCommandHandler : IRequestHandler<CreatePurchase
 
         PurchaseReturn purchaseReturn = new PurchaseReturn
         {
-            ReturnNo = request.ReturnNo.Trim(),
+            ReturnNo = returnNo,
             SupplierId = request.SupplierId,
             ReturnDate = request.ReturnDate,
             ReturnReason = request.ReturnReason?.Trim(),
@@ -139,62 +152,9 @@ public class CreatePurchaseReturnCommandHandler : IRequestHandler<CreatePurchase
         }
         _context.PurchaseReturns.Add(purchaseReturn);
         await _context.SaveChangesAsync(cancellationToken);
-        return await GetResponseAsync(purchaseReturn.Id, companyId, cancellationToken);
-    }
-
-    private async Task<PurchaseReturnDto> GetResponseAsync(
-        Guid returnId, int? companyId, CancellationToken cancellationToken)
-    {
-        var result = await _context.PurchaseReturns
-            .AsNoTracking()
-            .Where(pr => pr.Id == returnId && pr.CompanyId == companyId && !pr.DeletedOn.HasValue)
-            .Select(pr => new PurchaseReturnDto
-        {
-            Id = pr.Id,
-            ReturnNo = pr.ReturnNo,
-            SupplierId = pr.SupplierId,
-            SupplierName = pr.Supplier != null ? pr.Supplier.CompanyName : string.Empty,
-            ReturnDate = pr.ReturnDate,
-            ReturnReason = pr.ReturnReason,
-            Status = pr.Status,
-            PostedBy = pr.PostedBy,
-            PostedOn = pr.PostedOn,
-            CreatedBy = pr.CreatedBy,
-            CreatedOn = pr.CreatedOn,
-            Items = pr.Items
-                .Where(item => item.CompanyId == companyId && !item.DeletedOn.HasValue)
-                .OrderBy(item => item.Id)
-                .Select(item => new PurchaseReturnItemDto
-            {
-                Id = item.Id,
-                PurchaseReturnId = item.PurchaseReturnId,
-                GoodReceiptItemId = item.GoodReceiptItemId,
-                GoodReceiptId = item.GoodReceiptItem!.GoodReceiptId,
-                ReceiptNo = item.GoodReceiptItem.GoodReceipt.ReceiptNo,
-                PurchaseOrderId = item.GoodReceiptItem.GoodReceipt.PurchaseOrderId,
-                PurchaseOrderNo = item.GoodReceiptItem.GoodReceipt.PurchaseOrder != null
-                    ? item.GoodReceiptItem.GoodReceipt.PurchaseOrder.PurchaseOrderNo : string.Empty,
-                ProductId = item.GoodReceiptItem.ProductId,
-                ProductName = item.GoodReceiptItem.Product.Name,
-                UomId = item.GoodReceiptItem.UomId,
-                UomName = item.GoodReceiptItem.Uom.Name,
-                WarehouseId = item.GoodReceiptItem.GoodReceipt.WarehouseId,
-                WarehouseName = item.GoodReceiptItem.GoodReceipt.Warehouse != null
-                    ? item.GoodReceiptItem.GoodReceipt.Warehouse.Name : string.Empty,
-                ReturnQuantity = item.ReturnQuantity
-            }).ToList()
-        }).SingleOrDefaultAsync(cancellationToken);
-
-        if (result == null)
-            throw new KeyNotFoundException("Purchase Return was not found.");
-
-        if (!string.IsNullOrWhiteSpace(result.PostedBy))
-        {
-            var names = await _identityService.GetUserNamesAsync(new[] { result.PostedBy }, cancellationToken);
-            result.PostedByName = names.TryGetValue(result.PostedBy, out var name) ? name : "Unknown user";
-        }
-
-        return result;
+        var response = await _sender.Send(new GetPurchaseReturnByIdQuery(purchaseReturn.Id), cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return response;
     }
 
     private static string CalculateRequestHash(CreatePurchaseReturnCommand command)
