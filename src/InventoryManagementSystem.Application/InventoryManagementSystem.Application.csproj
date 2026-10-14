@@ -20,7 +20,6 @@
 
   <ItemGroup>
     <Folder Include="Process\PurchaseReturns\DTOs\" />
-    <Folder Include="Process\PurchaseReturns\Queries\" />
     <Folder Include="Process\StockTransactions\Queries\GetStockTransactions\" />
   </ItemGroup>
 
