@@ -58,6 +58,15 @@ public class CreatePurchaseReturnPostCommandHandler : IRequestHandler<CreatePurc
         }
 
         List<long> receiptItemIds = items.Select(i => i.GoodReceiptItemId).ToList();
+        if (receiptItemIds.Distinct().Count() != receiptItemIds.Count)
+            throw new InvalidOperationException("Each receipt item can appear only once in a return.");
+
+        var userId = _currentUserService.UserId;
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new UnauthorizedAccessException("Login is required to post a return.");
+        if (!await _context.Suppliers.AnyAsync(s => s.Id == postedReturn.SupplierId && s.CompanyId == companyId
+            && !s.DeletedOn.HasValue, cancellationToken))
+            throw new InvalidOperationException("The return supplier is unavailable.");
 
         var returnedQuantities = await _context.PurchaseReturnItems
             .AsNoTracking()
@@ -145,6 +154,10 @@ public class CreatePurchaseReturnPostCommandHandler : IRequestHandler<CreatePurc
         {
             var requiredQuantity = group.Sum(item => stockQuantities[item.Id]);
 
+            if (!await _context.Warehouses.AnyAsync(w => w.Id == group.Key.WarehouseId && w.CompanyId == companyId
+                && !w.DeletedOn.HasValue, cancellationToken))
+                throw new InvalidOperationException("The source warehouse is unavailable.");
+
             var stock = await _context.WarehouseStocks
                 .SingleOrDefaultAsync(
                     stock => stock.CompanyId == companyId
@@ -160,8 +173,52 @@ public class CreatePurchaseReturnPostCommandHandler : IRequestHandler<CreatePurc
                     $"in warehouse {group.Key.WarehouseId}. " +
                     $"Required quantity is {requiredQuantity}.");
             }
+
+            stock.Quantity -= requiredQuantity;
         }
 
-        throw new NotImplementedException("Purchase return posting is not implemented yet.");
+        var now = DateTime.Now;
+        foreach (var item in items)
+        {
+            var source = item.GoodReceiptItem!;
+            _context.StockTransactions.Add(new StockTransaction
+            {
+                CompanyId = companyId,
+                ProductId = source.ProductId,
+                WarehouseId = source.GoodReceipt.WarehouseId,
+                WarehouseLocationId = 0,
+                Quantity = stockQuantities[item.Id],
+                TransactionType = "OUT",
+                TransactionDate = now,
+                UserId = userId,
+                PurchaseReturnId = postedReturn.Id,
+                PurchaseReturnItemId = item.Id,
+                Note = $"Purchase Return: {postedReturn.ReturnNo}"
+            });
+        }
+
+        var productIds = items.Select(item => item.GoodReceiptItem!.ProductId).Distinct().ToList();
+        var products = await _context.Products
+            .Where(p => p.CompanyId == companyId && productIds.Contains(p.Id) && !p.DeletedOn.HasValue)
+            .ToListAsync(cancellationToken);
+        if (products.Count != productIds.Count)
+            throw new InvalidOperationException("One or more return products are unavailable.");
+
+        postedReturn.Status = PurchaseReturnStatus.Posted;
+        postedReturn.PostedBy = userId;
+        postedReturn.PostedOn = now;
+        await _context.SaveChangesAsync(cancellationToken);
+
+        foreach (var product in products)
+        {
+            product.CurrentStock = await _context.WarehouseStocks
+                .Where(stock => stock.CompanyId == companyId && stock.ProductId == product.Id && !stock.DeletedOn.HasValue)
+                .SumAsync(stock => stock.Quantity, cancellationToken);
+        }
+        await _context.SaveChangesAsync(cancellationToken);
+
+        var response = await _sender.Send(new GetPurchaseReturnByIdQuery(postedReturn.Id), cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return response;
     }
 }
