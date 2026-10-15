@@ -6,4 +6,4 @@ using System.Text;
 
 namespace InventoryManagementSystem.Application.Process.PurchaseReturns.Commands.CreatePurchaseReturnPost;
 
-public record CreatePurchaseReturnPostCommand(Guid PurchaseReturnId,Guid IdempotencyKey) : IRequest<PurchaseReturnDto>;
+public record CreatePurchaseReturnPostCommand(Guid PurchaseReturnId) : IRequest<PurchaseReturnDto>;
