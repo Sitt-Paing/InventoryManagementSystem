@@ -1,4 +1,4 @@
-﻿using InventoryManagementSystem.Application.Common.Interfaces;
+using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Application.Process.PurchaseReturns.DTOs;
 using InventoryManagementSystem.Application.Process.PurchaseReturns.Queries.GetPurchaseReturnById;
 using MediatR;
@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace InventoryManagementSystem.Application.Process.PurchaseReturns.Queries.GetPurchaseReturnByIdQueryHandler;
+namespace InventoryManagementSystem.Application.Process.PurchaseReturns.Queries.GetPurchaseReturnById;
 
 public class GetPurchaseReturnByIdQueryHandler : IRequestHandler<GetPurchaseReturnByIdQuery, PurchaseReturnDto>
 {
