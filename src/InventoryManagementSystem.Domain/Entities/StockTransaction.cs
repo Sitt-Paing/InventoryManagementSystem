@@ -25,6 +25,10 @@ public partial class StockTransaction : BaseAuditableEntity<long>, IMustHaveComp
 
     public long? GoodReceiptItemId { get; set; }
 
+    public Guid? PurchaseReturnId { get; set; }
+
+    public long? PurchaseReturnItemId { get; set; }
+
     public decimal Quantity { get; set; }
 
     public string TransactionType { get; set; } = null!;
@@ -48,6 +52,12 @@ public partial class StockTransaction : BaseAuditableEntity<long>, IMustHaveComp
 
     [JsonIgnore]
     public virtual GoodReceiptItem? GoodReceiptItem { get; set; }
+
+    [JsonIgnore]
+    public virtual PurchaseReturn? PurchaseReturn { get; set; }
+
+    [JsonIgnore]
+    public virtual PurchaseReturnItem? PurchaseReturnItem { get; set; }
 
     [JsonIgnore]
     public virtual StockTransaction? ReversesStockTransaction { get; set; }
