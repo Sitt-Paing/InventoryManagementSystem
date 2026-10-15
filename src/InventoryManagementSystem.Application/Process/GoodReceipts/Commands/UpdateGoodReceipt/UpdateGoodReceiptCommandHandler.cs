@@ -19,6 +19,7 @@ public class UpdateGoodReceiptCommandHandler : IRequestHandler<UpdateGoodReceipt
 
     public async Task<GoodReceiptDto?> Handle(UpdateGoodReceiptCommand request, CancellationToken cancellationToken)
     {
+        await using var transaction = await _context.BeginTransactionAsync(cancellationToken);
         var goodReceipt = await _context.GoodReceipts
             .Include(gr => gr.Items)
             .FirstOrDefaultAsync(gr => gr.Id == request.Id && !gr.DeletedOn.HasValue, cancellationToken);
@@ -28,12 +29,18 @@ public class UpdateGoodReceiptCommandHandler : IRequestHandler<UpdateGoodReceipt
             return null;
         }
 
+        if (goodReceipt.Status != request.Status
+            && await _context.StockTransactions.AnyAsync(t => t.PurchaseReturnId.HasValue
+                && t.PurchaseReturnItem!.GoodReceiptItem!.GoodReceiptId == goodReceipt.Id, cancellationToken))
+            throw new System.InvalidOperationException("A receipt with posted purchase returns cannot change receiving status.");
+
         goodReceipt.ReceiptDate = request.ReceiptDate;
         goodReceipt.Status = request.Status;
         goodReceipt.ReceivedBy = request.ReceivedBy.Trim();
         goodReceipt.Note = request.Note?.Trim();
 
         await _context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         var supplier = await _context.Suppliers.AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == goodReceipt.SupplierId, cancellationToken);
