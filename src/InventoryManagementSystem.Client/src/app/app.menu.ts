@@ -126,6 +126,12 @@ export const NAVIGATION_MENU: Readonly<NavigationMenuGroup[]> = [
         icon: 'pi pi-inbox',
         routerLink: '/process/good-receipts',
       },
+      {
+        label: 'Purchase Returns',
+        transKey: 'NAV.PURCHASE_RETURN',
+        icon: 'pi pi-replay',
+        routerLink: '/process/purchase-return',
+      }
     ],
   },
   {
