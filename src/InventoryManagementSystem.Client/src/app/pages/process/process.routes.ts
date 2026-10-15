@@ -12,5 +12,9 @@ export default [
   {
     path: 'good-receipts',
     loadComponent: () => import('./good-receipts/good-receipts').then(m => m.GoodReceiptsComponent),
+  },
+  {
+    path: 'purchase-return',
+    loadComponent: () => import('./purchase-return/purchase-return').then(m => m.PurchaseReturn),
   }
 ] as Routes;
