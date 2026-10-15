@@ -269,6 +269,14 @@ public partial class InventoryManagementDbContext : DbContext
                 .HasForeignKey(d => d.GoodReceiptItemId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            entity.HasOne(d => d.PurchaseReturn).WithMany()
+                .HasForeignKey(d => d.PurchaseReturnId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.PurchaseReturnItem).WithMany()
+                .HasForeignKey(d => d.PurchaseReturnItemId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             entity.HasOne(t => t.ReversesStockTransaction)
                 .WithMany()
                 .HasForeignKey(t => t.ReversesStockTransactionId)
