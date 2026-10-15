@@ -1051,6 +1051,12 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<Guid?>("PurchaseReturnId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long?>("PurchaseReturnItemId")
+                        .HasColumnType("bigint");
+
                     b.Property<decimal>("Quantity")
                         .HasColumnType("decimal(18, 4)");
 
@@ -1100,6 +1106,10 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.HasIndex("GoodReceiptItemId");
 
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("PurchaseReturnId");
+
+                    b.HasIndex("PurchaseReturnItemId");
 
                     b.HasIndex("ReversesStockTransactionId")
                         .IsUnique()
@@ -1789,6 +1799,16 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_StockTransactions_Products");
 
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.PurchaseReturn", "PurchaseReturn")
+                        .WithMany()
+                        .HasForeignKey("PurchaseReturnId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.PurchaseReturnItem", "PurchaseReturnItem")
+                        .WithMany()
+                        .HasForeignKey("PurchaseReturnItemId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("InventoryManagementSystem.Domain.Entities.StockTransaction", "ReversesStockTransaction")
                         .WithMany()
                         .HasForeignKey("ReversesStockTransactionId")
@@ -1809,6 +1829,10 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Navigation("GoodReceiptItem");
 
                     b.Navigation("Product");
+
+                    b.Navigation("PurchaseReturn");
+
+                    b.Navigation("PurchaseReturnItem");
 
                     b.Navigation("ReversesStockTransaction");
 
