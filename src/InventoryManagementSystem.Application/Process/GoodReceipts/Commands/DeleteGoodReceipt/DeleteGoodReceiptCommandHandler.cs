@@ -40,6 +40,10 @@ public class DeleteGoodReceiptCommandHandler : IRequestHandler<DeleteGoodReceipt
             return null;
         }
 
+        if (await _context.StockTransactions.AnyAsync(t => t.PurchaseReturnId.HasValue
+            && t.PurchaseReturnItem!.GoodReceiptItem!.GoodReceiptId == goodReceipt.Id, cancellationToken))
+            throw new InvalidOperationException("A receipt with posted purchase returns cannot be reversed.");
+
         var now = DateTime.Now;
         var userId = _currentUserService.UserName ?? _currentUserService.UserId ?? "System";
 
