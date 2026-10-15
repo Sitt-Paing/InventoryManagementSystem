@@ -18,6 +18,7 @@ export const MM_DICTIONARY: Record<string, any> = {
     STOCK_TRANSACTIONS: 'စတော့ လှုပ်ရှားမှုများ',
     PURCHASE_ORDERS: 'အဝယ်များ',
     GOOD_RECEIPTS: 'ကုန်လက်ခံလွှာ (GRN)',
+    PURCHASE_RETURN: 'ပြန်ပို့ကုန်များ',
     SETTINGS: 'ဆက်တင်များ',
     USER_MANAGEMENT: 'အသုံးပြုသူ စီမံခန့်ခွဲမှု',
     COMPANIES: 'ကုမ္ပဏီများ'
