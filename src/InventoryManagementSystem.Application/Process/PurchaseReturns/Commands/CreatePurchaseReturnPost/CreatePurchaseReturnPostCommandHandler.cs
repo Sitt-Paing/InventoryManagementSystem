@@ -65,7 +65,7 @@ public class CreatePurchaseReturnPostCommandHandler : IRequestHandler<CreatePurc
             receiptItemIds.Contains(item.GoodReceiptItemId)
             && item.CompanyId == companyId
             &&  !item.DeletedOn.HasValue
-            && item.PurchaseReturn!.CompanyId.HasValue
+            && item.PurchaseReturn!.CompanyId == companyId
             && !item.PurchaseReturn.DeletedOn.HasValue
             && item.PurchaseReturn.Status == PurchaseReturnStatus.Posted)
             .GroupBy(item => item.GoodReceiptItemId)
@@ -75,6 +75,8 @@ public class CreatePurchaseReturnPostCommandHandler : IRequestHandler<CreatePurc
                 Quantity = group.Sum(item => item.ReturnQuantity)
             })
             .ToDictionaryAsync(item => item.ReceiptItemId, item  => item.Quantity,cancellationToken);
+        
+        var stockQuantities = new Dictionary<long, Decimal>();
         foreach (var item in items)
         {
             var source = item.GoodReceiptItem;
@@ -104,13 +106,62 @@ public class CreatePurchaseReturnPostCommandHandler : IRequestHandler<CreatePurc
                 source.ReceivedQuantity - alreadyReturned;
 
             if (item.ReturnQuantity <= 0
-                || item.ReturnQuantity > returnableQuantity)
+                || item.ReturnQuantity > returnableQuantity)    
             {
                 throw new InvalidOperationException(
                     $"Invalid return quantity for receipt item {source.Id}. " +
                     $"Remaining returnable quantity is {returnableQuantity}.");
             }
+
+            if (source.ReceivedQuantity <= 0|| !source.ReceivedBaseQuantity.HasValue|| source.ReceivedBaseQuantity.Value <= 0)
+            {
+                throw new InvalidOperationException(
+                    "The receipt has no valid recorded stock quantity.");
+            }
+
+            var totalBaseReturned = decimal.Round((alreadyReturned + item.ReturnQuantity) * source.ReceivedBaseQuantity.Value / source.ReceivedQuantity,4);
+
+            var previousBaseReturned = decimal.Round(alreadyReturned * source.ReceivedBaseQuantity.Value / source.ReceivedQuantity,4);
+
+            var stockQuantity = totalBaseReturned - previousBaseReturned;
+
+            if (stockQuantity <= 0)
+            {
+                throw new InvalidOperationException(
+                    "Return quantity is below the supported stock precision.");
+            }
+
+            stockQuantities.Add(item.Id, stockQuantity);
         }
+        var stockGroups = items.GroupBy(item => new
+        {
+            ProductId = item.GoodReceiptItem!.ProductId,
+            WarehouseId = item.GoodReceiptItem.GoodReceipt.WarehouseId
+        });
+
+        foreach (var group in stockGroups
+            .OrderBy(group => group.Key.ProductId)
+            .ThenBy(group => group.Key.WarehouseId))
+        {
+            var requiredQuantity = group.Sum(item => stockQuantities[item.Id]);
+
+            var stock = await _context.WarehouseStocks
+                .SingleOrDefaultAsync(
+                    stock => stock.CompanyId == companyId
+                        && stock.ProductId == group.Key.ProductId
+                        && stock.WarehouseId == group.Key.WarehouseId
+                        && !stock.DeletedOn.HasValue,
+                    cancellationToken);
+
+            if (stock == null || stock.Quantity < requiredQuantity)
+            {
+                throw new InvalidOperationException(
+                    $"Insufficient stock for product {group.Key.ProductId} " +
+                    $"in warehouse {group.Key.WarehouseId}. " +
+                    $"Required quantity is {requiredQuantity}.");
+            }
+        }
+
         throw new NotImplementedException("Purchase return posting is not implemented yet.");
     }
 }
