@@ -4,6 +4,7 @@ using InventoryManagementSystem.Application.Process.PurchaseReturns.DTOs;
 using InventoryManagementSystem.Application.Process.PurchaseReturns.Queries.GetPurchaseReturnById;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using InventoryManagementSystem.Application.Process.PurchaseReturns.Commands.CreatePurchaseReturnPost;
 
 namespace InventoryManagementSystem.Api.Controllers.Process;
 
@@ -12,6 +13,20 @@ namespace InventoryManagementSystem.Api.Controllers.Process;
 [ApiController]
 public class PurchaseReturnsController : ApiControllerBase
 {
+    [HttpPost("{id:guid}/post")]
+    [EndpointSummary("Post a purchase return draft and deduct stock")]
+    public async Task<IActionResult> PostPurchaseReturn(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await Mediator.Send(new CreatePurchaseReturnPostCommand(id), cancellationToken);
+        return Ok(new DefaultResponseModel
+        {
+            StatusCode = StatusCodes.Status200OK,
+            Success = true,
+            Message = "Purchase return posted successfully.",
+            Data = result
+        });
+    }
+
     [HttpGet("{id:guid}")]
     [EndpointSummary("Get a purchase return by ID in the current company")]
     public async Task<IActionResult> GetPurchaseReturnById(Guid id, CancellationToken cancellationToken)
