@@ -11,6 +11,9 @@ internal static class StockTransactionMutationGuard
 {
     public static async Task EnsureCanModifyAsync(IApplicationDbContext context, StockTransaction transaction, CancellationToken cancellationToken)
     {
+        if (transaction.PurchaseReturnId.HasValue || transaction.PurchaseReturnItemId.HasValue)
+            throw new InvalidOperationException("Purchase return movements cannot be edited or deleted directly.");
+
         if (transaction.GoodReceiptId.HasValue || transaction.GoodReceiptItemId.HasValue
             || transaction.ReversesStockTransactionId.HasValue)
         {
