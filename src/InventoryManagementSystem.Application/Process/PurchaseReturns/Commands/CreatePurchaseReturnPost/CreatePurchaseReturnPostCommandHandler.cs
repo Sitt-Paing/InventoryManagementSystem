@@ -43,7 +43,7 @@ public class CreatePurchaseReturnPostCommandHandler : IRequestHandler<CreatePurc
             return result;
         }
 
-        if(postedReturn.Status == PurchaseReturnStatus.Draft)
+        if(postedReturn.Status != PurchaseReturnStatus.Draft)
         {
             throw new InvalidOperationException("Only Draft Return can be posted.");
         }
