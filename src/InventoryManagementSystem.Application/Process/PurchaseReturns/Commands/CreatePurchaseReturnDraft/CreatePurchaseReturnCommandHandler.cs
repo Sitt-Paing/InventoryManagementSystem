@@ -12,7 +12,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace InventoryManagementSystem.Application.Process.PurchaseReturns.Commands;
+namespace InventoryManagementSystem.Application.Process.PurchaseReturns.Commands.CreatePurchaseReturnDraft;
 
 public class CreatePurchaseReturnCommandHandler : IRequestHandler<CreatePurchaseReturnCommand, PurchaseReturnDto> 
 {
