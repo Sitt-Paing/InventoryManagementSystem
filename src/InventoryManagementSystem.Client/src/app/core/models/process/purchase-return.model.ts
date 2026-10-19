@@ -16,6 +16,8 @@ export interface PurchaseReturnItemModel {
     uomName: string;
     warehouseId: number;
     warehouseName: string;
+    receivedQuantity: number;
+    returnableQuantity: number;
     returnQuantity: number;
 }
 export interface PurchaseReturnModel {
@@ -62,6 +64,9 @@ export interface CreatePurchaseReturnRequest {
         goodReceiptItemId: number;
         returnQuantity: number;
     }[];
+}
+export interface UpdatePurchaseReturnRequest extends Omit<CreatePurchaseReturnRequest, 'idempotencyKey' | 'returnNo'> {
+    id: string;
 }
 export interface PurchaseReturnFilter {
     q?: string;
