@@ -63,6 +63,7 @@ public partial class InventoryManagementDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasSequence<long>("PurchaseOrderNumberSequence");
+        modelBuilder.HasSequence<long>("PurchaseReturnNumberSequence");
         modelBuilder.Entity<EmailOutbox>(entity =>
         {
             entity.ToTable("EmailOutboxes");
