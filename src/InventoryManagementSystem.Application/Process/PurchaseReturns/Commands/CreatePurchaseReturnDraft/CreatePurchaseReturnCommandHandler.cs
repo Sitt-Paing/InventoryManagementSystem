@@ -60,10 +60,9 @@ public class CreatePurchaseReturnCommandHandler : IRequestHandler<CreatePurchase
         }
 
         var returnNo = request.ReturnNo.Trim();
-        var numberExists = await _context.PurchaseReturns
-            .AnyAsync(pr => pr.CompanyId == companyId && pr.ReturnNo == returnNo, cancellationToken);
-        if (numberExists)
-            throw new InvalidOperationException($"Purchase Return number '{returnNo}' is already in use.");
+        if (await _context.PurchaseReturns.AnyAsync(pr => pr.CompanyId == companyId
+            && pr.ReturnNo == returnNo, cancellationToken))
+            throw new InvalidOperationException("Return number is already in use. Reopen Create Return to get a new number.");
 
         bool supplierExists = await _context.Suppliers.AnyAsync(s => s.Id == request.SupplierId && s.CompanyId == companyId && !s.DeletedOn.HasValue, cancellationToken);
         if(supplierExists == false)
