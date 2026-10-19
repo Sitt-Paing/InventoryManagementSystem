@@ -2,7 +2,7 @@
 
 Inventory and purchasing app built with Angular, ASP.NET Core, and SQL Server.
 
-Includes products, suppliers, warehouses, purchase-order approval, goods receipts, stock tracking, and purchase-order printing and email.
+Includes products, suppliers, warehouses, purchase-order approval, goods receipts, stock tracking, purchase-order printing and email and purchase-return printing.
 
 ## Run locally
 
