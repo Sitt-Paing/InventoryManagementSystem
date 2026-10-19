@@ -5,9 +5,6 @@ using InventoryManagementSystem.Domain.Entities;
 using InventoryManagementSystem.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace InventoryManagementSystem.Application.Process.PurchaseReturns.Commands.CreatePurchaseReturnPost;
 
@@ -24,7 +21,7 @@ public class CreatePurchaseReturnPostCommandHandler : IRequestHandler<CreatePurc
     }
     public async Task<PurchaseReturnDto> Handle(CreatePurchaseReturnPostCommand request, CancellationToken cancellationToken)
     {
-        var companyId = _currentUserService.CompanyId;
+        int? companyId = _currentUserService.CompanyId;
 
         await using var transaction = await _context.BeginTransactionAsync(cancellationToken);
         PurchaseReturn? postedReturn = await _context.PurchaseReturns
@@ -40,7 +37,7 @@ public class CreatePurchaseReturnPostCommandHandler : IRequestHandler<CreatePurc
 
         if(postedReturn.Status == PurchaseReturnStatus.Posted)
         {
-            var result = await _sender.Send(new GetPurchaseReturnByIdQuery(request.PurchaseReturnId),cancellationToken);
+            PurchaseReturnDto result = await _sender.Send(new GetPurchaseReturnByIdQuery(request.PurchaseReturnId),cancellationToken);
             await transaction.CommitAsync(cancellationToken);
             return result;
         }
