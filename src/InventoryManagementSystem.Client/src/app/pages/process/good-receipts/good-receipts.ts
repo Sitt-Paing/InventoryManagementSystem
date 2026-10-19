@@ -97,7 +97,7 @@ export class GoodReceiptsComponent implements OnInit {
   private formBuilder = inject(FormBuilder);
   public goodReceiptForm = this.formBuilder.group({
     id: [null as string | null],
-    receiptNo: ['', Validators.required],
+    receiptNo: [{ value: '', disabled: true }, Validators.required],
     purchaseOrderId: ['', Validators.required],
     supplierId: [null as number | null, [Validators.required, Validators.min(1)]],
     warehouseId: [null as number | null, [Validators.required, Validators.min(1)]],
@@ -257,7 +257,7 @@ export class GoodReceiptsComponent implements OnInit {
       return;
     }
 
-    const formVal = this.goodReceiptForm.value;
+    const formVal = this.goodReceiptForm.getRawValue();
     const model: GoodReceiptModel = {
       id: formVal.id || undefined,
       receiptNo: formVal.receiptNo!.trim(),
