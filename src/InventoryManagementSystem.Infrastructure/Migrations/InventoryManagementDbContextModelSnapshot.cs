@@ -24,6 +24,8 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
 
             modelBuilder.HasSequence("PurchaseOrderNumberSequence");
 
+            modelBuilder.HasSequence("PurchaseReturnNumberSequence");
+
             modelBuilder.Entity("AspNetUserRole", b =>
                 {
                     b.Property<string>("UserId")
