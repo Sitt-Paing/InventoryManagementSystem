@@ -3,13 +3,15 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inje
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
+import { SplitButtonModule } from 'primeng/splitbutton';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePickerModule } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
+import { TextareaModule } from 'primeng/textarea';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -30,11 +32,13 @@ import { PurchaseReturnsService } from '../../../core/services/process/purchase-
     FormsModule,
     ReactiveFormsModule,
     ButtonModule,
+    SplitButtonModule,
     ConfirmDialogModule,
     DatePickerModule,
     DialogModule,
     InputNumberModule,
     InputTextModule,
+    TextareaModule,
     PaginatorModule,
     SelectModule,
     TableModule,
@@ -45,12 +49,12 @@ import { PurchaseReturnsService } from '../../../core/services/process/purchase-
   ],
   providers: [ConfirmationService, MessageService],
   templateUrl: './purchase-return.html',
-  styleUrl: './purchase-return.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PurchaseReturn implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly formBuilder = inject(FormBuilder);
+  private numberRequest: number = 0;
   private listRequest: number = 0;
   private sourceRequest: number = 0;
   private detailRequest: number = 0;
@@ -64,7 +68,12 @@ export class PurchaseReturn implements OnInit {
     label: 'Posted',
     value: PurchaseReturnStatus.Posted,
   }];
+  items: MenuItem[] = [
+    { label: 'Edit', icon: 'pi pi-pencil', command: () => this.edit() },
+    { label: 'Delete', icon: 'pi pi-trash', command: () => this.delete() },
+  ];
   returns: PurchaseReturnModel[] = [];
+  selectedPurchaseReturn: PurchaseReturnModel | null = null;
   suppliers: SuppliersModel[] = [];
   isLoading: boolean = false;
   isSuppliersLoading: boolean = false;
@@ -80,7 +89,13 @@ export class PurchaseReturn implements OnInit {
   startDate: Date | null = null;
   endDate: Date | null = null;
 
-  // Create Dialog
+  editId: string | null = null;
+  formReturnNo: string = '';
+  numberError: string = '';
+  isNumberLoading: boolean = false;
+  deletingId: string | null = null;
+
+  // Create / Edit Dialog
   formModalVisible: boolean = false;
   isSubmitting: boolean = false;
   saveError: string = '';
@@ -103,7 +118,6 @@ export class PurchaseReturn implements OnInit {
   postingId: string | null = null;
 
   readonly purchaseReturnForm = this.formBuilder.group({
-    returnNo: ['', [Validators.required, Validators.maxLength(50)]],
     supplierId: [null as number | null, [Validators.required, Validators.min(1)]],
     returnDate: [new Date() as Date | null, Validators.required],
     returnReason: ['', Validators.maxLength(500)],
@@ -121,6 +135,7 @@ export class PurchaseReturn implements OnInit {
   }
 
   loadData(): void {
+    this.selectedPurchaseReturn = null;
     const request = ++this.listRequest;
     if (!this.validRange(this.startDate, this.endDate)) {
       this.listError = 'Start date cannot be after end date.';
@@ -186,10 +201,15 @@ export class PurchaseReturn implements OnInit {
       });
   }
 
-  create(): void {
+  create(isEdit: boolean = false): void {
+    const numberRequest = ++this.numberRequest;
+    this.isNumberLoading = false;
+    ++this.sourceRequest;
+    this.editId = null;
+    this.formReturnNo = '';
+    this.numberError = '';
     this.purchaseReturnForm.enable();
     this.purchaseReturnForm.reset({
-      returnNo: '',
       supplierId: null,
       returnDate: new Date(),
       returnReason: '',
@@ -205,21 +225,55 @@ export class PurchaseReturn implements OnInit {
     this.saveError = '';
     this.sourceError = '';
     this.formModalVisible = true;
+    if (!isEdit) {
+      const year = new Date().getFullYear();
+      this.isNumberLoading = true;
+      this.purchaseReturnService.getLastNumber(year)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (res) => {
+            if (numberRequest !== this.numberRequest) {
+              return;
+            }
+            const lastNumber = res.data ? Number(res.data.slice(`PR-${year}-`.length)) : 0;
+            const nextNumber = lastNumber + 1;
+            this.isNumberLoading = false;
+            if (!Number.isSafeInteger(nextNumber) || nextNumber <= 0) {
+              this.numberError = 'Unable to generate a return number. Close and reopen Create Return.';
+              this.saveError = this.numberError;
+            } else {
+              this.formReturnNo = `PR-${year}-${String(nextNumber).padStart(8, '0')}`;
+            }
+            this.cdr.markForCheck();
+          },
+          error: (err) => {
+            if (numberRequest !== this.numberRequest) {
+              return;
+            }
+            this.isNumberLoading = false;
+            this.numberError = err.status === 404
+              ? 'Return-number API is unavailable. Rebuild and restart the API, then reopen Create Return.'
+              : this.errorMessage(err);
+            this.saveError = this.numberError;
+            this.cdr.markForCheck();
+          },
+        });
+    }
   }
 
   onSubmit(): void {
-    if (this.isSubmitting) {
+    if (this.isSubmitting || this.isNumberLoading) {
       return;
     }
     this.purchaseReturnForm.markAllAsTouched();
     if (!this.pendingCreate) {
-      if (this.purchaseReturnForm.invalid || !this.purchaseReturnForm.controls.returnNo.value?.trim() || !this.lines.length || this.lines.some((line) => !this.validQuantity(line))) {
+      if (!this.formReturnNo || this.purchaseReturnForm.invalid || !this.lines.length || this.lines.some((line) => !this.validQuantity(line))) {
         this.saveError = 'Fill in the required fields and add at least one item with a valid quantity.';
         return;
       }
       const value = this.purchaseReturnForm.getRawValue();
       this.pendingCreate = {
-        returnNo: value.returnNo!.trim(),
+        returnNo: this.formReturnNo,
         supplierId: value.supplierId!,
         returnDate: `${this.date(value.returnDate)}T00:00:00`,
         returnReason: value.returnReason?.trim() || null,
@@ -233,7 +287,11 @@ export class PurchaseReturn implements OnInit {
     this.isSubmitting = true;
     this.purchaseReturnForm.disable();
     this.saveError = '';
-    this.purchaseReturnService.create(this.pendingCreate)
+    const { idempotencyKey, returnNo, ...draft } = this.pendingCreate;
+    const saveRequest = this.editId
+      ? this.purchaseReturnService.update(this.editId, { id: this.editId, ...draft })
+      : this.purchaseReturnService.create(this.pendingCreate);
+    saveRequest
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
@@ -246,7 +304,7 @@ export class PurchaseReturn implements OnInit {
           this.pendingCreate = null;
           this.formModalVisible = false;
           ++this.sourceRequest;
-          this.notify('success', 'Draft saved', res.data.returnNo);
+          this.notify('success', this.editId ? 'Draft updated' : 'Draft saved', res.data.returnNo);
           this.first = 0;
           this.loadData();
           ++this.detailRequest;
@@ -269,6 +327,110 @@ export class PurchaseReturn implements OnInit {
           this.cdr.markForCheck();
         },
       });
+  }
+
+  edit(row: PurchaseReturnModel | null = this.selectedPurchaseReturn): void {
+    if (!row) {
+      this.notify('warn', 'Select a return', 'Please select a purchase return first.');
+      return;
+    }
+    if (row.status !== this.status.Draft) {
+      this.notify('error', 'Cannot update return', 'Posted purchase returns cannot be updated.');
+      return;
+    }
+    if (this.isSubmitting) {
+      return;
+    }
+    this.detailModalVisible = false;
+    const request = ++this.detailRequest;
+    this.create(true);
+    this.editId = row.id;
+    this.formReturnNo = row.returnNo;
+    this.isSubmitting = true;
+    this.purchaseReturnForm.disable();
+    this.purchaseReturnService.getById(row.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          if (request !== this.detailRequest) {
+            return;
+          }
+          this.isSubmitting = false;
+          if (res.data.status !== this.status.Draft) {
+            this.formModalVisible = false;
+            this.notify('warn', 'Unable to edit', 'Only draft purchase returns can be updated.');
+            this.loadData();
+          } else {
+            this.formReturnNo = res.data.returnNo;
+            this.purchaseReturnForm.enable();
+            this.purchaseReturnForm.reset({
+              supplierId: res.data.supplierId,
+              returnDate: new Date(res.data.returnDate),
+              returnReason: res.data.returnReason || '',
+            });
+            this.lines = res.data.items.map((item) => ({
+              ...item,
+              receiptDate: '',
+              returnedQuantity: item.receivedQuantity - item.returnableQuantity,
+            }));
+            this.loadSources();
+          }
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          if (request !== this.detailRequest) {
+            return;
+          }
+          this.isSubmitting = false;
+          this.formModalVisible = false;
+          this.notify('error', 'Unable to load draft', this.errorMessage(err));
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  delete(row: PurchaseReturnModel | null = this.selectedPurchaseReturn): void {
+    if (!row) {
+      this.notify('warn', 'Select a return', 'Please select a purchase return first.');
+      return;
+    }
+    if (row.status !== this.status.Draft) {
+      this.notify('error', 'Cannot delete return', 'Posted purchase returns cannot be deleted.');
+      return;
+    }
+    if (this.deletingId) {
+      return;
+    }
+    this.confirmationService.confirm({
+      header: 'Delete purchase return?',
+      message: `Delete draft ${row.returnNo}?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
+      accept: () => {
+        this.deletingId = row.id;
+        this.purchaseReturnService.delete(row.id)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => {
+              this.deletingId = null;
+              if (this.detail?.id === row.id) {
+                this.detailModalVisible = false;
+                this.detail = null;
+              }
+              this.notify('success', 'Draft deleted', row.returnNo);
+              this.loadData();
+              this.cdr.markForCheck();
+            },
+            error: (err) => {
+              this.deletingId = null;
+              this.notify('error', 'Unable to delete draft', this.errorMessage(err));
+              this.loadData();
+              this.cdr.markForCheck();
+            },
+          });
+      },
+    });
   }
 
   viewDetail(row: PurchaseReturnModel): void {
@@ -336,6 +498,8 @@ export class PurchaseReturn implements OnInit {
   }
 
   closeCreate(): void {
+    ++this.numberRequest;
+    this.isNumberLoading = false;
     ++this.sourceRequest;
     this.isSourceLoading = false;
     if (this.pendingCreate) {
