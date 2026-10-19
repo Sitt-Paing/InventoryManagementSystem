@@ -81,7 +81,7 @@ export class PurchaseReturn implements OnInit {
   first: number = 0;
   rows: number = 20;
   totalRecords: number = 0;
-  sortField: string = 'returnDate';
+  sortField: string = 'createdOn';
   sortOrder: number = -1;
   searchKeyword: string = '';
   filterSupplier: number | null = null;
@@ -478,7 +478,7 @@ export class PurchaseReturn implements OnInit {
   onLazyLoad(event: TableLazyLoadEvent): void {
     this.first = event.first ?? 0;
     this.rows = event.rows ?? 20;
-    this.sortField = Array.isArray(event.sortField) ? event.sortField[0] : event.sortField || 'returnDate';
+    this.sortField = Array.isArray(event.sortField) ? event.sortField[0] : event.sortField || 'createdOn';
     this.sortOrder = event.sortOrder ?? -1;
     this.loadData();
   }
