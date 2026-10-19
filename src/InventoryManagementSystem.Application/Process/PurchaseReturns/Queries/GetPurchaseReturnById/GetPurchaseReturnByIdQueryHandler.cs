@@ -2,6 +2,7 @@ using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Application.Process.PurchaseReturns.DTOs;
 using InventoryManagementSystem.Application.Process.PurchaseReturns.Queries.GetPurchaseReturnById;
 using MediatR;
+using InventoryManagementSystem.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -62,6 +63,15 @@ public class GetPurchaseReturnByIdQueryHandler : IRequestHandler<GetPurchaseRetu
                     WarehouseId = item.GoodReceiptItem.GoodReceipt.WarehouseId,
                     WarehouseName = item.GoodReceiptItem.GoodReceipt.Warehouse != null
                     ? item.GoodReceiptItem.GoodReceipt.Warehouse.Name : string.Empty,
+                    ReceivedQuantity = item.GoodReceiptItem.ReceivedQuantity,
+                    ReturnableQuantity = item.GoodReceiptItem.ReceivedQuantity -
+                        (_context.PurchaseReturnItems.Where(returned => returned.CompanyId == companyId
+                            && returned.GoodReceiptItemId == item.GoodReceiptItemId
+                            && !returned.DeletedOn.HasValue
+                            && returned.PurchaseReturn!.CompanyId == companyId
+                            && !returned.PurchaseReturn.DeletedOn.HasValue
+                            && returned.PurchaseReturn.Status == PurchaseReturnStatus.Posted)
+                            .Sum(returned => (decimal?)returned.ReturnQuantity) ?? 0),
                     ReturnQuantity = item.ReturnQuantity
                 }).ToList()
             }).SingleOrDefaultAsync(cancellationToken);
