@@ -1765,3 +1765,11 @@ frontend number request ကမအောင်မြင်ပါ။ API ကို
 နံပါတ်ယူမရသော error ကို form အောက်ဆုံးတစ်နေရာတည်းမဟုတ်ဘဲ Return No field အောက်မှာပါ
 ပြထားသည်။ HTTP 404 ဆို API rebuild/restart လုပ်ရန် တိုက်ရိုက်ညွှန်ပြသည်။
 မရသေးသောအခါ 00000001 ကိုခန့်မှန်းဖြည့်ခြင်းမလုပ်ပါ။
+
+## ၃၀။ Purchase Return list တွင်အသစ်အပေါ်ဆုံးပြခြင်း
+
+Default sort field ကို frontend နှင့် backend နှစ်ဖက်လုံး CreatedOn descending
+သုံးထားသည်။ ReturnDate သည်နေ့စွဲတူနိုင်သောကြောင့် မကြာခင်ဖန်တီးထားသည့် Return ကို
+အပေါ်ဆုံးရရန် CreatedOn ဖြင့်စီသည်။ Header တစ်ခုကိုနှိပ်ပြီး ကိုယ်တိုင် sort လုပ်နိုင်ဆဲဖြစ်သည်။
+Sort value တူလျှင် CreatedOn descending၊ ထပ်တူလျှင် Id descending ဖြင့်စီ၍ pagination
+အစီအစဉ်တည်ငြိမ်စေသည်။ ReturnDate header sorting ကိုသီးခြား case ဖြင့်ထိန်းထားသည်။
