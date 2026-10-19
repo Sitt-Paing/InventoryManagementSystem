@@ -15,5 +15,7 @@ public class PurchaseReturnItemDto
     public string UomName { get; set; } = string.Empty;
     public int WarehouseId { get; set; }
     public string WarehouseName { get; set; } = string.Empty;
+    public decimal ReceivedQuantity { get; set; }
+    public decimal ReturnableQuantity { get; set; }
     public decimal ReturnQuantity { get; set; }
 }
