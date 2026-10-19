@@ -63,10 +63,11 @@ public class GetPurchaseReturnsQueryHandler : IRequestHandler<GetPurchaseReturns
             "status" => request.Order == 1 ? query.OrderBy(pr => pr.Status) : query.OrderByDescending(pr => pr.Status),
             "createdon" => request.Order == 1 ? query.OrderBy(pr => pr.CreatedOn) : query.OrderByDescending(pr => pr.CreatedOn),
             "postedon" => request.Order == 1 ? query.OrderBy(pr => pr.PostedOn) : query.OrderByDescending(pr => pr.PostedOn),
-            _ => request.Order == 1 ? query.OrderBy(pr => pr.ReturnDate) : query.OrderByDescending(pr => pr.ReturnDate)
+            "returndate" => request.Order == 1 ? query.OrderBy(pr => pr.ReturnDate) : query.OrderByDescending(pr => pr.ReturnDate),
+            _ => request.Order == 1 ? query.OrderBy(pr => pr.CreatedOn) : query.OrderByDescending(pr => pr.CreatedOn)
         };
 
-        query = sortedQuery.ThenBy(pr => pr.Id);
+        query = sortedQuery.ThenByDescending(pr => pr.CreatedOn).ThenByDescending(pr => pr.Id);
 
         if (request.PageNumber.HasValue && request.PageSize.HasValue)
         {
