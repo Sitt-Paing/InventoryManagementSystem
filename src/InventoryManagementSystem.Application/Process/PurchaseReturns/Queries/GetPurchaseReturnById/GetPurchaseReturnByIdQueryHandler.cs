@@ -25,8 +25,8 @@ public class GetPurchaseReturnByIdQueryHandler : IRequestHandler<GetPurchaseRetu
 
     public async Task<PurchaseReturnDto> Handle(GetPurchaseReturnByIdQuery request, CancellationToken cancellationToken)
     {
-        var companyId = _currentUserService.CompanyId;
-        var result = await _context.PurchaseReturns
+        int? companyId = _currentUserService.CompanyId;
+        PurchaseReturnDto? result = await _context.PurchaseReturns
             .AsNoTracking()
             .Where(pr => pr.Id == request.Id && pr.CompanyId == companyId && !pr.DeletedOn.HasValue)
             .Select(pr => new PurchaseReturnDto
