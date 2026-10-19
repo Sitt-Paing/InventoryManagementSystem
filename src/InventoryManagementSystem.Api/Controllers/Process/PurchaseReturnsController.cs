@@ -1,3 +1,6 @@
+using InventoryManagementSystem.Application.Process.PurchaseReturns.Queries.GetLastPurchaseReturnNumber;
+using InventoryManagementSystem.Application.Process.PurchaseReturns.Commands.UpdatePurchaseReturnDraft;
+using InventoryManagementSystem.Application.Process.PurchaseReturns.Commands.DeletePurchaseReturnDraft;
 using InventoryManagementSystem.Application.Common.Models;
 using InventoryManagementSystem.Application.Process.PurchaseReturns.Commands.CreatePurchaseReturnDraft;
 using InventoryManagementSystem.Application.Process.PurchaseReturns.DTOs;
@@ -16,6 +19,19 @@ namespace InventoryManagementSystem.Api.Controllers.Process;
 [ApiController]
 public class PurchaseReturnsController : ApiControllerBase
 {
+    [HttpGet("last-number")]
+    [EndpointSummary("Get the last purchase return number for frontend numbering")]
+    public async Task<IActionResult> GetLastNumber([FromQuery] int year, CancellationToken cancellationToken)
+    {
+        var result = await Mediator.Send(new GetLastPurchaseReturnNumberQuery(year), cancellationToken);
+        return Ok(new DefaultResponseModel
+        {
+            StatusCode = StatusCodes.Status200OK,
+            Success = true,
+            Data = result
+        });
+    }
+
     [HttpGet("returnable-items")]
     [EndpointSummary("Get received GRN lines with remaining returnable quantity for a supplier")]
     public async Task<IActionResult> GetReturnableItems(
@@ -71,6 +87,35 @@ public class PurchaseReturnsController : ApiControllerBase
             Success = true,
             Message = "Purchase return retrieved successfully.",
             Data = result
+        });
+    }
+
+    [HttpPut("{id:guid}")]
+    [EndpointSummary("Update a purchase return draft")]
+    public async Task<IActionResult> UpdatePurchaseReturn(Guid id,
+        [FromBody] UpdatePurchaseReturnCommand command, CancellationToken cancellationToken)
+    {
+        if (id != command.Id) return BadRequest("Return ID does not match the route.");
+        var result = await Mediator.Send(command, cancellationToken);
+        return Ok(new DefaultResponseModel
+        {
+            StatusCode = StatusCodes.Status200OK,
+            Success = true,
+            Message = "Purchase return draft updated successfully.",
+            Data = result
+        });
+    }
+
+    [HttpDelete("{id:guid}")]
+    [EndpointSummary("Soft delete a purchase return draft")]
+    public async Task<IActionResult> DeletePurchaseReturn(Guid id, CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new DeletePurchaseReturnCommand(id), cancellationToken);
+        return Ok(new DefaultResponseModel
+        {
+            StatusCode = StatusCodes.Status200OK,
+            Success = true,
+            Message = "Purchase return draft deleted successfully."
         });
     }
 
