@@ -5,12 +5,13 @@
   <!-- Top Toolbar: Create Button & Global Search -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 p-4 pb-0">
     <div class="flex items-center gap-2">
-      <p-button
+      <p-splitbutton
+        [model]="items"
         label="Create Return"
         icon="pi pi-plus"
         size="small"
         (onClick)="create()">
-      </p-button>
+      </p-splitbutton>
     </div>
 
     <div class="flex flex-wrap gap-3 ml-auto w-full sm:w-auto">
@@ -33,24 +34,24 @@
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 px-4 pb-4">
-    <div class="field"><label for="returnSupplier">Supplier</label>
+    <div class="flex flex-col gap-1 min-w-0">
       <p-select inputId="returnSupplier" [(ngModel)]="filterSupplier" [options]="suppliers" optionLabel="companyName" optionValue="id"
         placeholder="All suppliers" [showClear]="true" [filter]="true" [loading]="isSuppliersLoading" appendTo="body" [fluid]="true"></p-select>
     </div>
-    <div class="field"><label for="returnStatus">Status</label>
+    <div class="flex flex-col gap-1 min-w-0">
       <p-select inputId="returnStatus" [(ngModel)]="filterStatus" [options]="statusOptions" optionLabel="label" optionValue="value"
         placeholder="All statuses" [showClear]="true" appendTo="body" [fluid]="true"></p-select>
     </div>
-    <div class="field"><label for="returnStart">Return date from</label>
+    <div class="flex flex-col gap-1 min-w-0">
       <p-datepicker inputId="returnStart" [(ngModel)]="startDate" dateFormat="dd/mm/yy" [showClear]="true" [showIcon]="true"
-        iconDisplay="input" [readonlyInput]="true" appendTo="body" [fluid]="true"></p-datepicker>
+        iconDisplay="input" placeholder="Return From Date" [readonlyInput]="true" appendTo="body" [fluid]="true"></p-datepicker>
     </div>
-    <div class="field"><label for="returnEnd">Return date to</label>
+    <div class="flex flex-col gap-1 min-w-0">
       <p-datepicker inputId="returnEnd" [(ngModel)]="endDate" dateFormat="dd/mm/yy" [showClear]="true" [showIcon]="true"
-        iconDisplay="input" [readonlyInput]="true" appendTo="body" [fluid]="true"></p-datepicker>
+        iconDisplay="input" [readonlyInput]="true"  placeholder="Return To Date" appendTo="body" [fluid]="true"></p-datepicker>
     </div>
     <div class="flex items-end gap-2">
-      <p-button label="Apply" icon="pi pi-search" (onClick)="applyFilters()"></p-button>
+      <p-button label="Apply" (onClick)="applyFilters()"></p-button>
       <p-button label="Clear" [outlined]="true" severity="secondary" (onClick)="clearFilters()"></p-button>
     </div>
   </div>
@@ -58,12 +59,13 @@
     <div class="error-message" role="alert">{{ listError }} <button type="button" class="underline" (click)="loadData()">Retry</button></div>
   }
 
-  <p-table [value]="returns" [lazy]="true" (onLazyLoad)="onLazyLoad($event)" [paginator]="true"
+  <p-table [value]="returns" [(selection)]="selectedPurchaseReturn" selectionMode="single" [lazy]="true" (onLazyLoad)="onLazyLoad($event)" [paginator]="true"
     [first]="first" [rows]="rows" [totalRecords]="totalRecords" [rowsPerPageOptions]="[20,50,100]"
     [loading]="isLoading" [sortField]="sortField" [sortOrder]="sortOrder" dataKey="id"
     [scrollable]="true" [tableStyle]="{ 'min-width': '72rem' }" [showCurrentPageReport]="true"
     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" paginatorDropdownAppendTo="body" stripedRows="true">
     <ng-template #header><tr>
+      <th pFrozenColumn [style]="{ width: '10px' }">#</th>
       <th pSortableColumn="returnNo">Return No <p-sortIcon field="returnNo"></p-sortIcon></th>
       <th pSortableColumn="supplierName">Supplier <p-sortIcon field="supplierName"></p-sortIcon></th>
       <th pSortableColumn="returnDate">Return Date <p-sortIcon field="returnDate"></p-sortIcon></th>
@@ -71,13 +73,17 @@
       <th>Posted By</th><th pSortableColumn="postedOn">Posted On <p-sortIcon field="postedOn"></p-sortIcon></th>
       <th>Actions</th>
     </tr></ng-template>
-    <ng-template #body let-row><tr>
-      <td><button type="button" class="return-link" (click)="viewDetail(row)">{{ row.returnNo }}</button></td>
+    <ng-template #body let-row><tr [pSelectableRow]="row">
+      <td pFrozenColumn>
+        <span class="pi pi-circle" [class.pi-check-circle]="selectedPurchaseReturn === row"
+          [style.color]="selectedPurchaseReturn === row ? 'var(--accent-color)' : 'var(--text-faint)'" aria-hidden="true"></span>
+      </td>
+      <td><button type="button" class="return-link" (click)="viewDetail(row); $event.stopPropagation()">{{ row.returnNo }}</button></td>
       <td>{{ row.supplierName }}</td><td>{{ row.returnDate | date:'dd/MMM/yyyy' }}</td>
       <td>{{ row.totalItems }}</td>
       <td><p-tag [value]="row.status === status.Posted ? 'Posted' : 'Draft'" [severity]="row.status === status.Posted ? 'success' : 'secondary'"></p-tag></td>
       <td>{{ row.postedByName || '-' }}</td><td>{{ row.postedOn ? (row.postedOn | date:'dd/MMM/yyyy hh:mm a') : '-' }}</td>
-      <td><div class="flex gap-1">
+      <td (click)="$event.stopPropagation()"><div class="flex gap-1">
         <p-button label="Detail" icon="pi pi-eye" size="small" [text]="true" (onClick)="viewDetail(row)"></p-button>
         @if (row.status === status.Draft) {
           <p-button label="Post" icon="pi pi-check" size="small" [outlined]="true" [loading]="postingId === row.id"
@@ -85,50 +91,49 @@
         }
       </div></td>
     </tr></ng-template>
-    <ng-template #emptymessage><tr><td colspan="8" class="text-center p-6 muted">
+    <ng-template #emptymessage><tr><td colspan="9" class="text-center p-6 muted">
       {{ listError ? 'Unable to load purchase returns.' : 'No purchase returns found.' }}
     </td></tr></ng-template>
   </p-table>
 </div>
 
-<p-dialog header="Create Purchase Return" [(visible)]="formModalVisible" [modal]="true" [draggable]="false" [resizable]="false"
+<p-dialog [header]="editId ? 'Edit Purchase Return' : 'Create Purchase Return'" [(visible)]="formModalVisible" [modal]="true" [draggable]="false" [resizable]="false"
   [style]="{width: '78rem', maxWidth: '96vw'}" [closable]="!isSubmitting" [closeOnEscape]="!isSubmitting" (onHide)="closeCreate()">
   <form [formGroup]="purchaseReturnForm" (ngSubmit)="onSubmit()" class="space-y-5">
-    <p class="muted text-sm">Choose one supplier, then add received items from one or more GRNs. Saving a draft does not change stock.</p>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-      <div class="field"><label for="draftReturnNo">Return No *</label>
-        <input pInputText id="draftReturnNo" formControlName="returnNo" maxlength="50" placeholder="Enter return number" />
-        @if (purchaseReturnForm.controls.returnNo.touched && purchaseReturnForm.controls.returnNo.invalid) { <small class="error-text">Return number is required (max 50 characters).</small> }
+      <div class="flex flex-col gap-1 min-w-0"><label for="draftReturnNo" class="text-xs font-semibold">Return No</label>
+        <input pInputText id="draftReturnNo" class="w-full" [value]="formReturnNo" [placeholder]="isNumberLoading ? 'Generating return number...' : 'Return number'" disabled />
+        @if (numberError) { <small class="text-xs text-red-500" role="alert">{{ numberError }}</small> }
       </div>
-      <div class="field"><label for="draftSupplier">Supplier *</label>
+      <div class="flex flex-col gap-1 min-w-0"><label for="draftSupplier" class="text-xs font-semibold">Supplier *</label>
         <p-select inputId="draftSupplier" formControlName="supplierId" [options]="suppliers" optionLabel="companyName" optionValue="id"
           [filter]="true" [showClear]="true" [loading]="isSuppliersLoading" placeholder="Select supplier" appendTo="body" [fluid]="true"
           (onChange)="onSupplierChange()"></p-select>
-        @if (purchaseReturnForm.controls.supplierId.touched && purchaseReturnForm.controls.supplierId.invalid) { <small class="error-text">Select a supplier.</small> }
+        @if (purchaseReturnForm.controls.supplierId.touched && purchaseReturnForm.controls.supplierId.invalid) { <small class="text-xs text-red-500">Select a supplier.</small> }
       </div>
-      <div class="field"><label for="draftDate">Return Date *</label>
+      <div class="flex flex-col gap-1 min-w-0"><label for="draftDate" class="text-xs font-semibold">Return Date *</label>
         <p-datepicker inputId="draftDate" formControlName="returnDate" dateFormat="dd/mm/yy" [showIcon]="true" iconDisplay="input"
           [readonlyInput]="true" appendTo="body" [fluid]="true"></p-datepicker>
-        @if (purchaseReturnForm.controls.returnDate.touched && purchaseReturnForm.controls.returnDate.invalid) { <small class="error-text">Select a return date.</small> }
+        @if (purchaseReturnForm.controls.returnDate.touched && purchaseReturnForm.controls.returnDate.invalid) { <small class="text-xs text-red-500">Select a return date.</small> }
       </div>
-      <div class="field md:col-span-3"><label for="draftReason">Reason</label>
-        <textarea id="draftReason" formControlName="returnReason" rows="2" maxlength="500" placeholder="Reason for returning these items"></textarea>
+      <div class="flex flex-col gap-1 md:col-span-3"><label for="draftReason" class="text-xs font-semibold">Reason</label>
+        <textarea pTextarea class="w-full" id="draftReason" formControlName="returnReason" rows="2" maxlength="500" placeholder="Reason for returning these items"></textarea>
       </div>
     </div>
 
-    <section class="space-y-3" aria-label="Available receipt items">
+    <section class="space-y-3 border-t border-surface-200 dark:border-surface-700 pt-4" aria-label="Available receipt items">
       <h2 class="font-semibold">Choose Received Items</h2>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <div class="field"><label for="sourceSearch">GRN / PO / product</label>
-          <input id="sourceSearch" pInputText [(ngModel)]="sourceKeyword" [ngModelOptions]="{standalone: true}" [disabled]="createLocked"
+        <div class="flex flex-col gap-1 min-w-0">
+          <input id="sourceSearch" pInputText class="w-full" [(ngModel)]="sourceKeyword" [ngModelOptions]="{standalone: true}" [disabled]="createLocked"
             placeholder="Search receipt items" (keydown.enter)="$event.preventDefault(); searchSources()" />
         </div>
-        <div class="field"><label for="sourceStart">Receipt date from</label>
-          <p-datepicker inputId="sourceStart" [(ngModel)]="sourceStartDate" [ngModelOptions]="{standalone: true}" [disabled]="createLocked"
+        <div class="flex flex-col gap-1 min-w-0">
+          <p-datepicker inputId="sourceStart" placeholder="Receipt Date From" [(ngModel)]="sourceStartDate" [ngModelOptions]="{standalone: true}" [disabled]="createLocked"
             dateFormat="dd/mm/yy" [showClear]="true" [showIcon]="true" iconDisplay="input" [readonlyInput]="true" appendTo="body" [fluid]="true"></p-datepicker>
         </div>
-        <div class="field"><label for="sourceEnd">Receipt date to</label>
-          <p-datepicker inputId="sourceEnd" [(ngModel)]="sourceEndDate" [ngModelOptions]="{standalone: true}" [disabled]="createLocked"
+        <div class="flex flex-col gap-1 min-w-0">
+          <p-datepicker inputId="sourceEnd" placeholder="Receipt date to" [(ngModel)]="sourceEndDate" [ngModelOptions]="{standalone: true}" [disabled]="createLocked"
             dateFormat="dd/mm/yy" [showClear]="true" [showIcon]="true" iconDisplay="input" [readonlyInput]="true" appendTo="body" [fluid]="true"></p-datepicker>
         </div>
         <div class="flex items-end"><p-button type="button" label="Find Items" icon="pi pi-search" [outlined]="true"
@@ -150,10 +155,10 @@
       </p-table>
       <p-paginator [first]="sourceFirst" [rows]="sourceRows" [totalRecords]="sourceTotal" [rowsPerPageOptions]="[10,20,50]"
         (onPageChange)="sourcePage($event)"></p-paginator>
-      <p class="muted text-xs">Returnable = received quantity minus posted returns. Warehouse stock is checked again when posting.</p>
+      <p class="text-xs text-surface-500 dark:text-surface-400">Returnable = received quantity minus posted returns. Warehouse stock is checked again when posting.</p>
     </section>
 
-    <section class="space-y-3" aria-label="Selected return items">
+    <section class="space-y-3 border-t border-surface-200 dark:border-surface-700 pt-4" aria-label="Selected return items">
       <h2 class="font-semibold">Selected Items ({{ lines.length }})</h2>
       <p-table [value]="lines" [scrollable]="true" [tableStyle]="{'min-width': '54rem'}" dataKey="goodReceiptItemId">
         <ng-template #header><tr><th>GRN / PO</th><th>Product</th><th>Warehouse</th><th>UOM</th><th>Returnable</th><th>Return Quantity *</th><th></th></tr></ng-template>
@@ -165,7 +170,7 @@
             [ariaLabel]="'Return quantity for ' + line.productName + ', ' + line.receiptNo"
             [inputId]="'returnQuantity-' + line.goodReceiptItemId" [minFractionDigits]="0" [maxFractionDigits]="4" [min]="0"
             [max]="line.returnableQuantity" [disabled]="createLocked" [inputStyle]="{width:'9rem'}"></p-inputnumber>
-            @if (!validQuantity(line)) { <small class="error-text block">Enter a quantity greater than 0, up to {{ line.returnableQuantity | number:'1.0-4' }}.</small> }
+            @if (!validQuantity(line)) { <small class="text-xs text-red-500 block">Enter a quantity greater than 0, up to {{ line.returnableQuantity | number:'1.0-4' }}.</small> }
           </td>
           <td><p-button type="button" icon="pi pi-trash" ariaLabel="Remove item" severity="danger" [text]="true" [disabled]="createLocked"
             (onClick)="removeLine(line.goodReceiptItemId)"></p-button></td>
@@ -174,9 +179,9 @@
       </p-table>
     </section>
     @if (saveError) { <div class="error-message" role="alert">{{ saveError }}</div> }
-    <div class="dialog-actions flex justify-end gap-2 pt-3">
+    <div class="flex justify-end gap-2 border-t border-surface-200 dark:border-surface-700 pt-4">
       <p-button type="button" label="Cancel" severity="secondary" [outlined]="true" [disabled]="isSubmitting" (onClick)="formModalVisible = false"></p-button>
-      <p-button type="submit" [label]="createLocked && !isSubmitting ? 'Retry Save' : 'Save Draft'" icon="pi pi-save" [loading]="isSubmitting" [disabled]="isSubmitting"></p-button>
+      <p-button type="submit" [label]="createLocked && !isSubmitting ? 'Retry Save' : (editId ? 'Update Draft' : 'Save Draft')" icon="pi pi-save" [loading]="isSubmitting" [disabled]="isSubmitting || isNumberLoading || !formReturnNo"></p-button>
     </div>
   </form>
 </p-dialog>
