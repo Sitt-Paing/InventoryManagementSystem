@@ -84,6 +84,12 @@ export const NAVIGATION_MENU: Readonly<NavigationMenuGroup[]> = [
         routerLink: '/master/suppliers',
       },
       {
+        label: 'Departments',
+        transKey: 'NAV.DEPARTMENTS',
+        icon: 'pi pi-sitemap',
+        routerLink: '/master/departments',
+      },
+      {
         label: 'Warehouses',
         transKey: 'NAV.WAREHOUSES',
         icon: 'pi pi-warehouse',
