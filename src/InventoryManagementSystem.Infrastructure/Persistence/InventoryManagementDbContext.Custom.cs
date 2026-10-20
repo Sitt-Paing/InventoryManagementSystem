@@ -132,6 +132,8 @@ public partial class InventoryManagementDbContext : IApplicationDbContext
         modelBuilder.Entity<WarehouseStocks>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
         modelBuilder.Entity<PurchaseReturn>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
         modelBuilder.Entity<PurchaseReturnItem>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<StockIssue>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<StockIssueItem>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
 
         modelBuilder.Entity<Product>(entity =>
         {
