@@ -66,6 +66,7 @@ app.UseCors(BrowserSecurityExtensions.CorsPolicy);
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<CompanyContextMiddleware>();
 
 
 app.MapControllers();
