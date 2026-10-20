@@ -7,6 +7,11 @@ export const routes: Routes = [
     loadChildren: () => import('./pages/auth/auth.routes')
   },
   {
+    path: 'settings',
+    loadComponent: () => import('./pages/settings/settings').then(m => m.Settings),
+    canActivate: [authGuard]
+  },
+  {
     path: '',
     loadComponent: () => import('./layout/app-layout').then((m) => m.AppLayout),
     children: [
