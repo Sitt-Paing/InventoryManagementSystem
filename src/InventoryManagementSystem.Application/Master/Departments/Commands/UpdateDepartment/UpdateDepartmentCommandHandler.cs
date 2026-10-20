@@ -9,19 +9,16 @@ namespace InventoryManagementSystem.Application.Master.Departments.Commands.Upda
 public class UpdateDepartmentCommandHandler : IRequestHandler<UpdateDepartmentCommand, DepartmentDto?>
 {
     private readonly IApplicationDbContext _context;
-    private readonly ICurrentUserService _currentUserService;
 
-    public UpdateDepartmentCommandHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
+    public UpdateDepartmentCommandHandler(IApplicationDbContext context)
     {
         _context = context;
-        _currentUserService = currentUserService;
     }
 
     public async Task<DepartmentDto?> Handle(UpdateDepartmentCommand request, CancellationToken cancellationToken)
     {
         Department? entity = await _context.Departments
-            .FirstOrDefaultAsync(x => x.Id == request.id && !x.DeletedOn.HasValue
-                && x.CompanyId == _currentUserService.CompanyId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == request.id && !x.DeletedOn.HasValue, cancellationToken);
         if (entity == null) return null;
 
         entity.DeptName = request.deptName.Trim();
