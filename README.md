@@ -1,8 +1,39 @@
 # Inventory Management System
 
-Inventory and purchasing app built with Angular, ASP.NET Core, and SQL Server.
+**From purchase orders to warehouse stock — one connected workflow.**
 
-Includes products, suppliers, warehouses, purchase-order approval, goods receipts, stock tracking, purchase-order printing and email and purchase-return printing.
+![Angular](https://img.shields.io/badge/Angular-20-DD0031?logo=angular&logoColor=white)
+![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)
+![SQL Server](https://img.shields.io/badge/SQL_Server-Database-CC2927)
+![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Email_Queue-FF6600?logo=rabbitmq&logoColor=white)
+
+A full-stack inventory app with purchasing, barcode lookup, queued email, and company-based access.
+
+## Highlights
+
+| Feature | What it does |
+| --- | --- |
+| 📦 Inventory | Products, suppliers, departments, warehouses, and units of measure |
+| 🛒 Purchasing | Purchase orders, approval, and goods receipts |
+| ↩️ Purchase returns | Combine items from multiple GRNs; deduct stock when posted |
+| 🔎 Barcodes | Generate product barcodes and look up items with a scanner or SKU |
+| ✉️ Queued email | Purchase-order emails through RabbitMQ, a database outbox, and SMTP |
+| 🔐 Authentication | Cookie-based JWT authentication, refresh tokens, roles, and CSRF protection |
+| 🏢 Company accounts | Admin company selection and company-scoped inventory data |
+| 🖨️ Documents & UI | PO/return printing, Excel export, and light/dark themes |
+
+```text
+Purchase Order → Approval → Goods Receipt → Warehouse Stock
+                                  ↓
+                           Purchase Return → Post → Stock Deduction
+```
+
+## Tech & skills
+
+- **Frontend:** Angular 20 · TypeScript · PrimeNG · Tailwind CSS · RxJS
+- **Backend:** ASP.NET Core 10 · C# · EF Core · SQL Server
+- **Patterns:** Layered architecture · CQRS with MediatR · FluentValidation
+- **Integrations:** RabbitMQ · MailKit/SMTP · Barcode generation & lookup · Excel export
 
 ## Run locally
 
@@ -37,4 +68,18 @@ npm start
 
 Open http://localhost:4200 and sign in with the credentials above. API docs are at https://localhost:7152/docs/scalar.
 
-Purchase-order email needs RabbitMQ and SMTP settings. Start the local broker with `docker compose -f compose.email.yml up -d`, then configure `SmtpSettings` through API user secrets. The email worker is enabled in Development.
+### Optional: purchase-order email
+
+```powershell
+docker compose -f compose.email.yml up -d
+dotnet user-secrets set "RabbitMqEmail:Enabled" "true" --project src/InventoryManagementSystem.Api
+```
+
+Configure `SmtpSettings` through API user secrets, then restart the API. The email worker is disabled by default in Development.
+
+## Feature guides
+
+- [Purchase-order approval](docs/purchase-order-approval.md)
+- [Purchase returns — မြန်မာ](docs/purchase-return-mm.md)
+- [Company settings — မြန်မာ](docs/company-settings-mm.md)
+- [Learning roadmap](docs/learning-roadmap.md)
