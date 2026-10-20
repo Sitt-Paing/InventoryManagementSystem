@@ -56,7 +56,7 @@ export class LoginComponent {
     this.authService.login(model).subscribe({
       next: (res) => {
         if (res.success) {
-          this.router.navigate(['/dashboard']);
+          this.router.navigate([this.authService.requiresCompanySelection() ? '/settings' : '/dashboard']);
         } else {
           this.errorMessage.set(res.message ?? 'Login failed. Please check your credentials.');
           this.isSubmitting.set(false);
