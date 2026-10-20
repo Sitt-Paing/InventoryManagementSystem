@@ -63,7 +63,8 @@ export class AppHeader implements OnInit, OnDestroy {
       },
       {
         label: this.translationService.translate('HEADER.SYSTEM_SETTINGS'),
-        icon: 'pi pi-cog'
+        icon: 'pi pi-cog',
+        command: () => this.router.navigate(['/settings'])
       },
       { separator: true },
       {
