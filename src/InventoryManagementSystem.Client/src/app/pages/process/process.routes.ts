@@ -16,5 +16,9 @@ export default [
   {
     path: 'purchase-return',
     loadComponent: () => import('./purchase-return/purchase-return').then(m => m.PurchaseReturn),
+  },
+  {
+    path: 'stock-issue',
+    loadComponent: () => import('./stock-issue/stock-issue').then(m => m.StockIssue)
   }
 ] as Routes;
