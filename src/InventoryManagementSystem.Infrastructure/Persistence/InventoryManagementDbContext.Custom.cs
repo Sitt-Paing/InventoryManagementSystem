@@ -123,6 +123,7 @@ public partial class InventoryManagementDbContext : IApplicationDbContext
         modelBuilder.Entity<Product>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
         modelBuilder.Entity<Category>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
         modelBuilder.Entity<Supplier>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<Department>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
         modelBuilder.Entity<PurchaseOrder>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
         modelBuilder.Entity<PurchaseOrderItem>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
         modelBuilder.Entity<GoodReceipt>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
