@@ -37,6 +37,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     }));
   }
 
+  // Keep the originating screen's company when a refresh or another tab changes cookies.
+  const requestCompanyId = authService.getCompanyId();
+  const isCompanyRequest = authPath.startsWith('/master/') || authPath.startsWith('/process/');
   const isMutatingMethod = !['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(req.method.toUpperCase());
   const sendRequest = () => defer(() =>
     isMutatingMethod ? authService.getCsrfToken() : of(null)
@@ -47,7 +50,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       }
       // Fetch the token for the current server identity, including after login,
       // token expiry, and refresh. Reading the response also supports different hosts.
-      const headers = token ? req.headers.set('X-XSRF-TOKEN', token) : req.headers;
+      let headers = token ? req.headers.set('X-XSRF-TOKEN', token) : req.headers;
+      if (isCompanyRequest && requestCompanyId !== null) {
+        headers = headers.set('X-Company-Id', String(requestCompanyId));
+      }
       return next(req.clone({ withCredentials: true, headers }));
     })
   );
