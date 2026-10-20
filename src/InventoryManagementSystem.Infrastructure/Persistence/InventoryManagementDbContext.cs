@@ -69,7 +69,7 @@ public partial class InventoryManagementDbContext : DbContext
         modelBuilder.Entity<EmailOutbox>(entity =>
         {
             entity.ToTable("EmailOutboxes");
-            entity.HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
+            entity.HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
             entity.Property(e => e.To).HasMaxLength(320);
             entity.Property(e => e.Subject).HasMaxLength(998);
             entity.Property(e => e.CreatedBy).HasMaxLength(256);
