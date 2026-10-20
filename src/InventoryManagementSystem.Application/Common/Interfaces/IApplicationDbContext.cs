@@ -24,6 +24,8 @@ public interface IApplicationDbContext
     DbSet<EmailOutbox> EmailOutboxes { get; }
     DbSet<PurchaseReturn> PurchaseReturns { get; }
     DbSet<PurchaseReturnItem> PurchaseReturnItems { get; }
+    DbSet<StockIssue> StockIssues { get; }
+    DbSet<StockIssueItem> StockIssueItems { get; }
 
     Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTransactionAsync(
         CancellationToken cancellationToken = default,
