@@ -83,7 +83,7 @@ Base route: `/api/process/stock-issues`
 `stock-issue.ts` ကို Supplier component ပုံစံအတိုင်း state → form → constructor/menu → load → CRUD methods အစဉ်နဲ့ထားတယ်။
 
 - Create Issue dropdown မှာ Edit/Delete/Post ရှိတယ်။ Row ကိုရွေးပြီး သုံးနိုင်တယ်။ Detail button သို့မဟုတ် Issue No ကိုနှိပ်ရင် voucher အပြည့်ပြတယ်။
-- Table နဲ့ Detail မှာ Created On/By၊ Updated On/By နဲ့ Posted On/By ပြတယ်။
+- Table မှာ Created On/By၊ Updated On/By နဲ့ Posted On/By ပြတယ်။ Detail မှာတော့ Posted On/By ကိုသာပြတယ်။
 - Issue No ကို frontend က generate လုပ်ပြီး disabled input မှာပြတယ်။ Backend မှာ company အတွင်း မထပ်ဖို့စစ်တယ်။
 - Product ရွေးတာ သို့မဟုတ် Barcode/SKU scan ပြီး Enter နှိပ်တာနဲ့ item ထည့်နိုင်တယ်။
 - Warehouse ပြောင်းရင် row တစ်ခုချင်းရဲ့ current balance ကို ပြန်ဖတ်တယ်။
