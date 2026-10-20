@@ -107,6 +107,36 @@ export class AuthService {
     );
   }
 
+  selectCompany(companyId: number): Observable<RootModel> {
+    const url = `${environment.main_url}/Auth/select-company`;
+    return this.http.post<RootModel>(url, { companyId, rememberMe: this.getRememberMe() }, { withCredentials: true }).pipe(
+      tap(res => {
+        if (res.success && res.data && this.hasTabSession()) {
+          const dto = res.data as AuthResponseModel;
+          this.currentUserSubject.next(dto);
+          this.storeFlatUserData({ userName: dto.userName, email: dto.email, roles: dto.roles });
+        }
+      })
+    );
+  }
+
+  canSelectCompany(): boolean {
+    return (this.currentUserSubject.value?.roles ?? []).some(role =>
+      ['superadmin', 'administrator'].includes(role.toLowerCase()));
+  }
+
+  requiresCompanySelection(): boolean {
+    return this.canSelectCompany() && !this.currentUserSubject.value?.companyId;
+  }
+
+  getCompanyId(): number | null {
+    return this.currentUserSubject.value?.companyId ?? null;
+  }
+
+  getCompanyName(): string {
+    return this.currentUserSubject.value?.companyName ?? '';
+  }
+
   /**
    * Refresh session using HttpOnly refresh token cookie (deduplicated across concurrent 401s)
    */
