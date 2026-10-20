@@ -9,19 +9,16 @@ namespace InventoryManagementSystem.Application.Master.Departments.Queries.GetDe
 public class GetDepartmentByIdQueryHandler : IRequestHandler<GetDepartmentByIdQuery, DepartmentDto?>
 {
     private readonly IApplicationDbContext _context;
-    private readonly ICurrentUserService _currentUserService;
 
-    public GetDepartmentByIdQueryHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
+    public GetDepartmentByIdQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _currentUserService = currentUserService;
     }
 
     public async Task<DepartmentDto?> Handle(GetDepartmentByIdQuery request, CancellationToken cancellationToken)
     {
         var entity = await _context.Departments.AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == request.Id && !x.DeletedOn.HasValue
-                && x.CompanyId == _currentUserService.CompanyId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == request.Id && !x.DeletedOn.HasValue, cancellationToken);
         if (entity == null) return null;
         return new DepartmentDto
         {
