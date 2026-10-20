@@ -1060,6 +1060,129 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.ToTable("PurchaseReturnItems", (string)null);
                 });
 
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.StockIssue", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("CreatedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("DepartmentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("IssueDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("IssueNo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("PostedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("PostedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("ReceivedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("WarehouseId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.HasIndex("WarehouseId");
+
+                    b.HasIndex("CompanyId", "IssueNo")
+                        .IsUnique();
+
+                    b.ToTable("StockIssues", (string)null);
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.StockIssueItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ProductId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<Guid>("StockIssueId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("StockIssueId");
+
+                    b.ToTable("StockIssueItems", (string)null);
+                });
+
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.StockTransaction", b =>
                 {
                     b.Property<long>("Id")
@@ -1830,6 +1953,44 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Navigation("PurchaseReturn");
                 });
 
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.StockIssue", b =>
+                {
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.Warehouse", "Warehouse")
+                        .WithMany()
+                        .HasForeignKey("WarehouseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Department");
+
+                    b.Navigation("Warehouse");
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.StockIssueItem", b =>
+                {
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.StockIssue", "StockIssue")
+                        .WithMany("Items")
+                        .HasForeignKey("StockIssueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("StockIssue");
+                });
+
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.StockTransaction", b =>
                 {
                     b.HasOne("InventoryManagementSystem.Domain.Entities.GoodReceipt", "GoodReceipt")
@@ -1973,6 +2134,11 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.PurchaseReturn", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.StockIssue", b =>
                 {
                     b.Navigation("Items");
                 });
