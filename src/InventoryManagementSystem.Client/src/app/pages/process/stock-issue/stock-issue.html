@@ -1,1 +1,187 @@
-<p>stock-issue works!</p>
+<p-toast position="top-right"></p-toast>
+<p-confirmdialog></p-confirmdialog>
+
+<div class="table-card">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 p-4 pb-0">
+    <p-splitbutton label="Create Issue" icon="pi pi-plus" size="small" [model]="items" (onClick)="create()"></p-splitbutton>
+    <p-iconfield iconPosition="left" class="w-full sm:w-60">
+      <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+      <input pInputText type="text" [(ngModel)]="searchKeyword" (keydown.enter)="applyFilters()"
+        pSize="small" placeholder="Search keyword" aria-label="Search stock issues" class="w-full text-xs" />
+    </p-iconfield>
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-3 px-4 pb-4">
+    <p-select [(ngModel)]="filterWarehouse" [options]="warehouses" optionLabel="name" optionValue="id" placeholder="All warehouses"
+      [filter]="true" [showClear]="true" [loading]="isMasterLoading" appendTo="body" [fluid]="true" ariaLabel="Filter warehouse"></p-select>
+    <p-select [(ngModel)]="filterDepartment" [options]="departments" optionLabel="deptName" optionValue="id" placeholder="All departments"
+      [filter]="true" [showClear]="true" [loading]="isMasterLoading" appendTo="body" [fluid]="true" ariaLabel="Filter department"></p-select>
+    <p-select [(ngModel)]="filterStatus" [options]="statusOptions" optionLabel="label" optionValue="value" placeholder="All statuses"
+      [showClear]="true" appendTo="body" [fluid]="true" ariaLabel="Filter status"></p-select>
+    <p-datepicker inputId="issueStartDate" [(ngModel)]="startDate" dateFormat="dd/mm/yy" [showIcon]="true" iconDisplay="input"
+      [showClear]="true" [readonlyInput]="true" placeholder="Issue From Date" appendTo="body" [fluid]="true" ariaLabel="Issue start date"></p-datepicker>
+    <p-datepicker inputId="issueEndDate" [(ngModel)]="endDate" dateFormat="dd/mm/yy" [showIcon]="true" iconDisplay="input"
+      [showClear]="true" [readonlyInput]="true" placeholder="Issue To Date" appendTo="body" [fluid]="true" ariaLabel="Issue end date"></p-datepicker>
+    <div class="flex gap-2">
+      <p-button label="Apply" (onClick)="applyFilters()"></p-button>
+      <p-button label="Clear" severity="secondary" [outlined]="true" (onClick)="clearFilters()"></p-button>
+    </div>
+  </div>
+  @if (listError) {
+    <div class="px-4 pb-4 text-red-500" role="alert">{{ listError }}
+      <button type="button" class="underline" (click)="loadData()">Retry</button>
+    </div>
+  }
+  <p-table [value]="stockIssues" [(selection)]="selectedStockIssue" selectionMode="single" dataKey="id"
+    [lazy]="true" (onLazyLoad)="onLazyLoad($event)" [loading]="isLoading" [paginator]="true"
+    [first]="first" [rows]="rows" [totalRecords]="totalRecords" [rowsPerPageOptions]="[20,50,100]"
+    [scrollable]="true" [tableStyle]="{'min-width': '110rem'}" [showCurrentPageReport]="true"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" paginatorDropdownAppendTo="body" stripedRows="true">
+    <ng-template #header><tr>
+      <th>#</th><th>Issue No</th><th>Issue Date</th><th>Warehouse</th><th>Department</th>
+      <th>Received By</th><th>Items</th><th>Status</th><th>Posted By</th><th>Posted On</th>
+      <th>Created On</th><th>Created By</th><th>Updated On</th><th>Updated By</th><th>Actions</th>
+    </tr></ng-template>
+    <ng-template #body let-issue><tr [pSelectableRow]="issue">
+      <td><span class="pi pi-circle" [class.pi-check-circle]="selectedStockIssue === issue" aria-hidden="true"></span></td>
+      <td><button type="button" class="text-primary hover:underline" (click)="viewDetail(issue); $event.stopPropagation()">{{ issue.issueNo }}</button></td>
+      <td>{{ issue.issueDate | date:'dd/MMM/yyyy' }}</td><td>{{ issue.warehouseName }}</td><td>{{ issue.departmentName }}</td>
+      <td>{{ issue.receivedBy }}</td><td>{{ issue.totalItems }}</td>
+      <td><p-tag [value]="issue.status === status.Posted ? 'Posted' : 'Draft'" [severity]="issue.status === status.Posted ? 'success' : 'secondary'"></p-tag></td>
+      <td>{{ issue.postedByName || '-' }}</td><td>{{ issue.postedOn ? (issue.postedOn | date:'dd/MMM/yyyy hh:mm a') : '-' }}</td>
+      <td>{{ issue.createdOn ? (issue.createdOn | date:'dd/MMM/yyyy hh:mm a') : '-' }}</td><td>{{ issue.createdBy || '-' }}</td>
+      <td>{{ issue.updatedOn ? (issue.updatedOn | date:'dd/MMM/yyyy hh:mm a') : '-' }}</td><td>{{ issue.updatedBy || '-' }}</td>
+      <td><p-button label="Detail" icon="pi pi-eye" size="small" [text]="true" (onClick)="viewDetail(issue); $event.stopPropagation()"></p-button></td>
+    </tr></ng-template>
+    <ng-template #emptymessage><tr><td colspan="15" class="text-center p-6">
+      {{ listError ? 'Unable to load stock issues.' : 'No stock issues found.' }}
+    </td></tr></ng-template>
+  </p-table>
+</div>
+
+<p-dialog [header]="isEdit ? 'Edit Stock Issue' : 'Create Stock Issue'" [(visible)]="modalVisible" [modal]="true"
+  [style]="{width: '72rem', maxWidth: '96vw'}" [draggable]="false" [resizable]="false"
+  [closable]="!isSubmitting" [closeOnEscape]="!isSubmitting" (onHide)="onDialogHide()">
+  <form [formGroup]="stockIssueForm" (ngSubmit)="onSubmit()" class="space-y-4">
+    <fieldset [disabled]="isSubmitting" class="space-y-4 border-0 p-0 m-0 min-w-0">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="flex flex-col gap-1 min-w-0">
+          <label for="issueNo" class="text-xs font-bold">Issue No</label>
+          <input pInputText id="issueNo" [value]="stockIssueForm.controls.issueNo.value" disabled class="w-full" />
+        </div>
+        <div class="flex flex-col gap-1 min-w-0">
+          <label for="issueDate" class="text-xs font-bold">Issue Date *</label>
+          <p-datepicker inputId="issueDate" formControlName="issueDate" dateFormat="dd/mm/yy" [showIcon]="true"
+            iconDisplay="input" [readonlyInput]="true" appendTo="body" [fluid]="true"></p-datepicker>
+          @if (stockIssueForm.controls.issueDate.touched && stockIssueForm.controls.issueDate.invalid) {
+            <small class="text-red-500">Select an issue date.</small>
+          }
+        </div>
+        <div class="flex flex-col gap-1 min-w-0">
+          <label for="issueWarehouse" class="text-xs font-bold">Warehouse *</label>
+          <p-select inputId="issueWarehouse" formControlName="warehouseId" [options]="warehouses" optionLabel="name" optionValue="id"
+            placeholder="Select warehouse" [filter]="true" [loading]="isMasterLoading" appendTo="body" [fluid]="true" (onChange)="refreshBalances()"></p-select>
+          @if (stockIssueForm.controls.warehouseId.touched && stockIssueForm.controls.warehouseId.invalid) {
+            <small class="text-red-500">Select a warehouse.</small>
+          }
+        </div>
+        <div class="flex flex-col gap-1 min-w-0">
+          <label for="issueDepartment" class="text-xs font-bold">Department *</label>
+          <p-select inputId="issueDepartment" formControlName="departmentId" [options]="departments" optionLabel="deptName" optionValue="id"
+            placeholder="Select department" [filter]="true" [loading]="isMasterLoading" appendTo="body" [fluid]="true"></p-select>
+          @if (stockIssueForm.controls.departmentId.touched && stockIssueForm.controls.departmentId.invalid) {
+            <small class="text-red-500">Select a department.</small>
+          }
+        </div>
+        <div class="flex flex-col gap-1 min-w-0 md:col-span-2">
+          <label for="issueReceivedBy" class="text-xs font-bold">Received By *</label>
+          <input pInputText id="issueReceivedBy" formControlName="receivedBy" maxlength="100" placeholder="Person receiving the items" class="w-full" />
+          @if (stockIssueForm.controls.receivedBy.touched && stockIssueForm.controls.receivedBy.invalid) {
+            <small class="text-red-500">Enter the receiver's name (up to 100 characters).</small>
+          }
+        </div>
+        <div class="flex flex-col gap-1 md:col-span-3">
+          <label for="issueNote" class="text-xs font-bold">Note</label>
+          <textarea pTextarea id="issueNote" formControlName="note" rows="2" maxlength="500" placeholder="Optional note" class="w-full"></textarea>
+        </div>
+      </div>
+
+      <section class="space-y-3 border-t border-surface-200 dark:border-surface-700 pt-4">
+        <h2 class="font-semibold">Issue Items</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1 min-w-0">
+            <label for="issueProduct" class="text-xs font-bold">Product</label>
+            <div class="flex gap-2">
+              <p-select inputId="issueProduct" [(ngModel)]="selectedProductId" [ngModelOptions]="{standalone: true}" [options]="products"
+                optionLabel="name" optionValue="id" [filter]="true" filterBy="name,sku,barcode" [loading]="isMasterLoading"
+                placeholder="Select product" appendTo="body" [fluid]="true" class="flex-1 min-w-0"></p-select>
+              <p-button type="button" label="Add" icon="pi pi-plus" [disabled]="!selectedProductId || isSubmitting" (onClick)="addItem()"></p-button>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1 min-w-0">
+            <label for="issueBarcode" class="text-xs font-bold">Barcode / SKU</label>
+            <div class="flex gap-2">
+              <input pInputText id="issueBarcode" [(ngModel)]="barcode" [ngModelOptions]="{standalone: true}" class="w-full min-w-0"
+                placeholder="Scan barcode and press Enter" (keydown.enter)="$event.preventDefault(); scanBarcode()" />
+              <p-button type="button" label="Scan" icon="pi pi-barcode" [loading]="isScanning" [disabled]="!barcode.trim() || isScanning || isSubmitting" (onClick)="scanBarcode()"></p-button>
+            </div>
+          </div>
+        </div>
+        <!-- <p class="text-xs text-surface-500">Quantities use the product's base unit. Stock is checked again when posting.</p> -->
+        <p-table [value]="lines" [scrollable]="true" [tableStyle]="{'min-width': '48rem'}" dataKey="productId">
+          <ng-template #header><tr><th>Product</th><th>SKU</th><th>UOM</th><th>Warehouse Stock</th><th>Issue Quantity *</th><th></th></tr></ng-template>
+          <ng-template #body let-line><tr>
+            <td>{{ line.productName }}</td><td>{{ line.productSku || '-' }}</td><td>{{ line.uomName }}</td>
+            <td>{{ line.availableQuantity === null ? '-' : (line.availableQuantity | number:'1.0-4') }}</td>
+            <td><p-inputnumber [(ngModel)]="line.quantity" [ngModelOptions]="{standalone: true}" [min]="0" [minFractionDigits]="0"
+              [maxFractionDigits]="4" [inputStyle]="{width: '9rem'}" [disabled]="isSubmitting" [ariaLabel]="'Issue quantity for ' + line.productName"></p-inputnumber>
+              @if (line.availableQuantity !== null && line.quantity > line.availableQuantity) {
+                <small class="block text-amber-600">Insufficient stock to post this quantity.</small>
+              }
+            </td>
+            <td><p-button type="button" icon="pi pi-trash" severity="danger" [text]="true" ariaLabel="Remove item"
+              [disabled]="isSubmitting" (onClick)="removeItem(line.productId)"></p-button></td>
+          </tr></ng-template>
+          <ng-template #emptymessage><tr><td colspan="6" class="text-center p-5">Select a product or scan a barcode to add items.</td></tr></ng-template>
+        </p-table>
+      </section>
+    </fieldset>
+    <div class="flex flex-wrap justify-end gap-2 border-t border-surface-200 dark:border-surface-700 pt-4">
+      <p-button type="button" label="Cancel" size="small" styleClass="w-40" severity="secondary" [outlined]="true" [disabled]="isSubmitting" (onClick)="modalVisible = false"></p-button>
+      <p-button type="submit" [label]="isEdit ? 'Update Draft' : 'Save Draft'" icon="pi pi-save" size="small" styleClass="w-40" [loading]="isSubmitting" [disabled]="isSubmitting || isScanning || isMasterLoading"></p-button>
+    </div>
+  </form>
+</p-dialog>
+
+<p-dialog header="Stock Issue Detail" [(visible)]="detailModalVisible" [modal]="true" [draggable]="false" [resizable]="false"
+  [style]="{width: '68rem', maxWidth: '96vw'}">
+  @if (isDetailLoading) { <p class="p-5" role="status">Loading stock issue details…</p> }
+  @if (detail; as issue) {
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+      <h2 class="text-lg font-semibold">{{ issue.issueNo }}</h2>
+      <p-tag [value]="issue.status === status.Posted ? 'Posted' : 'Draft'" [severity]="issue.status === status.Posted ? 'success' : 'secondary'"></p-tag>
+    </div>
+    <dl class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+      <div><dt class="font-bold">Warehouse</dt><dd>{{ issue.warehouseName }}</dd></div>
+      <div><dt class="font-bold">Department</dt><dd>{{ issue.departmentName }}</dd></div>
+      <div><dt class="font-bold">Issue Date</dt><dd>{{ issue.issueDate | date:'dd/MMM/yyyy' }}</dd></div>
+      <div><dt class="font-bold">Received By</dt><dd>{{ issue.receivedBy }}</dd></div>
+      <div><dt class="font-bold">Created By</dt><dd>{{ issue.createdBy || '-' }}</dd></div>
+      <div><dt class="font-bold">Created On</dt><dd>{{ issue.createdOn ? (issue.createdOn | date:'dd/MMM/yyyy hh:mm a') : '-' }}</dd></div>
+      <div><dt class="font-bold">Updated By</dt><dd>{{ issue.updatedBy || '-' }}</dd></div>
+      <div><dt class="font-bold">Updated On</dt><dd>{{ issue.updatedOn ? (issue.updatedOn | date:'dd/MMM/yyyy hh:mm a') : '-' }}</dd></div>
+      <div><dt class="font-bold">Posted By</dt><dd>{{ issue.postedByName || '-' }}</dd></div>
+      <div><dt class="font-bold">Posted On</dt><dd>{{ issue.postedOn ? (issue.postedOn | date:'dd/MMM/yyyy hh:mm a') : '-' }}</dd></div>
+      <div class="sm:col-span-2"><dt class="font-bold">Note</dt><dd class="whitespace-pre-wrap break-words">{{ issue.note || '-' }}</dd></div>
+    </dl>
+    <p-table [value]="issue.items" [scrollable]="true" [tableStyle]="{'min-width': '40rem'}">
+      <ng-template #header><tr><th>Product</th><th>SKU</th><th>UOM</th><th>Issue Quantity</th></tr></ng-template>
+      <ng-template #body let-line><tr><td>{{ line.productName }}</td><td>{{ line.productSku || '-' }}</td><td>{{ line.uomName }}</td><td>{{ line.quantity | number:'1.0-4' }}</td></tr></ng-template>
+    </p-table>
+    <div class="flex flex-wrap justify-end gap-2 mt-4 pt-3">
+      <p-button label="Close" size="small" styleClass="w-40" severity="secondary" [outlined]="true" (onClick)="detailModalVisible = false"></p-button>
+      @if (issue.status === status.Draft) {
+        <p-button label="Post Issue" icon="pi pi-check" size="small" styleClass="w-40" [loading]="postingId === issue.id" [disabled]="postingId !== null" (onClick)="post(issue)"></p-button>
+      }
+    </div>
+  }
+</p-dialog>
