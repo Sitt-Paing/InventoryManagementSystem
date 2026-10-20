@@ -23,7 +23,8 @@ export const EN_DICTIONARY: Record<string, any> = {
     SETTINGS: 'Settings',
     STOCK_ISSUE: 'Stock Issues',
     USER_MANAGEMENT: 'User Management',
-    COMPANIES : 'Companies'
+    COMPANIES : 'Companies',
+    REPORTS : 'Reports'
   },
   HEADER: {
     SEARCH_PLACEHOLDER: 'Search...',
