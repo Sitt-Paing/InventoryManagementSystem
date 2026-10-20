@@ -14,7 +14,6 @@ public partial class InventoryManagementDbContext : IApplicationDbContext
     private readonly ICurrentUserService? _currentUserService;
 
     public int? CurrentCompanyId => _currentUserService?.CompanyId;
-    public bool IsSuperAdminUser => _currentUserService == null || string.IsNullOrEmpty(_currentUserService.UserId) || _currentUserService.IsSuperAdmin;
 
     public InventoryManagementDbContext(
         DbContextOptions<InventoryManagementDbContext> options,
@@ -40,10 +39,12 @@ public partial class InventoryManagementDbContext : IApplicationDbContext
         {
             if (entry.State == EntityState.Added && entry.Entity is IMustHaveCompany companyEntity)
             {
-                if (!companyEntity.CompanyId.HasValue && currentCompanyId.HasValue)
-                {
-                    companyEntity.CompanyId = currentCompanyId.Value;
-                }
+                if (!currentCompanyId.HasValue)
+                    throw new InvalidOperationException("Select a company before creating inventory data.");
+                if (companyEntity.CompanyId.HasValue && companyEntity.CompanyId != currentCompanyId)
+                    throw new InvalidOperationException("Inventory data must belong to the current company.");
+
+                companyEntity.CompanyId = currentCompanyId.Value;
             }
             if (entry.Entity is BaseAuditableEntity<long> auditableLong)
             {
@@ -114,23 +115,23 @@ public partial class InventoryManagementDbContext : IApplicationDbContext
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {
         // Multi-tenant Global Query Filters
-        modelBuilder.Entity<Warehouse>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
-        modelBuilder.Entity<WarehouseLocation>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
-        modelBuilder.Entity<UomCategory>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
-        modelBuilder.Entity<UnitOfMeasure>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
-        modelBuilder.Entity<ProductUomConversion>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
-        modelBuilder.Entity<GoodReceiptItem>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
-        modelBuilder.Entity<Product>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
-        modelBuilder.Entity<Category>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
-        modelBuilder.Entity<Supplier>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
-        modelBuilder.Entity<Department>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
-        modelBuilder.Entity<PurchaseOrder>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
-        modelBuilder.Entity<PurchaseOrderItem>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
-        modelBuilder.Entity<GoodReceipt>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
-        modelBuilder.Entity<StockTransaction>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
-        modelBuilder.Entity<WarehouseStocks>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
-        modelBuilder.Entity<PurchaseReturn>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
-        modelBuilder.Entity<PurchaseReturnItem>().HasQueryFilter(e => IsSuperAdminUser || e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<Warehouse>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<WarehouseLocation>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<UomCategory>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<UnitOfMeasure>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<ProductUomConversion>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<GoodReceiptItem>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<Product>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<Category>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<Supplier>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<Department>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<PurchaseOrder>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<PurchaseOrderItem>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<GoodReceipt>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<StockTransaction>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<WarehouseStocks>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<PurchaseReturn>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
+        modelBuilder.Entity<PurchaseReturnItem>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
 
         modelBuilder.Entity<Product>(entity =>
         {
