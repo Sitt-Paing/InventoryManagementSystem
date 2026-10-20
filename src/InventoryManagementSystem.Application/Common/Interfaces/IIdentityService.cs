@@ -8,6 +8,7 @@ public interface IIdentityService
     Task<Dictionary<string, string>> GetUserNamesAsync(IEnumerable<string> userIds, CancellationToken cancellationToken = default);
     Task<AuthResultDto> RegisterAsync(RegisterRequest request);
     Task<AuthResultDto> LoginAsync(LoginRequest request);
+    Task<AuthResultDto> SelectCompanyAsync(string userId, int companyId);
     Task<AuthResultDto> RefreshTokenAsync(RefreshTokenRequest request);
     Task<string?> GeneratePasswordResetTokenAsync(string email);
     Task<ResultDto> ResetPasswordAsync(ResetPasswordRequest request);
