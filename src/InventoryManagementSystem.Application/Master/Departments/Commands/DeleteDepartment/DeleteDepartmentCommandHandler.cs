@@ -9,19 +9,16 @@ namespace InventoryManagementSystem.Application.Master.Departments.Commands.Dele
 public class DeleteDepartmentCommandHandler : IRequestHandler<DeleteDepartmentCommand, DepartmentDto?>
 {
     private readonly IApplicationDbContext _context;
-    private readonly ICurrentUserService _currentUserService;
 
-    public DeleteDepartmentCommandHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
+    public DeleteDepartmentCommandHandler(IApplicationDbContext context)
     {
         _context = context;
-        _currentUserService = currentUserService;
     }
 
     public async Task<DepartmentDto?> Handle(DeleteDepartmentCommand request, CancellationToken cancellationToken)
     {
         Department? entity = await _context.Departments
-            .FirstOrDefaultAsync(x => x.Id == request.id && !x.DeletedOn.HasValue
-                && x.CompanyId == _currentUserService.CompanyId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == request.id && !x.DeletedOn.HasValue, cancellationToken);
         if (entity == null) return null;
 
         _context.Departments.Remove(entity);
