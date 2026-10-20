@@ -9,12 +9,10 @@ namespace InventoryManagementSystem.Application.Master.Departments.Commands.Crea
 public class CreateDepartmentCommandHandler : IRequestHandler<CreateDepartmentCommand, DepartmentDto>
 {
     private readonly IApplicationDbContext _context;
-    private readonly ICurrentUserService _currentUserService;
 
-    public CreateDepartmentCommandHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
+    public CreateDepartmentCommandHandler(IApplicationDbContext context)
     {
         _context = context;
-        _currentUserService = currentUserService;
     }
 
     public async Task<DepartmentDto> Handle(CreateDepartmentCommand request, CancellationToken cancellationToken)
@@ -22,8 +20,7 @@ public class CreateDepartmentCommandHandler : IRequestHandler<CreateDepartmentCo
         Department entity = new Department
         {
             DeptName = request.deptName.Trim(),
-            IsActive = request.isActive,
-            CompanyId = _currentUserService.CompanyId
+            IsActive = request.isActive
         };
         _context.Departments.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
