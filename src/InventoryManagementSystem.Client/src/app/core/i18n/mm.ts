@@ -20,9 +20,11 @@ export const MM_DICTIONARY: Record<string, any> = {
     PURCHASE_ORDERS: 'အဝယ်များ',
     GOOD_RECEIPTS: 'ကုန်လက်ခံလွှာ (GRN)',
     PURCHASE_RETURN: 'ပြန်ပို့ကုန်များ',
+    STOCK_ISSUE: 'ထုတ်ပေးပစ္စည်းများ',
     SETTINGS: 'ဆက်တင်များ',
     USER_MANAGEMENT: 'အသုံးပြုသူ စီမံခန့်ခွဲမှု',
-    COMPANIES: 'ကုမ္ပဏီများ'
+    COMPANIES: 'ကုမ္ပဏီများ',
+    REPORTS: 'မှတ်တမ်းများ',
   },
   HEADER: {
     SEARCH_PLACEHOLDER: 'ရှာဖွေရန်...',
