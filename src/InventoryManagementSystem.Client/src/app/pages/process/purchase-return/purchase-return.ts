@@ -23,6 +23,7 @@ import { SuppliersModel } from '../../../core/models/master/suppliers.model';
 import { CreatePurchaseReturnRequest, PurchaseReturnModel, PurchaseReturnStatus, ReturnableReceiptItemModel, ReturnDraftLine } from '../../../core/models/process/purchase-return.model';
 import { SuppliersService } from '../../../core/services/master/suppliers.service';
 import { PurchaseReturnsService } from '../../../core/services/process/purchase-returns.service';
+import { PurchaseReturnPrintDialog } from './purchase-return-print-dialog/purchase-return-print-dialog';
 
 @Component({
   selector: 'app-purchase-return',
@@ -46,6 +47,7 @@ import { PurchaseReturnsService } from '../../../core/services/process/purchase-
     ToastModule,
     IconFieldModule,
     InputIconModule,
+    PurchaseReturnPrintDialog,
   ],
   providers: [ConfirmationService, MessageService],
   templateUrl: './purchase-return.html',
@@ -116,6 +118,8 @@ export class PurchaseReturn implements OnInit {
   detailError: string = '';
   detail: PurchaseReturnModel | null = null;
   postingId: string | null = null;
+  printModalVisible: boolean = false;
+  printReturnData: PurchaseReturnModel | null = null;
 
   readonly purchaseReturnForm = this.formBuilder.group({
     supplierId: [null as number | null, [Validators.required, Validators.min(1)]],
@@ -456,6 +460,22 @@ export class PurchaseReturn implements OnInit {
           }
           this.detailError = this.errorMessage(err);
           this.isDetailLoading = false;
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  printReturn(row: PurchaseReturnModel): void {
+    this.purchaseReturnService.getById(row.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.printReturnData = res.data;
+          this.printModalVisible = true;
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          this.notify('error', 'Unable to load return for printing', this.errorMessage(err));
           this.cdr.markForCheck();
         },
       });
