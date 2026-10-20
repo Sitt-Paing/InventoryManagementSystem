@@ -1238,6 +1238,12 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Property<long?>("ReversesStockTransactionId")
                         .HasColumnType("bigint");
 
+                    b.Property<Guid?>("StockIssueId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long?>("StockIssueItemId")
+                        .HasColumnType("bigint");
+
                     b.Property<int?>("ToWarehouseId")
                         .HasColumnType("int");
 
@@ -1286,6 +1292,12 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.HasIndex("ReversesStockTransactionId")
                         .IsUnique()
                         .HasFilter("[ReversesStockTransactionId] IS NOT NULL");
+
+                    b.HasIndex("StockIssueId");
+
+                    b.HasIndex("StockIssueItemId")
+                        .IsUnique()
+                        .HasFilter("[StockIssueItemId] IS NOT NULL");
 
                     b.HasIndex("ToWarehouseId");
 
@@ -2024,6 +2036,16 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .HasForeignKey("ReversesStockTransactionId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.StockIssue", "StockIssue")
+                        .WithMany()
+                        .HasForeignKey("StockIssueId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.StockIssueItem", "StockIssueItem")
+                        .WithMany()
+                        .HasForeignKey("StockIssueItemId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("InventoryManagementSystem.Domain.Entities.Warehouse", "ToWarehouse")
                         .WithMany()
                         .HasForeignKey("ToWarehouseId");
@@ -2045,6 +2067,10 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Navigation("PurchaseReturnItem");
 
                     b.Navigation("ReversesStockTransaction");
+
+                    b.Navigation("StockIssue");
+
+                    b.Navigation("StockIssueItem");
 
                     b.Navigation("ToWarehouse");
 
