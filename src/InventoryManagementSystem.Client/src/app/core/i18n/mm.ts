@@ -11,6 +11,7 @@ export const MM_DICTIONARY: Record<string, any> = {
     CATEGORIES: 'အမျိုးအစားများ',
     PRODUCTS: 'ကုန်ပစ္စည်းများ',
     SUPPLIERS: 'ပေးသွင်းသူများ',
+    DEPARTMENTS: 'ဌာနများ',
     WAREHOUSES: 'ဂိုဒေါင်များ',
     WAREHOUSE_LOCATIONS: 'ဂိုဒေါင် တည်နေရာများ',
     UNIT_OF_MEASURES: 'ယူနစ်များ (UOM)',
