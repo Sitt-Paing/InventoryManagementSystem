@@ -140,7 +140,12 @@ public class IdentityService : IIdentityService
         }
 
         // Check if user belongs to a deactivated company
-        int? companyId = await GetUserCompanyIdAsync(user);
+        var loginRoles = await _userManager.GetRolesAsync(user);
+        bool chooseCompany = loginRoles.Any(role => role.Equals("SuperAdmin", StringComparison.OrdinalIgnoreCase)
+            || role.Equals("Administrator", StringComparison.OrdinalIgnoreCase));
+        int? companyId = chooseCompany ? null : await GetUserCompanyIdAsync(user);
+        if (!chooseCompany && !companyId.HasValue)
+            return new AuthResultDto { Succeeded = false, Message = "Your account is not assigned to a company." };
         if (companyId.HasValue && !await IsCompanyActiveAsync(companyId.Value))
         {
             _logger.LogWarning("Login blocked for user {Email}: Company {CompanyId} is deactivated or inactive.", user.Email, companyId.Value);
@@ -227,21 +232,34 @@ public class IdentityService : IIdentityService
             };
         }
 
-        // Check if user belongs to a deactivated company
-        int? refreshCompanyId = await GetUserCompanyIdAsync(user);
-        if (refreshCompanyId.HasValue && !await IsCompanyActiveAsync(refreshCompanyId.Value))
-        {
-            _logger.LogWarning("Token refresh blocked for user {Email}: Company {CompanyId} is deactivated or inactive.", user.Email, refreshCompanyId.Value);
-            return new AuthResultDto
-            {
-                Succeeded = false,
-                Message = "Your company account has been deactivated. Please contact the administrator.",
-                Errors = new List<string> { "Company account is deactivated." }
-            };
-        }
+        var refreshRoles = await _userManager.GetRolesAsync(user);
+        bool chooseCompany = refreshRoles.Any(role => role.Equals("SuperAdmin", StringComparison.OrdinalIgnoreCase)
+            || role.Equals("Administrator", StringComparison.OrdinalIgnoreCase));
+        var selectedCompany = await _userManager.GetAuthenticationTokenAsync(user, "InventoryManagementSystem", "SelectedCompanyId");
+        int? companyId = chooseCompany
+            ? (int.TryParse(selectedCompany, out var selectedId) ? selectedId : null)
+            : await GetUserCompanyIdAsync(user);
+        if (!chooseCompany && !companyId.HasValue)
+            return new AuthResultDto { Succeeded = false, Message = "Your account is not assigned to a company." };
+        if (companyId.HasValue && !await IsCompanyActiveAsync(companyId.Value))
+            return new AuthResultDto { Succeeded = false, Message = "The company account is inactive or unavailable." };
 
-        _logger.LogInformation("Token refreshed successfully for user: {Email}", user.Email);
-        return await GenerateAuthResponseAsync(user);
+        return await GenerateAuthResponseAsync(user, companyId);
+    }
+
+    public async Task<AuthResultDto> SelectCompanyAsync(string userId, int companyId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+            return new AuthResultDto { Succeeded = false, Message = "User was not found." };
+        var roles = await _userManager.GetRolesAsync(user);
+        if (!roles.Any(role => role.Equals("SuperAdmin", StringComparison.OrdinalIgnoreCase)
+            || role.Equals("Administrator", StringComparison.OrdinalIgnoreCase)))
+            return new AuthResultDto { Succeeded = false, Message = "Only platform administrators can select a company." };
+        if (!await IsCompanyActiveAsync(companyId))
+            return new AuthResultDto { Succeeded = false, Message = "The company account is inactive or unavailable." };
+
+        return await GenerateAuthResponseAsync(user, companyId);
     }
 
     public async Task<string?> GeneratePasswordResetTokenAsync(string email)
@@ -365,9 +383,20 @@ public class IdentityService : IIdentityService
         };
     }
 
-    private async Task<AuthResultDto> GenerateAuthResponseAsync(IdentityUser user)
+    private async Task<AuthResultDto> GenerateAuthResponseAsync(IdentityUser user, int? selectedCompanyId = null)
     {
         IList<string> roles = await _userManager.GetRolesAsync(user);
+        bool chooseCompany = roles.Any(role => role.Equals("SuperAdmin", StringComparison.OrdinalIgnoreCase)
+            || role.Equals("Administrator", StringComparison.OrdinalIgnoreCase));
+        int? companyId = chooseCompany ? selectedCompanyId : await GetUserCompanyIdAsync(user);
+        string? companyName = companyId.HasValue
+            ? await _inventoryContext.Companies.AsNoTracking()
+                .Where(company => company.Id == companyId.Value && company.IsActive && !company.DeletedOn.HasValue)
+                .Select(company => company.CompanyName).FirstOrDefaultAsync()
+            : null;
+        if (companyId.HasValue && companyName == null)
+            return new AuthResultDto { Succeeded = false, Message = "The company account is inactive or unavailable." };
+
         List<Claim> claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id),
@@ -385,7 +414,13 @@ public class IdentityService : IIdentityService
 
         // Include any custom claims (e.g. company_id, company_name) in JWT
         var userClaims = await _userManager.GetClaimsAsync(user);
-        claims.AddRange(userClaims);
+        claims.AddRange(userClaims.Where(claim => claim.Type != "company_id"
+            && claim.Type != "CompanyId" && claim.Type != "company_name"));
+        if (companyId.HasValue)
+        {
+            claims.Add(new Claim("company_id", companyId.Value.ToString()));
+            claims.Add(new Claim("company_name", companyName ?? string.Empty));
+        }
 
         string? secretKey = _configuration["JwtSettings:SecretKey"] ?? "SuperSecretKeyForInventoryManagementSystem_JwtToken_2026!#";
         string? issuer = _configuration["JwtSettings:Issuer"] ?? "InventoryManagementSystem";
@@ -416,8 +451,17 @@ public class IdentityService : IIdentityService
         await _userManager.SetAuthenticationTokenAsync(user, "InventoryManagementSystem", "RefreshToken", refreshToken);
         await _userManager.SetAuthenticationTokenAsync(user, "InventoryManagementSystem", "RefreshTokenExpiry", refreshTokenExpiry.ToString("O"));
 
+        var selectionResult = companyId.HasValue
+            ? await _userManager.SetAuthenticationTokenAsync(user, "InventoryManagementSystem", "SelectedCompanyId", companyId.Value.ToString())
+            : await _userManager.RemoveAuthenticationTokenAsync(user, "InventoryManagementSystem", "SelectedCompanyId");
+        if (!selectionResult.Succeeded)
+            throw new InvalidOperationException("Unable to save the selected company session.");
+
         return new AuthResultDto
         {
+            CompanyId = companyId,
+            CompanyName = companyName,
+            RequiresCompanySelection = chooseCompany && !companyId.HasValue,
             Succeeded = true,
             Message = "Authentication successful.",
             AccessToken = accessToken,
