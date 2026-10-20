@@ -2,10 +2,10 @@
 
 **From purchase orders to warehouse stock — one connected workflow.**
 
-![Angular](https://img.shields.io/badge/Angular-20-DD0031?logo=angular&logoColor=white)
-![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)
+![Angular](https://img.shields.io/badge/Angular-20-DD0031)
+![.NET](https://img.shields.io/badge/.NET-10-512BD4)
 ![SQL Server](https://img.shields.io/badge/SQL_Server-Database-CC2927)
-![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Email_Queue-FF6600?logo=rabbitmq&logoColor=white)
+![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Email_Queue-FF6600)
 
 A full-stack inventory app with purchasing, barcode lookup, queued email, and company-based access.
 
@@ -13,14 +13,14 @@ A full-stack inventory app with purchasing, barcode lookup, queued email, and co
 
 | Feature | What it does |
 | --- | --- |
-| 📦 Inventory | Products, suppliers, departments, warehouses, and units of measure |
-| 🛒 Purchasing | Purchase orders, approval, and goods receipts |
-| ↩️ Purchase returns | Combine items from multiple GRNs; deduct stock when posted |
-| 🔎 Barcodes | Generate product barcodes and look up items with a scanner or SKU |
-| ✉️ Queued email | Purchase-order emails through RabbitMQ, a database outbox, and SMTP |
-| 🔐 Authentication | Cookie-based JWT authentication, refresh tokens, roles, and CSRF protection |
-| 🏢 Company accounts | Admin company selection and company-scoped inventory data |
-| 🖨️ Documents & UI | PO/return printing, Excel export, and light/dark themes |
+| Inventory | Products, suppliers, departments, warehouses, and units of measure |
+| Purchasing | Purchase orders, approval, and goods receipts |
+| Purchase returns | Combine items from multiple GRNs; deduct stock when posted |
+| Barcodes | Generate product barcodes and look up items with a scanner or SKU |
+| Queued email | Purchase-order emails through RabbitMQ, a database outbox, and SMTP |
+| Authentication | Cookie-based JWT authentication, refresh tokens, roles, and CSRF protection |
+| Company accounts | Admin company selection and company-scoped inventory data |
+| Documents & UI | PO/return printing, Excel export, and light/dark themes |
 
 ```text
 Purchase Order → Approval → Goods Receipt → Warehouse Stock
@@ -76,10 +76,3 @@ dotnet user-secrets set "RabbitMqEmail:Enabled" "true" --project src/InventoryMa
 ```
 
 Configure `SmtpSettings` through API user secrets, then restart the API. The email worker is disabled by default in Development.
-
-## Feature guides
-
-- [Purchase-order approval](docs/purchase-order-approval.md)
-- [Purchase returns — မြန်မာ](docs/purchase-return-mm.md)
-- [Company settings — မြန်မာ](docs/company-settings-mm.md)
-- [Learning roadmap](docs/learning-roadmap.md)
