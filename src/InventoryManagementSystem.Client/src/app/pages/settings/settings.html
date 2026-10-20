@@ -1,0 +1,58 @@
+<div class="login-wrapper" [class.dark]="sharedService.isDarkMode()">
+  <div class="fixed top-6 right-6 flex items-center gap-3 z-50">
+    <button type="button" (click)="sharedService.toggleDarkMode()"
+      class="px-2 py-1 rounded-full border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-emerald-600 transition-colors cursor-pointer shadow-sm"
+      [style.background-color]="sharedService.isDarkMode() ? '#1e293b' : '#ffffff'"
+      [title]="sharedService.isDarkMode() ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+      <i [class]="sharedService.isDarkMode() ? 'pi pi-sun text-amber-400 text-sm' : 'pi pi-moon text-slate-700 text-sm'"></i>
+    </button>
+  </div>
+
+  <div class="login-card">
+    <div class="login-brand-header">
+      <h1>INVENTORY MANAGEMENT SYSTEM</h1>
+      <p>{{ authService.canSelectCompany() ? 'Select a company account to continue' : 'Your company account' }}</p>
+    </div>
+
+    @if (errorMessage) {
+      <div class="login-error" role="alert">
+        <i class="pi pi-exclamation-circle"></i>
+        <span>{{ errorMessage }}</span>
+      </div>
+    }
+
+    @if (authService.canSelectCompany()) {
+      <form [formGroup]="settingsForm" (ngSubmit)="onSubmit()" class="login-form">
+        <div class="form-group">
+          <label class="form-label" for="companyAccount">Company Account</label>
+          <p-select inputId="companyAccount" formControlName="companyId" [options]="companies"
+            optionLabel="companyName" optionValue="id" placeholder="Select company account"
+            [filter]="true" [loading]="isLoading" appendTo="body" [fluid]="true"></p-select>
+          @if (settingsForm.controls.companyId.touched && settingsForm.controls.companyId.invalid) {
+            <span class="field-error">Select a company account.</span>
+          }
+        </div>
+        @if (!isLoading && !errorMessage && !companies.length) {
+          <p class="text-sm">No active company accounts are available.</p>
+        }
+        @if (errorMessage && !companies.length && !isLoading) {
+          <p-button type="button" label="Retry" severity="secondary" [outlined]="true" (onClick)="loadData()"></p-button>
+        }
+        <button pButton type="submit" class="login-btn" label="Continue"
+          [loading]="isSubmitting" [disabled]="isLoading || isSubmitting || !companies.length"></button>
+      </form>
+    } @else {
+      <div class="form-group">
+        <label class="form-label">Company Account</label>
+        <p class="font-semibold">{{ authService.getCompanyName() || 'No company selected' }}</p>
+      </div>
+    }
+
+    <div class="form-options mt-5">
+      @if (authService.getCompanyId()) {
+        <a routerLink="/dashboard" class="forgot-link">Back to Dashboard</a>
+      }
+      <button type="button" class="forgot-link ml-auto" [disabled]="isSubmitting" (click)="logout()">Sign Out</button>
+    </div>
+  </div>
+</div>
