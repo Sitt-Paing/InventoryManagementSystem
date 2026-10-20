@@ -27,6 +27,9 @@ public class CurrentUserDto
     public string? UserName { get; set; }
     public string? Email { get; set; }
     public List<string> Roles { get; set; } = new();
+    public int? CompanyId { get; set; }
+    public string? CompanyName { get; set; }
+    public bool RequiresCompanySelection { get; set; }
     public string? Theme { get; set; }
     public string? Language { get; set; }
 }
@@ -72,5 +75,8 @@ public class AuthResultDto
     public string? UserName { get; set; }
     public string? Email { get; set; }
     public List<string> Roles { get; set; } = new();
+    public int? CompanyId { get; set; }
+    public string? CompanyName { get; set; }
+    public bool RequiresCompanySelection { get; set; }
     public List<string> Errors { get; set; } = new();
 }
