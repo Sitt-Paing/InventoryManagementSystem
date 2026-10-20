@@ -62,6 +62,10 @@ public partial class InventoryManagementDbContext : DbContext
 
     public virtual DbSet<PurchaseReturnItem> PurchaseReturnItems { get; set; }
 
+    public virtual DbSet<StockIssue> StockIssues { get; set; }
+
+    public virtual DbSet<StockIssueItem> StockIssueItems { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasSequence<long>("PurchaseOrderNumberSequence");
@@ -612,6 +616,41 @@ public partial class InventoryManagementDbContext : DbContext
             entity.Property(e => e.DeletedBy).HasMaxLength(256);
             entity.Property(e => e.DeletedOn).HasColumnType("datetime");
 
+        });
+
+        modelBuilder.Entity<StockIssue>(entity =>
+        {
+            entity.ToTable("StockIssues");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.IssueNo).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.IssueDate).HasColumnType("datetime");
+            entity.Property(e => e.ReceivedBy).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Note).HasMaxLength(500);
+            entity.Property(e => e.Status).HasConversion<int>();
+            entity.Property(e => e.PostedBy).HasMaxLength(100);
+            entity.Property(e => e.PostedOn).HasColumnType("datetime");
+            entity.Property(e => e.CreatedBy).HasMaxLength(50);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedBy).HasMaxLength(50);
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+            entity.Property(e => e.DeletedBy).HasMaxLength(50);
+            entity.Property(e => e.DeletedOn).HasColumnType("datetime");
+            entity.HasOne(e => e.Warehouse).WithMany().HasForeignKey(e => e.WarehouseId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Department).WithMany().HasForeignKey(e => e.DepartmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(e => new { e.CompanyId, e.IssueNo }).IsUnique().HasFilter(null);
+        });
+
+        modelBuilder.Entity<StockIssueItem>(entity =>
+        {
+            entity.ToTable("StockIssueItems");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Quantity).HasColumnType("decimal(18,4)");
+            entity.HasOne(e => e.StockIssue).WithMany(e => e.Items).HasForeignKey(e => e.StockIssueId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Product).WithMany().HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Department>(entity =>
