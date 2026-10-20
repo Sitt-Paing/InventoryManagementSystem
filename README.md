@@ -7,7 +7,7 @@
 ![SQL Server](https://img.shields.io/badge/SQL_Server-Database-CC2927)
 ![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Email_Queue-FF6600)
 
-A full-stack inventory app with purchasing, barcode lookup, queued email, and company-based access.
+A full-stack inventory app with purchasing, department stock issues, barcode lookup, queued email, and company-based access.
 
 ## Highlights
 
@@ -16,6 +16,7 @@ A full-stack inventory app with purchasing, barcode lookup, queued email, and co
 | Inventory | Products, suppliers, departments, warehouses, and units of measure |
 | Purchasing | Purchase orders, approval, and goods receipts |
 | Purchase returns | Combine items from multiple GRNs; deduct stock when posted |
+| Stock issues | Issue items to departments; barcode/SKU entry, Draft → Posted workflow, and stock deduction |
 | Barcodes | Generate product barcodes and look up items with a scanner or SKU |
 | Queued email | Purchase-order emails through RabbitMQ, a database outbox, and SMTP |
 | Authentication | Cookie-based JWT authentication, refresh tokens, roles, and CSRF protection |
@@ -24,9 +25,11 @@ A full-stack inventory app with purchasing, barcode lookup, queued email, and co
 
 ```text
 Purchase Order → Approval → Goods Receipt → Warehouse Stock
-                                  ↓
-                           Purchase Return → Post → Stock Deduction
+                                                ├─ Purchase Return → Supplier
+                                                └─ Stock Issue → Department
 ```
+
+Returns and issues change stock when posted. Drafts support editing and soft deletion; posted records are protected from changes.
 
 ## Tech & skills
 
