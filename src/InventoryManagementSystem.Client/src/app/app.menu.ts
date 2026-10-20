@@ -159,5 +159,10 @@ export const NAVIGATION_MENU: Readonly<NavigationMenuGroup[]> = [
       },
     ],
   },
+  {
+    label: 'REPORTS',
+    transKey: 'NAV.REPORTS',
+    items: []
+  },
 ];
 
