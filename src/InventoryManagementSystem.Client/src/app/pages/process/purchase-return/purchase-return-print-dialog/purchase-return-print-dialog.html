@@ -1,0 +1,95 @@
+<p-dialog [header]="'Print Purchase Return - ' + (purchaseReturn?.returnNo || '')" [(visible)]="visible" [modal]="true"
+    [breakpoints]="{ '1024px': '75vw', '768px': '90vw', '425px': '98vw' }" [style]="{ width: '65vw', 'max-height': '92vh' }"
+    [draggable]="false" [resizable]="false" (onHide)="close()">
+    <div class="flex justify-end gap-2 pb-3 border-b mb-3">
+        <p-button icon="pi pi-print" label="Print" size="small" [disabled]="!purchaseReturn" (onClick)="printVoucher()"></p-button>
+        <p-button icon="pi pi-times" label="Close" severity="secondary" [outlined]="true" size="small" (onClick)="close()"></p-button>
+    </div>
+
+    @if (purchaseReturn; as current) {
+    <div class="voucher-preview-container">
+        <div id="printable-pr-voucher" class="voucher-paper">
+            <div class="voucher-content">
+                <table class="header-table">
+                    <tr>
+                        <td style="vertical-align: top;">
+                            <h1 class="company-title">INVENTORY MANAGEMENT SYSTEM</h1>
+                            <p class="company-sub">OFFICIAL PURCHASE RETURN NOTE</p>
+                        </td>
+                        <td style="text-align: right; vertical-align: top;">
+                            <h2 class="gr-title">PURCHASE RETURN</h2>
+                            <p class="gr-meta"><strong>Return No:</strong> {{ current.returnNo }}</p>
+                            <p class="gr-meta"><strong>Date:</strong> {{ current.returnDate | date:'dd-MMM-yyyy' }}</p>
+                            <p class="gr-meta"><strong>Status:</strong> {{ current.status === status.Posted ? 'Posted' : 'Draft' }}</p>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="info-table" style="border-collapse: separate; border-spacing: 14px 0;">
+                    <tr>
+                        <td class="info-box">
+                            <div class="info-box-title">RETURN TO SUPPLIER</div>
+                            <p><strong>{{ current.supplierName }}</strong></p>
+                            <p style="white-space: pre-wrap; overflow-wrap: anywhere;">Reason: {{ current.returnReason || '-' }}</p>
+                        </td>
+                        <td class="info-box">
+                            <div class="info-box-title">RETURN INFORMATION</div>
+                            <p>Created By: {{ current.createdBy || '-' }}</p>
+                            <p>Posted By: {{ current.postedByName || '-' }}</p>
+                            <p>Posted On: {{ current.postedOn ? (current.postedOn | date:'dd-MMM-yyyy hh:mm a') : '-' }}</p>
+                            <p>Items: {{ current.items.length }}</p>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 30px;">#</th>
+                            <th>ITEM DESCRIPTION</th>
+                            <th>GRN / PO</th>
+                            <th>WAREHOUSE</th>
+                            <th>UOM</th>
+                            <th style="text-align: right;">RETURN QTY</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (item of current.items; track item.id) {
+                        <tr style="break-inside: avoid;">
+                            <td style="text-align: center;">{{ $index + 1 }}</td>
+                            <td style="overflow-wrap: anywhere;">{{ item.productName }}</td>
+                            <td style="overflow-wrap: anywhere;">{{ item.receiptNo }}<br />{{ item.purchaseOrderNo || '-' }}</td>
+                            <td>{{ item.warehouseName }}</td>
+                            <td>{{ item.uomName }}</td>
+                            <td style="text-align: right; font-weight: bold;">{{ item.returnQuantity | number:'1.0-4' }}</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="voucher-footer" style="break-inside: avoid;">
+                <table class="sig-table" style="border-collapse: separate; border-spacing: 20px 0;">
+                    <tr>
+                        <td class="sig-cell">
+                            <div class="sig-line"></div>
+                            <p>Prepared By</p>
+                            <small>{{ current.createdBy || '-' }}</small>
+                        </td>
+                        <td class="sig-cell">
+                            <div class="sig-line"></div>
+                            <p>Posted By</p>
+                            <small>{{ current.postedByName || '-' }}</small>
+                        </td>
+                        <td class="sig-cell">
+                            <div class="sig-line"></div>
+                            <p>Received By</p>
+                            <small>Supplier Representative</small>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    }
+</p-dialog>
