@@ -20,6 +20,7 @@ public interface IApplicationDbContext
     DbSet<GoodReceipt> GoodReceipts { get; }
     DbSet<GoodReceiptItem> GoodReceiptItems { get; }
     DbSet<Company> Companies { get; }
+    DbSet<Department> Departments { get; }
     DbSet<EmailOutbox> EmailOutboxes { get; }
     DbSet<PurchaseReturn> PurchaseReturns { get; }
     DbSet<PurchaseReturnItem> PurchaseReturnItems { get; }
