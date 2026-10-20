@@ -54,6 +54,8 @@ public partial class InventoryManagementDbContext : DbContext
 
     public virtual DbSet<Company> Companies { get; set; }
 
+    public virtual DbSet<Department> Departments { get; set; }
+
     public virtual DbSet<EmailOutbox> EmailOutboxes { get; set; }
 
     public virtual DbSet<PurchaseReturn> PurchaseReturns { get; set; }
@@ -610,6 +612,21 @@ public partial class InventoryManagementDbContext : DbContext
             entity.Property(e => e.DeletedBy).HasMaxLength(256);
             entity.Property(e => e.DeletedOn).HasColumnType("datetime");
 
+        });
+
+        modelBuilder.Entity<Department>(entity =>
+        {
+            entity.ToTable("Department");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.DeptName).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.CreatedBy).HasMaxLength(256);
+            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedBy).HasMaxLength(256);
+            entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+            entity.Property(e => e.DeletedBy).HasMaxLength(256);
+            entity.Property(e => e.DeletedOn).HasColumnType("datetime");
         });
 
         OnModelCreatingPartial(modelBuilder);
