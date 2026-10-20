@@ -137,6 +137,12 @@ export const NAVIGATION_MENU: Readonly<NavigationMenuGroup[]> = [
         transKey: 'NAV.PURCHASE_RETURN',
         icon: 'pi pi-replay',
         routerLink: '/process/purchase-return',
+      },
+      {
+        label: 'Stock Issues',
+        transKey: 'NAV.STOCK_ISSUE',
+        icon: 'pi pi-send',
+        routerLink: '/process/stock-issue',
       }
     ],
   },
