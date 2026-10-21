@@ -181,6 +181,7 @@ public class DeleteGoodReceiptCommandHandler : IRequestHandler<DeleteGoodReceipt
             SupplierId = goodReceipt.SupplierId,
             ReceiptDate = goodReceipt.ReceiptDate,
             Status = goodReceipt.Status,
+            TotalAmount = goodReceipt.TotalAmount,
             ReceivedBy = goodReceipt.ReceivedBy,
             Note = goodReceipt.Note,
             DeletedOn = goodReceipt.DeletedOn
