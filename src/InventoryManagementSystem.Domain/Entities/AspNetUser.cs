@@ -38,6 +38,8 @@ public partial class AspNetUser
 
     public int? CompanyId { get; set; }
 
+    public int? SupplierId { get; set; }
+
     [JsonIgnore]
     public virtual ICollection<AspNetUserClaim> AspNetUserClaims { get; set; } = new List<AspNetUserClaim>();
 
@@ -52,4 +54,7 @@ public partial class AspNetUser
 
     [JsonIgnore]
     public virtual Company? Company { get; set; }
+
+    [JsonIgnore]
+    public virtual Supplier? Supplier { get; set; }
 }
