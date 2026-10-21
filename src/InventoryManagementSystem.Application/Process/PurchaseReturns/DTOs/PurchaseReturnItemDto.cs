@@ -18,4 +18,6 @@ public class PurchaseReturnItemDto
     public decimal ReceivedQuantity { get; set; }
     public decimal ReturnableQuantity { get; set; }
     public decimal ReturnQuantity { get; set; }
+    public decimal UnitPrice { get; set; }
+    public decimal LineAmount { get; set; }
 }
