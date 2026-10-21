@@ -138,6 +138,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("SupplierId")
+                        .HasColumnType("int");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
 
@@ -146,6 +149,8 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("SupplierId");
 
                     b.HasIndex(new[] { "NormalizedEmail" }, "EmailIndex");
 
@@ -1734,7 +1739,14 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_AspNetUsers_Company");
 
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.Supplier", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Company");
+
+                    b.Navigation("Supplier");
                 });
 
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.AspNetUserClaim", b =>
