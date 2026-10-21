@@ -11,7 +11,8 @@ export default [
   },
   {
     path: 'suppliers',
-    loadComponent: () => import('./suppliers/suppliers').then(m => m.Suppliers)
+    redirectTo: '/user-manage/suppliers',
+    pathMatch: 'full'
   },
   {
     path: 'departments',
