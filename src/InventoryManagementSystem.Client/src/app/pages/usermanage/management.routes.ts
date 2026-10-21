@@ -10,6 +10,15 @@ export default [
     loadComponent: () => import('./company/company').then(m => m.CompanyComponent)
   },
   {
+    path: 'suppliers',
+    loadComponent: () => import('./suppliers/suppliers').then(m => m.Suppliers)
+  },
+  {
+    path: 'supplier-accounts',
+    redirectTo: 'suppliers',
+    pathMatch: 'full'
+  },
+  {
     path: 'employee',
     loadComponent: () => import('../dashboard/dashboard').then(m => m.DashboardComponent)
   }
