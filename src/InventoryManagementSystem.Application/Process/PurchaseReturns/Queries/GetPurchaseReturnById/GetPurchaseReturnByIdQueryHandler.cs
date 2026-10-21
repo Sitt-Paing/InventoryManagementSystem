@@ -39,6 +39,7 @@ public class GetPurchaseReturnByIdQueryHandler : IRequestHandler<GetPurchaseRetu
                 ReturnDate = pr.ReturnDate,
                 ReturnReason = pr.ReturnReason,
                 Status = pr.Status,
+                TotalAmount = pr.TotalAmount,
                 PostedBy = pr.PostedBy,
                 PostedOn = pr.PostedOn,
                 CreatedBy = pr.CreatedBy,
@@ -72,7 +73,9 @@ public class GetPurchaseReturnByIdQueryHandler : IRequestHandler<GetPurchaseRetu
                             && !returned.PurchaseReturn.DeletedOn.HasValue
                             && returned.PurchaseReturn.Status == PurchaseReturnStatus.Posted)
                             .Sum(returned => (decimal?)returned.ReturnQuantity) ?? 0),
-                    ReturnQuantity = item.ReturnQuantity
+                    ReturnQuantity = item.ReturnQuantity,
+                    UnitPrice = item.UnitPrice,
+                    LineAmount = item.LineAmount
                 }).ToList()
             }).SingleOrDefaultAsync(cancellationToken);
 
