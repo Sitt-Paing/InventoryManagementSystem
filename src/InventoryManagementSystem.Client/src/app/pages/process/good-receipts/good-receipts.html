@@ -40,7 +40,7 @@
         [totalRecords]="totalRecords" [rows]="pageSize" [paginator]="true" paginatorDropdownAppendTo="body"
         [rowsPerPageOptions]="[10, 20, 50, 100]" [showCurrentPageReport]="true"
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [loading]="isLoading"
-        [tableStyle]="{ 'min-width': '65rem', 'white-space': 'nowrap' }">
+        [scrollable]="true" [tableStyle]="{ 'min-width': '65rem', 'white-space': 'nowrap' }">
 
         <ng-template #header let-gr>
             <tr style="white-space:nowrap" [pSelectableRow]="gr">
@@ -53,10 +53,10 @@
                 <th pSortableColumn="receivedBy">Received By <p-sortIcon field="receivedBy"></p-sortIcon></th>
                 <th pSortableColumn="totalItems">Total Items</th>
                 <th class="text-right">Total Amount</th>
-                <th [style]="{ width: '130px' }">Actions</th>
                 <th pSortableColumn="status">Status <p-sortIcon field="status"></p-sortIcon></th>
                 <th pSortableColumn="createdOn">Created On <p-sortIcon field="createdOn"></p-sortIcon></th>
                 <th pSortableColumn="createdBy">Created By <p-sortIcon field="createdBy"></p-sortIcon></th>
+                <th pFrozenColumn alignFrozen="right" [style]="{ width: '130px' }">Actions</th>
             </tr>
         </ng-template>
 
@@ -75,6 +75,13 @@
                 <td class="text-center">{{ gr.totalItems || gr.items?.length || 0 }}</td>
                 <td class="text-right font-semibold">{{ gr.totalAmount | number:'1.0-0' }} MMK</td>
                 <td>
+                    <p-tag [value]="gr.status ? 'Received' : 'Draft'" size="small"
+                        icon="{{ gr.status ? 'pi pi-check' : 'pi pi-minus-circle' }}"
+                        [severity]="gr.status ? 'success' : 'secondary'"></p-tag>
+                </td>
+                <td>{{ gr.createdOn | date:'dd/MMM/yyyy hh:mm a' }}</td>
+                <td>{{ gr.createdBy || '-' }}</td>
+                <td pFrozenColumn alignFrozen="right">
                     <div class="flex items-center gap-1">
                         <p-button label="Detail" icon="pi pi-eye" size="small" [text]="true" severity="info"
                             (onClick)="viewDetails(gr); $event.stopPropagation()"></p-button>
@@ -82,13 +89,6 @@
                             (onClick)="printReceipt(gr); $event.stopPropagation()"></p-button>
                     </div>
                 </td>
-                <td>
-                    <p-tag [value]="gr.status ? 'Received' : 'Draft'" size="small"
-                        icon="{{ gr.status ? 'pi pi-check' : 'pi pi-minus-circle' }}"
-                        [severity]="gr.status ? 'success' : 'secondary'"></p-tag>
-                </td>
-                <td>{{ gr.createdOn | date:'dd/MMM/yyyy hh:mm a' }}</td>
-                <td>{{ gr.createdBy || '-' }}</td>
             </tr>
         </ng-template>
 
