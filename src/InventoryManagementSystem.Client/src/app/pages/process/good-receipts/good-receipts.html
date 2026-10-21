@@ -52,6 +52,7 @@
                 <th pSortableColumn="receiptDate">Receipt Date <p-sortIcon field="receiptDate"></p-sortIcon></th>
                 <th pSortableColumn="receivedBy">Received By <p-sortIcon field="receivedBy"></p-sortIcon></th>
                 <th pSortableColumn="totalItems">Total Items</th>
+                <th class="text-right">Total Amount</th>
                 <th [style]="{ width: '130px' }">Actions</th>
                 <th pSortableColumn="status">Status <p-sortIcon field="status"></p-sortIcon></th>
                 <th pSortableColumn="createdOn">Created On <p-sortIcon field="createdOn"></p-sortIcon></th>
@@ -72,6 +73,7 @@
                 <td>{{ gr.receiptDate | date:'dd/MMM/yyyy' }}</td>
                 <td>{{ gr.receivedBy }}</td>
                 <td class="text-center">{{ gr.totalItems || gr.items?.length || 0 }}</td>
+                <td class="text-right font-semibold">{{ gr.totalAmount | number:'1.0-0' }} MMK</td>
                 <td>
                     <div class="flex items-center gap-1">
                         <p-button label="Detail" icon="pi pi-eye" size="small" [text]="true" severity="info"
@@ -92,7 +94,7 @@
 
         <ng-template #emptymessage>
             <tr>
-                <td colspan="12" class="text-center p-4 text-gray-500">
+                <td colspan="13" class="text-center p-4 text-gray-500">
                     No goods receipts found.
                 </td>
             </tr>
@@ -274,11 +276,6 @@
         [style]="{ 'width': '55vw' }" [draggable]="false" [resizable]="false">
         @if (detailReceipt) {
         <div class="space-y-4 text-xs">
-            <div class="flex justify-end gap-2">
-                <p-button icon="pi pi-print" label="Print Voucher" size="small" severity="secondary" [outlined]="true"
-                    (onClick)="printReceipt(detailReceipt)"></p-button>
-            </div>
-
             <div class="grid grid-cols-2 gap-3  bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-lg border border-slate-200 dark:border-slate-700/80 text-slate-800 dark:text-slate-200">
                 <div><span class="text-slate-500 dark:text-slate-400 block font-medium">Receipt No:</span> <strong class="ml-1 text-blue-600">{{ detailReceipt.receiptNo }}</strong></div>
                 <div><span class="text-slate-500 dark:text-slate-400 block font-medium">PO Number:</span> <strong class="ml-1">{{ detailReceipt.purchaseOrderNo }}</strong></div>
@@ -293,15 +290,17 @@
                 <div><span class="text-gray-500">Note:</span> <span class="ml-1">{{ detailReceipt.note || '-' }}</span></div>
             </div>
 
-            <div>
+            <div class="overflow-x-auto">
                 <h4 class="font-semibold text-sm mb-2">Received Items ({{ detailReceipt.items.length || 0 }})</h4>
-                <table class="w-full text-xs text-left border border-gray-200 rounded">
+                <table class="w-full min-w-[40rem] text-xs text-left border border-gray-200 rounded">
                     <thead class="bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-gray-50">
                         <tr>
                             <th class="p-2">Product</th>
                             <th class="p-2">SKU</th>
                             <th class="p-2">UOM</th>
                             <th class="p-2 text-right">Received Qty</th>
+                            <th class="p-2 text-right">Unit Price</th>
+                            <th class="p-2 text-right">Line Amount</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -310,11 +309,25 @@
                             <td class="p-2 font-medium">{{ item.productName }}</td>
                             <td class="p-2 text-gray-500">{{ item.productSku || '-' }}</td>
                             <td class="p-2">{{ item.uomName }}</td>
-                            <td class="p-2 text-right font-semibold">{{ item.receivedQuantity | number:'1.2-4' }}</td>
+                            <td class="p-2 text-right font-semibold">{{ item.receivedQuantity | number:'1.0-4' }}</td>
+                            <td class="p-2 text-right">{{ item.unitPrice | number:'1.0-0' }} MMK</td>
+                            <td class="p-2 text-right font-semibold">{{ item.lineAmount | number:'1.0-0' }} MMK</td>
                         </tr>
                         }
                     </tbody>
+                    <tfoot>
+                        <tr class="font-semibold border-t">
+                            <td colspan="5" class="p-2 text-right">Total Amount</td>
+                            <td class="p-2 text-right">{{ detailReceipt.totalAmount | number:'1.0-0' }} MMK</td>
+                        </tr>
+                    </tfoot>
                 </table>
+            </div>
+            <div class="dialog-actions flex flex-wrap justify-end gap-2 mt-4 pt-3">
+                <p-button label="Print Voucher" icon="pi pi-print" size="small" styleClass="w-40" severity="secondary" [outlined]="true"
+                    (onClick)="printReceipt(detailReceipt)"></p-button>
+                <p-button label="Close" size="small" styleClass="w-40" severity="secondary" [outlined]="true"
+                    (onClick)="detailModalVisible = false"></p-button>
             </div>
         </div>
         }
