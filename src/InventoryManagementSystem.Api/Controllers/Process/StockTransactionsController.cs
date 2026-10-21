@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryManagementSystem.Api.Controllers.Process;
 
-[Authorize]
+[Authorize(Policy = "InternalUser")]
 [Route("api/process/stock-transactions")]
 [ApiController]
 public class StockTransactionsController : ApiControllerBase
