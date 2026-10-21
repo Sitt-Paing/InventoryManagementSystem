@@ -27,6 +27,20 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("InternalUser", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole(
+            "SuperAdmin",
+            "Administrator",
+            "CompanyAdmin",
+            "User");
+        policy.RequireAssertion(context => !context.User.IsInRole("Supplier"));
+    });
+});
+
 // Register Global Exception Handler & ProblemDetails
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
