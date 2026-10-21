@@ -269,5 +269,6 @@ class TestUser : ICurrentUserService
     public string? UserName => "PO test";
     public string? IpAddress => null;
     public int? CompanyId { get; set; }
+    public int? SupplierId => null;
     public bool IsSuperAdmin { get; set; } = true;
 }
