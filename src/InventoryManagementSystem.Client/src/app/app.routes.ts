@@ -3,6 +3,11 @@ import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () => import('./pages/home/home').then(m => m.Home)
+  },
+  {
     path: 'auth',
     loadChildren: () => import('./pages/auth/auth.routes')
   },
