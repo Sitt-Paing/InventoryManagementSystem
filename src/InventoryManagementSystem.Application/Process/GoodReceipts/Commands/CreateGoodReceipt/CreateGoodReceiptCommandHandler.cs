@@ -145,6 +145,7 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
         foreach (var item in request.Items)
         {
             var baseQuantity = await _uomConversionService.ConvertToBaseUomAsync(item.ProductId, item.UomId, item.ReceivedQuantity, cancellationToken);
+            var poItem = purchaseOrder.Items.First(i => i.Id == item.PurchaseOrderItemId);
 
             var receiptItem = new GoodReceiptItem
             {
@@ -153,6 +154,8 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
                 ProductId = item.ProductId,
                 UomId = item.UomId,
                 ReceivedQuantity = item.ReceivedQuantity,
+                UnitPrice = poItem.UnitPrice,
+                LineAmount = decimal.Round(item.ReceivedQuantity * poItem.UnitPrice, 2, MidpointRounding.AwayFromZero),
                 ReceivedBaseQuantity = baseQuantity
             };
 
@@ -176,7 +179,6 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
             });
 
             // Update PurchaseOrderItem received quantity
-            var poItem = purchaseOrder.Items.FirstOrDefault(i => i.Id == item.PurchaseOrderItemId);
             if (poItem != null)
             {
                 poItem.ReceivedQuantity += item.ReceivedQuantity;
@@ -218,6 +220,7 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
             purchaseOrder.Status = PurchaseOrderStatus.Pending;
         }
 
+        goodReceipt.TotalAmount = goodReceipt.Items.Sum(item => item.LineAmount);
         _context.GoodReceipts.Add(goodReceipt);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -262,6 +265,7 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
             SupplierCode = supplier?.SupplierCode,
             ReceiptDate = goodReceipt.ReceiptDate,
             Status = goodReceipt.Status,
+            TotalAmount = goodReceipt.TotalAmount,
             ReceivedBy = goodReceipt.ReceivedBy,
             Note = goodReceipt.Note,
             CreatedOn = goodReceipt.CreatedOn,
@@ -279,6 +283,8 @@ public class CreateGoodReceiptCommandHandler : IRequestHandler<CreateGoodReceipt
                 UomId = i.UomId,
                 UomName = uomDict.TryGetValue(i.UomId, out var u) ? u.Name : string.Empty,
                 ReceivedQuantity = i.ReceivedQuantity,
+                UnitPrice = i.UnitPrice,
+                LineAmount = i.LineAmount,
                 CreatedOn = i.CreatedOn,
                 CreatedBy = i.CreatedBy
             }).ToList()
