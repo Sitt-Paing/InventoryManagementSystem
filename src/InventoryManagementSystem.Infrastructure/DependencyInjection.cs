@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Security.Claims;
 
 namespace InventoryManagementSystem.Infrastructure;
 
@@ -83,6 +84,33 @@ public static class DependencyInjection
                         context.Token = token;
                     }
                     return Task.CompletedTask;
+                },
+                OnTokenValidated = async context =>
+                {
+                    var principal = context.Principal;
+                    if (principal?.IsInRole("Supplier") != true) return;
+
+                    var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    if (!int.TryParse(principal.FindFirst("company_id")?.Value, out var companyId)
+                        || !int.TryParse(principal.FindFirst("supplier_id")?.Value, out var supplierId))
+                    {
+                        context.Fail("Supplier account is not configured correctly.");
+                        return;
+                    }
+
+                    var inventory = context.HttpContext.RequestServices.GetRequiredService<InventoryManagementDbContext>();
+                    var active = await inventory.AspNetUsers.AsNoTracking()
+                        .AnyAsync(account => account.Id == userId && account.CompanyId == companyId
+                            && account.SupplierId == supplierId
+                            && account.Roles.Any(role => role.Name == "Supplier")
+                            && account.Roles.All(role => role.Name == "Supplier"), context.HttpContext.RequestAborted);
+                    active = active && await inventory.Suppliers.IgnoreQueryFilters()
+                        .AnyAsync(supplier => supplier.Id == supplierId && supplier.CompanyId == companyId
+                            && supplier.Status && !supplier.DeletedOn.HasValue, context.HttpContext.RequestAborted);
+                    active = active && await inventory.Companies.AsNoTracking()
+                        .AnyAsync(company => company.Id == companyId && company.IsActive && !company.DeletedOn.HasValue,
+                            context.HttpContext.RequestAborted);
+                    if (!active) context.Fail("Supplier account is inactive or unavailable.");
                 }
             };
         });
