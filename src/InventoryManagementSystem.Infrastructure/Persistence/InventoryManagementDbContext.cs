@@ -455,6 +455,7 @@ public partial class InventoryManagementDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.ReceiptNo).HasMaxLength(50).IsRequired();
             entity.Property(e => e.ReceiptDate).HasColumnType("datetime");
+            entity.Property(e => e.TotalAmount).HasColumnType("decimal(18,2)");
             entity.Property(e => e.ReceivedBy).HasMaxLength(100);
             entity.Property(e => e.Note).HasMaxLength(500);
 
@@ -499,6 +500,8 @@ public partial class InventoryManagementDbContext : DbContext
             entity.ToTable("GoodReceiptItems");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.ReceivedQuantity).HasColumnType("decimal(18, 4)");
+            entity.Property(e => e.UnitPrice).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.LineAmount).HasColumnType("decimal(18,2)");
             entity.Property(e => e.ReceivedBaseQuantity).HasColumnType("decimal(18, 4)");
 
             entity.Property(e => e.CreatedBy).HasMaxLength(50);
@@ -566,6 +569,8 @@ public partial class InventoryManagementDbContext : DbContext
             entity.Property(e => e.PurchaseReturnId);
             entity.Property(e => e.GoodReceiptItemId);
             entity.Property(e => e.ReturnQuantity).HasColumnType("decimal(18,4)");
+            entity.Property(e => e.UnitPrice).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.LineAmount).HasColumnType("decimal(18,2)");
             entity.HasOne(d => d.PurchaseReturn)
                   .WithMany(p => p.Items)
                   .HasForeignKey(d => d.PurchaseReturnId)
