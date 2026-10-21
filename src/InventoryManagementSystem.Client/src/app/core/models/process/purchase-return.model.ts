@@ -19,6 +19,8 @@ export interface PurchaseReturnItemModel {
     receivedQuantity: number;
     returnableQuantity: number;
     returnQuantity: number;
+    unitPrice: number;
+    lineAmount: number;
 }
 export interface PurchaseReturnModel {
     id: string;
@@ -34,6 +36,7 @@ export interface PurchaseReturnModel {
     createdOn: string | null;
     createdBy: string | null;
     totalItems: number;
+    totalAmount: number;
     items: PurchaseReturnItemModel[];
 }
 export interface ReturnableReceiptItemModel {
