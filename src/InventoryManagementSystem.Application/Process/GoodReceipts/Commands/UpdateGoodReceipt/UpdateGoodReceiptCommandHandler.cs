@@ -38,6 +38,8 @@ public class UpdateGoodReceiptCommandHandler : IRequestHandler<UpdateGoodReceipt
         goodReceipt.Status = request.Status;
         goodReceipt.ReceivedBy = request.ReceivedBy.Trim();
         goodReceipt.Note = request.Note?.Trim();
+        goodReceipt.TotalAmount = goodReceipt.Items.Where(item => !item.DeletedOn.HasValue)
+            .Sum(item => item.LineAmount);
 
         await _context.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
@@ -72,6 +74,7 @@ public class UpdateGoodReceiptCommandHandler : IRequestHandler<UpdateGoodReceipt
             SupplierCode = supplier?.SupplierCode,
             ReceiptDate = goodReceipt.ReceiptDate,
             Status = goodReceipt.Status,
+            TotalAmount = goodReceipt.TotalAmount,
             ReceivedBy = goodReceipt.ReceivedBy,
             Note = goodReceipt.Note,
             CreatedOn = goodReceipt.CreatedOn,
@@ -91,6 +94,8 @@ public class UpdateGoodReceiptCommandHandler : IRequestHandler<UpdateGoodReceipt
                     UomId = i.UomId,
                     UomName = uoms.TryGetValue(i.UomId, out var u) ? u.Name : string.Empty,
                     ReceivedQuantity = i.ReceivedQuantity,
+                    UnitPrice = i.UnitPrice,
+                    LineAmount = i.LineAmount,
                     CreatedOn = i.CreatedOn,
                     CreatedBy = i.CreatedBy
                 }).ToList()
