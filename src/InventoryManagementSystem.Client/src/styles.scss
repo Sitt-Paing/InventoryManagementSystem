@@ -437,3 +437,23 @@ main {
 }
 
 
+
+// Shared text logo for the public pages and application header.
+.inno-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  color: var(--text-main);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+
+.inno-logo .inno-symbol {
+  color: var(--accent-color);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.8em;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+}
