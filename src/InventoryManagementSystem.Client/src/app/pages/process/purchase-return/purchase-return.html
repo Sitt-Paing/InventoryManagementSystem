@@ -62,7 +62,7 @@
   <p-table [value]="returns" [(selection)]="selectedPurchaseReturn" selectionMode="single" [lazy]="true" (onLazyLoad)="onLazyLoad($event)" [paginator]="true"
     [first]="first" [rows]="rows" [totalRecords]="totalRecords" [rowsPerPageOptions]="[20,50,100]"
     [loading]="isLoading" [sortField]="sortField" [sortOrder]="sortOrder" dataKey="id"
-    [scrollable]="true" [tableStyle]="{ 'min-width': '72rem' }" [showCurrentPageReport]="true"
+    [scrollable]="true" [tableStyle]="{ 'min-width': '100rem', 'white-space': 'nowrap' }" [showCurrentPageReport]="true"
     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" paginatorDropdownAppendTo="body" stripedRows="true">
     <ng-template #header><tr>
       <th pFrozenColumn [style]="{ width: '10px' }">#</th>
