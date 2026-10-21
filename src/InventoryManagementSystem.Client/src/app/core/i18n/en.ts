@@ -1,6 +1,6 @@
 export const EN_DICTIONARY: Record<string, any> = {
   APP: {
-    NAME: 'INVENTORY',
+    NAME: 'INNO',
     TITLE: 'Inventory Management System',
     SUBTITLE: 'Enterprise Stock & Warehouse System'
   },
