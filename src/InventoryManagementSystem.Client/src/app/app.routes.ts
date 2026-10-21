@@ -7,6 +7,11 @@ export const routes: Routes = [
     loadChildren: () => import('./pages/auth/auth.routes')
   },
   {
+    path: 'supplier-portal',
+    redirectTo: 'supplier/dashboard',
+    pathMatch: 'full'
+  },
+  {
     path: 'settings',
     loadComponent: () => import('./pages/settings/settings').then(m => m.Settings),
     canActivate: [authGuard]
@@ -14,7 +19,14 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./layout/app-layout').then((m) => m.AppLayout),
+    canActivate: [authGuard],
+    canActivateChild: [authGuard],
     children: [
+      {
+        path: 'supplier',
+        loadChildren: () => import('./pages/supplier/supplier.routes').then(m => m.default),
+        canActivate: [authGuard]
+      },
       {
         path: '',
         redirectTo: 'dashboard',
@@ -49,7 +61,7 @@ export const routes: Routes = [
       // Backward compatibility redirects
       { path: 'products', redirectTo: 'master/products', pathMatch: 'full' },
       { path: 'categories', redirectTo: 'master/categories', pathMatch: 'full' },
-      { path: 'suppliers', redirectTo: 'master/suppliers', pathMatch: 'full' },
+      { path: 'suppliers', redirectTo: 'user-manage/suppliers', pathMatch: 'full' },
       { path: 'warehouses', redirectTo: 'master/warehouses', pathMatch: 'full' },
       { path: 'warehouse-locations', redirectTo: 'master/warehouse-locations', pathMatch: 'full' },
       { path: 'stock-transactions', redirectTo: 'process/stock-transactions', pathMatch: 'full' },
