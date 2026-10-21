@@ -7,6 +7,7 @@ export interface LoginModel {
 }
 
 export interface AuthResponseModel {
+    supplierId?: number | null;
     companyId?: number | null;
     companyName?: string | null;
     requiresCompanySelection?: boolean;
