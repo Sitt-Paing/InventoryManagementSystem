@@ -115,14 +115,24 @@ public class UpdatePurchaseReturnCommandHandler : IRequestHandler<UpdatePurchase
             var item = purchaseReturn.Items.SingleOrDefault(i => i.GoodReceiptItemId == input.GoodReceiptItemId);
             if (item == null)
             {
-                item = new PurchaseReturnItem { GoodReceiptItemId = input.GoodReceiptItemId, CompanyId = companyId };
+                item = new PurchaseReturnItem
+                {
+                    GoodReceiptItemId = input.GoodReceiptItemId,
+                    CompanyId = companyId,
+                    UnitPrice = receiptItems.Single(source => source.Id == input.GoodReceiptItemId).UnitPrice
+                };
                 purchaseReturn.Items.Add(item);
             }
             item.ReturnQuantity = input.ReturnQuantity;
+            item.LineAmount = decimal.Round(item.ReturnQuantity * item.UnitPrice, 2, MidpointRounding.AwayFromZero);
             item.DeletedOn = null;
             item.DeletedBy = null;
         }
 
+        // Removed lines are still tracked until SaveChanges applies their soft-delete audit values.
+        purchaseReturn.TotalAmount = purchaseReturn.Items
+            .Where(item => receiptItemIds.Contains(item.GoodReceiptItemId))
+            .Sum(item => item.LineAmount);
         await _context.SaveChangesAsync(cancellationToken);
         var response = await _sender.Send(new GetPurchaseReturnByIdQuery(purchaseReturn.Id), cancellationToken);
         await transaction.CommitAsync(cancellationToken);
