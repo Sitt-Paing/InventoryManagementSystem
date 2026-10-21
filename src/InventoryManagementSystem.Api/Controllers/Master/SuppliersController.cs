@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryManagementSystem.Api.Controllers.Master
 {
-    [Authorize]
+    [Authorize(Policy = "InternalUser")]
     [Route("api/master/suppliers")]
     [ApiController]
     public class SuppliersController : ApiControllerBase
