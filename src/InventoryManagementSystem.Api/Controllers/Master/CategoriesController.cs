@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryManagementSystem.Api.Controllers.Master;
 
-[Authorize]
+[Authorize(Policy = "InternalUser")]
 [Route("api/master/categories")]
 [ApiController]
 public class CategoriesController : ApiControllerBase
