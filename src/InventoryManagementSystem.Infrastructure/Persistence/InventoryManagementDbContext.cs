@@ -131,6 +131,10 @@ public partial class InventoryManagementDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("FK_AspNetUsers_Company");
             entity.HasIndex(e => e.CompanyId, "IX_AspNetUsers_CompanyId");
+            entity.HasOne(d => d.Supplier)
+                .WithMany()
+                .HasForeignKey(d => d.SupplierId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<AspNetUserClaim>(entity =>
