@@ -16,6 +16,7 @@ public class GoodReceiptDto
     public string? SupplierCode { get; set; }
     public DateTime ReceiptDate { get; set; }
     public bool Status { get; set; }
+    public decimal TotalAmount { get; set; }
     public string ReceivedBy { get; set; } = string.Empty;
     public string? Note { get; set; }
     public int TotalItems => Items?.Count ?? 0;
