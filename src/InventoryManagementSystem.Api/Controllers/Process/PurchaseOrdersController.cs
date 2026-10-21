@@ -22,7 +22,7 @@ using InventoryManagementSystem.Application.Process.PurchaseOrders.Commands.Reje
 
 namespace InventoryManagementSystem.Api.Controllers.Process;
 
-[Authorize]
+[Authorize(Policy = "InternalUser")]
 [Route("api/process/purchase-orders")]
 [ApiController]
 public class PurchaseOrdersController : ApiControllerBase
