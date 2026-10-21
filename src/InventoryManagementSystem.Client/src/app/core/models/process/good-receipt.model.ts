@@ -8,6 +8,8 @@ export interface GoodReceiptItemModel {
     uomId: number;
     uomName?: string;
     receivedQuantity: number;
+    unitPrice?: number;
+    lineAmount?: number;
     createdOn?: Date | null;
     createdBy?: string | null;
     updatedOn?: Date | null;
@@ -29,6 +31,7 @@ export interface GoodReceiptModel {
     receivedBy: string;
     note?: string;
     totalItems?: number;
+    totalAmount?: number;
     idempotencyKey?: string;
     items: GoodReceiptItemModel[];
     createdOn?: Date | null;
