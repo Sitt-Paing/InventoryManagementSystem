@@ -1,6 +1,6 @@
 export const MM_DICTIONARY: Record<string, any> = {
   APP: {
-    NAME: 'ပစ္စည်းစာရင်း',
+    NAME: 'INNO',
     TITLE: 'ကုန်ပစ္စည်းစာရင်း စီမံခန့်ခွဲမှုစနစ်',
     SUBTITLE: 'လုပ်ငန်းသုံး သိုလှောင်ရုံနှင့် စတော့စနစ်'
   },
