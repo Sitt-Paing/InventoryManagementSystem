@@ -137,6 +137,8 @@ public class CreatePurchaseReturnPostCommandHandler : IRequestHandler<CreatePurc
                     "Return quantity is below the supported stock precision.");
             }
 
+            item.UnitPrice = source.UnitPrice;
+            item.LineAmount = decimal.Round(item.ReturnQuantity * item.UnitPrice, 2, MidpointRounding.AwayFromZero);
             stockQuantities.Add(item.Id, stockQuantity);
         }
         var stockGroups = items.GroupBy(item => new
@@ -201,6 +203,7 @@ public class CreatePurchaseReturnPostCommandHandler : IRequestHandler<CreatePurc
         if (products.Count != productIds.Count)
             throw new InvalidOperationException("One or more return products are unavailable.");
 
+        postedReturn.TotalAmount = items.Sum(item => item.LineAmount);
         postedReturn.Status = PurchaseReturnStatus.Posted;
         postedReturn.PostedBy = userId;
         postedReturn.PostedOn = now;
