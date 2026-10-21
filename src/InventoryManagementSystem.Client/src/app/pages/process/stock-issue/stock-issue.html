@@ -39,7 +39,7 @@
     <ng-template #header><tr>
       <th>#</th><th>Issue No</th><th>Issue Date</th><th>Warehouse</th><th>Department</th>
       <th>Received By</th><th>Items</th><th>Status</th><th>Posted By</th><th>Posted On</th>
-      <th>Created On</th><th>Created By</th><th>Updated On</th><th>Updated By</th><th pFrozenColumn alignFrozen="right">Actions</th>
+      <th>Created On</th><th>Created By</th><th pFrozenColumn alignFrozen="right">Actions</th>
     </tr></ng-template>
     <ng-template #body let-issue><tr [pSelectableRow]="issue">
       <td><span class="pi pi-circle" [class.pi-check-circle]="selectedStockIssue === issue" aria-hidden="true"></span></td>
@@ -49,10 +49,9 @@
       <td><p-tag [value]="issue.status === status.Posted ? 'Posted' : 'Draft'" [severity]="issue.status === status.Posted ? 'success' : 'secondary'"></p-tag></td>
       <td>{{ issue.postedByName || '-' }}</td><td>{{ issue.postedOn ? (issue.postedOn | date:'dd/MMM/yyyy hh:mm a') : '-' }}</td>
       <td>{{ issue.createdOn ? (issue.createdOn | date:'dd/MMM/yyyy hh:mm a') : '-' }}</td><td>{{ issue.createdBy || '-' }}</td>
-      <td>{{ issue.updatedOn ? (issue.updatedOn | date:'dd/MMM/yyyy hh:mm a') : '-' }}</td><td>{{ issue.updatedBy || '-' }}</td>
       <td pFrozenColumn alignFrozen="right"><p-button label="Detail" icon="pi pi-eye" size="small" [text]="true" (onClick)="viewDetail(issue); $event.stopPropagation()"></p-button></td>
     </tr></ng-template>
-    <ng-template #emptymessage><tr><td colspan="15" class="text-center p-6">
+    <ng-template #emptymessage><tr><td colspan="13" class="text-center p-6">
       {{ listError ? 'Unable to load stock issues.' : 'No stock issues found.' }}
     </td></tr></ng-template>
   </p-table>
