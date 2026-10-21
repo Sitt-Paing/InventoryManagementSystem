@@ -511,6 +511,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Property<int>("SupplierId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -564,6 +567,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Property<Guid>("GoodReceiptId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<decimal>("LineAmount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("ProductId")
                         .IsRequired()
                         .HasColumnType("nvarchar(50)");
@@ -576,6 +582,9 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
 
                     b.Property<decimal>("ReceivedQuantity")
                         .HasColumnType("decimal(18, 4)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<long>("UomId")
                         .HasColumnType("bigint");
@@ -1038,11 +1047,17 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Property<long>("GoodReceiptItemId")
                         .HasColumnType("bigint");
 
+                    b.Property<decimal>("LineAmount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<Guid>("PurchaseReturnId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("ReturnQuantity")
                         .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
