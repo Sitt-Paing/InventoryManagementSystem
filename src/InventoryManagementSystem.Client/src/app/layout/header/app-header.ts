@@ -11,7 +11,7 @@ import { LanguageCode } from '../../core/i18n/languages';
 import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
-import { NAVIGATION_MENU, NavigationMenuGroup, NavigationMenuItem } from '../../app.menu';
+import { NAVIGATION_MENU, SUPPLIER_NAVIGATION_MENU, NavigationMenuGroup, NavigationMenuItem } from '../../app.menu';
 import { BarcodeScannerDialog } from '../../shared/components/barcode-scanner-dialog/barcode-scanner-dialog';
 
 export interface BreadcrumbInfo {
@@ -63,6 +63,7 @@ export class AppHeader implements OnInit, OnDestroy {
       },
       {
         label: this.translationService.translate('HEADER.SYSTEM_SETTINGS'),
+        visible: !this.isSupplier,
         icon: 'pi pi-cog',
         command: () => this.router.navigate(['/settings'])
       },
@@ -78,6 +79,10 @@ export class AppHeader implements OnInit, OnDestroy {
 
   get displayName(): string {
     return this.authService.getUserName();
+  }
+
+  get isSupplier(): boolean {
+    return this.authService.isSupplierAccount();
   }
 
   get userInitial(): string {
@@ -106,13 +111,14 @@ export class AppHeader implements OnInit, OnDestroy {
 
   @HostListener('window:keydown', ['$event'])
   handleKeyboardShortcut(event: KeyboardEvent): void {
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'b') {
+    if (!this.isSupplier && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'b') {
       event.preventDefault();
       this.isBarcodeScannerOpen = true;
     }
   }
 
   openBarcodeScanner(): void {
+    if (this.isSupplier) return;
     this.isBarcodeScannerOpen = true;
   }
 
@@ -137,7 +143,8 @@ export class AppHeader implements OnInit, OnDestroy {
   private updateBreadcrumb(url: string): void {
     const cleanUrl = url.split('?')[0].split('#')[0];
 
-    for (const group of NAVIGATION_MENU) {
+    const menu = this.isSupplier ? SUPPLIER_NAVIGATION_MENU : NAVIGATION_MENU;
+    for (const group of menu) {
       if (group.items) {
         for (const item of group.items) {
           if (item.routerLink && (cleanUrl === item.routerLink || cleanUrl.startsWith(item.routerLink + '/'))) {
