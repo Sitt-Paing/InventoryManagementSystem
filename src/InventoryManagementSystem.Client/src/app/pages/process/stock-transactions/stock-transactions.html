@@ -124,6 +124,7 @@
     [sortOrder]="-1"
     [paginator]="true"
     paginatorDropdownAppendTo="body"
+    [scrollable]="true"
     [tableStyle]="{ 'min-width': '65rem', 'white-space': 'nowrap' }"
     [rows]="pageSize"
     [rowsPerPageOptions]="[20, 50, 100]"
@@ -142,7 +143,7 @@
         <th pSortableColumn="referenceNo">Ref No <p-sortIcon field="referenceNo"></p-sortIcon></th>
         <th pSortableColumn="transactionDate">Date <p-sortIcon field="transactionDate"></p-sortIcon></th>
         <th pSortableColumn="createdBy">Created By <p-sortIcon field="createdBy"></p-sortIcon></th>
-        <th class="text-center">Actions</th>
+        <th pFrozenColumn alignFrozen="right" class="text-center">Actions</th>
       </tr>
     </ng-template>
 
@@ -192,7 +193,7 @@
         <td class="font-mono text-xs text-slate-600 dark:text-slate-400">{{ txn.referenceNo || '-' }}</td>
         <td class="text-xs text-slate-600 dark:text-slate-400">{{ txn.transactionDate | date: 'dd/MM/yyyy HH:mm' }}</td>
         <td class="text-xs font-medium text-slate-600 dark:text-slate-400">{{ txn.createdBy || txn.userId || '-' }}</td>
-        <td class="text-center">
+        <td pFrozenColumn alignFrozen="right" class="text-center">
           <div class="flex items-center justify-center gap-0.5">
             <p-button
               icon="pi pi-eye"
