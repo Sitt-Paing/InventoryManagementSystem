@@ -14,7 +14,7 @@ using InventoryManagementSystem.Application.Process.PurchaseReturns.Queries.GetR
 
 namespace InventoryManagementSystem.Api.Controllers.Process;
 
-[Authorize]
+[Authorize(Policy = "InternalUser")]
 [Route("api/process/purchase-returns")]
 [ApiController]
 public class PurchaseReturnsController : ApiControllerBase
