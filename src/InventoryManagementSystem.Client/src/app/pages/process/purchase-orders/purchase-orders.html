@@ -82,7 +82,7 @@
         [totalRecords]="totalRecords" [rows]="pageSize" [paginator]="true" paginatorDropdownAppendTo="body"
         [rowsPerPageOptions]="[10, 20, 50, 100]" [showCurrentPageReport]="true"
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [loading]="isLoading"
-        [tableStyle]="{ 'min-width': '65rem', 'white-space': 'nowrap' }">
+        [scrollable]="true" [tableStyle]="{ 'min-width': '65rem', 'white-space': 'nowrap' }">
 
         <ng-template #header let-po>
             <tr style="white-space:nowrap" [pSelectableRow]="po">
@@ -94,11 +94,11 @@
                 <th pSortableColumn="expectedDate">Expected Date <p-sortIcon field="expectedDate"></p-sortIcon></th>
                 <th>Total Items</th>
                 <th pSortableColumn="totalAmount">Total Amount <p-sortIcon field="totalAmount"></p-sortIcon></th>
-                <th [style]="{ width: '230px' }">Actions</th>
                 <th pSortableColumn="status">Status <p-sortIcon field="status"></p-sortIcon></th>
                 <th>Approval Status</th>
                 <th pSortableColumn="createdOn">Created On <p-sortIcon field="createdOn"></p-sortIcon></th>
                 <th pSortableColumn="createdBy">Created By <p-sortIcon field="createdBy"></p-sortIcon></th>
+                <th pFrozenColumn alignFrozen="right" [style]="{ width: '230px' }">Actions</th>
             </tr>
         </ng-template>
 
@@ -116,6 +116,15 @@
                 <td class="text-center">{{ po.totalItems || po.items?.length || 0 }}</td>
                 <td class="font-semibold">{{ po.totalAmount | currency:'USD':'symbol':'1.2-2' }}</td>
                 <td>
+                    <p-tag [value]="getStatusLabel(po.status)" size="small"
+                        [icon]="getStatusIcon(po.status)"
+                        [severity]="getStatusSeverity(po.status)"></p-tag>
+                </td>
+                <td><p-tag [value]="getApprovalLabel(po.approvalStatus)" size="small"
+                    [severity]="getApprovalSeverity(po.approvalStatus)"></p-tag></td>
+                <td>{{ po.createdOn | date:'dd/MMM/yyyy hh:mm a' }}</td>
+                <td>{{ po.createdBy || '-' }}</td>
+                <td pFrozenColumn alignFrozen="right">
                     <div class="flex items-center gap-1">
                         <p-button label="Detail" icon="pi pi-eye" size="small" [text]="true" severity="info"
                             (onClick)="viewDetails(po); $event.stopPropagation()"></p-button>
@@ -139,15 +148,6 @@
                         }
                     </div>
                 </td>
-                <td>
-                    <p-tag [value]="getStatusLabel(po.status)" size="small"
-                        [icon]="getStatusIcon(po.status)"
-                        [severity]="getStatusSeverity(po.status)"></p-tag>
-                </td>
-                <td><p-tag [value]="getApprovalLabel(po.approvalStatus)" size="small"
-                    [severity]="getApprovalSeverity(po.approvalStatus)"></p-tag></td>
-                <td>{{ po.createdOn | date:'dd/MMM/yyyy hh:mm a' }}</td>
-                <td>{{ po.createdBy || '-' }}</td>
             </tr>
         </ng-template>
 
