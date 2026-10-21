@@ -39,7 +39,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   // Keep the originating screen's company when a refresh or another tab changes cookies.
   const requestCompanyId = authService.getCompanyId();
-  const isCompanyRequest = authPath.startsWith('/master/') || authPath.startsWith('/process/');
+  const requestSupplierId = authService.getSupplierId();
+  const isSupplierRequest = authPath.startsWith('/supplier/');
+  const isCompanyRequest = authPath.startsWith('/master/') || authPath.startsWith('/process/')
+    || authPath.startsWith('/usermanage/supplier-accounts') || authPath.startsWith('/supplier/');
   const isMutatingMethod = !['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(req.method.toUpperCase());
   const sendRequest = () => defer(() =>
     isMutatingMethod ? authService.getCsrfToken() : of(null)
@@ -53,6 +56,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       let headers = token ? req.headers.set('X-XSRF-TOKEN', token) : req.headers;
       if (isCompanyRequest && requestCompanyId !== null) {
         headers = headers.set('X-Company-Id', String(requestCompanyId));
+      }
+      if (isSupplierRequest && requestSupplierId !== null) {
+        headers = headers.set('X-Supplier-Id', String(requestSupplierId));
       }
       return next(req.clone({ withCredentials: true, headers }));
     })
