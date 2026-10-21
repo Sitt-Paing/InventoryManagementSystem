@@ -28,6 +28,7 @@ public class CurrentUserDto
     public string? Email { get; set; }
     public List<string> Roles { get; set; } = new();
     public int? CompanyId { get; set; }
+    public int? SupplierId { get; set; }
     public string? CompanyName { get; set; }
     public bool RequiresCompanySelection { get; set; }
     public string? Theme { get; set; }
@@ -76,6 +77,7 @@ public class AuthResultDto
     public string? Email { get; set; }
     public List<string> Roles { get; set; } = new();
     public int? CompanyId { get; set; }
+    public int? SupplierId { get; set; }
     public string? CompanyName { get; set; }
     public bool RequiresCompanySelection { get; set; }
     public List<string> Errors { get; set; } = new();
