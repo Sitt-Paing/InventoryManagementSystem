@@ -121,8 +121,17 @@ export class AuthService {
   }
 
   canSelectCompany(): boolean {
-    return (this.currentUserSubject.value?.roles ?? []).some(role =>
+    return !this.isSupplierAccount() && (this.currentUserSubject.value?.roles ?? []).some(role =>
       ['superadmin', 'administrator'].includes(role.toLowerCase()));
+  }
+
+  isSupplierAccount(): boolean {
+    return (this.currentUserSubject.value?.roles ?? []).some(role => role.toLowerCase() === 'supplier');
+  }
+
+  getLandingRoute(): string {
+    if (this.isSupplierAccount()) return '/supplier/dashboard';
+    return this.requiresCompanySelection() ? '/settings' : '/dashboard';
   }
 
   requiresCompanySelection(): boolean {
@@ -131,6 +140,10 @@ export class AuthService {
 
   getCompanyId(): number | null {
     return this.currentUserSubject.value?.companyId ?? null;
+  }
+
+  getSupplierId(): number | null {
+    return this.currentUserSubject.value?.supplierId ?? null;
   }
 
   getCompanyName(): string {
