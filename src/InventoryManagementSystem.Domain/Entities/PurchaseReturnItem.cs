@@ -12,6 +12,8 @@ public class PurchaseReturnItem : BaseAuditableEntity<long>, IMustHaveCompany
     public Guid PurchaseReturnId { get; set; }
     public long GoodReceiptItemId { get; set; }
     public decimal ReturnQuantity { get; set; } = 0;
+    public decimal UnitPrice { get; set; }
+    public decimal LineAmount { get; set; }
     [JsonIgnore]
     public virtual PurchaseReturn? PurchaseReturn { get; set; }
     [JsonIgnore]
