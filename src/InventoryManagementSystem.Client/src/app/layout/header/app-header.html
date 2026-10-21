@@ -44,6 +44,7 @@
   <!-- Right Section: Global Search, Language, Theme Toggle & User -->
   <div class="flex items-center gap-2 sm:gap-3 ml-auto">
     <!-- Barcode Scanner Quick Button -->
+    @if (!isSupplier) {
     <button
       type="button"
       (click)="openBarcodeScanner()"
@@ -53,6 +54,7 @@
       <span class="hidden sm:inline">Scan</span>
       <kbd class="hidden md:inline text-[9px] px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-mono text-slate-400">Ctrl+B</kbd>
     </button>
+    }
 
     <!-- Language Selector Pill & Dropdown -->
     <div class="relative">
@@ -145,5 +147,7 @@
 </header>
 
 <!-- Global Barcode & Location Scanner Dialog -->
-<app-barcode-scanner-dialog [(visible)]="isBarcodeScannerOpen"></app-barcode-scanner-dialog>
+@if (!isSupplier) {
+  <app-barcode-scanner-dialog [(visible)]="isBarcodeScannerOpen"></app-barcode-scanner-dialog>
+}
 
