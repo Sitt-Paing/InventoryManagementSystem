@@ -6,7 +6,7 @@ import { SharedService } from '../../core/services/shared.service';
 import { AuthService } from '../../core/services/auth.service';
 import { TranslationService } from '../../core/services/translation.service';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
-import { NAVIGATION_MENU, hasAnyMenuRole, NavigationMenuGroup, NavigationMenuItem } from '../../app.menu';
+import { NAVIGATION_MENU, SUPPLIER_NAVIGATION_MENU, hasAnyMenuRole, NavigationMenuGroup, NavigationMenuItem } from '../../app.menu';
 
 export interface NavItem extends NavigationMenuItem {}
 
@@ -24,15 +24,25 @@ export interface NavGroup {
   styleUrl: './app-sidebar.scss'
 })
 export class AppSidebar implements OnInit {
-  navGroups: NavGroup[] = NAVIGATION_MENU.map(group => ({
+  private companyGroups: NavGroup[] = NAVIGATION_MENU.map(group => ({
     groupName: group.label,
     transKey: group.transKey,
     items: group.items
   }));
 
+  private supplierGroups: NavGroup[] = SUPPLIER_NAVIGATION_MENU.map(group => ({
+    groupName: group.label,
+    transKey: group.transKey,
+    items: group.items
+  }));
+
+  get navGroups(): NavGroup[] {
+    return this.authService.isSupplierAccount() ? this.supplierGroups : this.companyGroups;
+  }
+
   // Track expanded/collapsed state for each menu group
   expandedGroups = signal<Record<string, boolean>>(
-    NAVIGATION_MENU.reduce((acc, group) => {
+    [...NAVIGATION_MENU, ...SUPPLIER_NAVIGATION_MENU].reduce((acc, group) => {
       acc[group.label] = true;
       return acc;
     }, {} as Record<string, boolean>)
