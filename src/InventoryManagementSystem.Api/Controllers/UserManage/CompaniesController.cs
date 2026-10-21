@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace InventoryManagementSystem.Api.Controllers.UserManage;
 
-[Authorize]
+[Authorize(Policy = "InternalUser")]
 [Route("api/usermanage/companies")]
 [ApiController]
 public class CompaniesController : ApiControllerBase
