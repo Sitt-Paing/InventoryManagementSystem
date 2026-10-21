@@ -113,6 +113,7 @@ public class AuthController : ApiControllerBase
                 result.Email,
                 result.Roles,
                 result.CompanyId,
+                result.SupplierId,
                 result.CompanyName,
                 result.RequiresCompanySelection,
                 Theme = command.Theme,
@@ -190,6 +191,7 @@ public class AuthController : ApiControllerBase
                 result.Email,
                 result.Roles,
                 result.CompanyId,
+                result.SupplierId,
                 result.CompanyName,
                 result.RequiresCompanySelection
             }
@@ -292,6 +294,7 @@ public class AuthController : ApiControllerBase
                 Roles = roles,
                 CompanyId = int.TryParse(User.FindFirst("company_id")?.Value, out var companyId) ? companyId : null,
                 CompanyName = User.FindFirst("company_name")?.Value,
+                SupplierId = int.TryParse(User.FindFirst("supplier_id")?.Value, out var supplierId) ? supplierId : null,
                 RequiresCompanySelection = (User.IsInRole("SuperAdmin") || User.IsInRole("Administrator"))
                     && !User.HasClaim(claim => claim.Type == "company_id")
             }
