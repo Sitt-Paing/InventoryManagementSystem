@@ -1,4 +1,5 @@
 using InventoryManagementSystem.Application.Auth.Models;
+using InventoryManagementSystem.Application.UserManage.SupplierAccounts.DTOs;
 using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
@@ -88,7 +89,7 @@ public class IdentityService : IIdentityService
             };
         }
 
-        string roleName = string.IsNullOrWhiteSpace(request.Role) ? "User" : request.Role;
+        const string roleName = "User";
         if (!await _roleManager.RoleExistsAsync(roleName))
         {
             await _roleManager.CreateAsync(new IdentityRole(roleName));
@@ -397,6 +398,22 @@ public class IdentityService : IIdentityService
         if (companyId.HasValue && companyName == null)
             return new AuthResultDto { Succeeded = false, Message = "The company account is inactive or unavailable." };
 
+        int? supplierId = null;
+        if (roles.Contains("Supplier"))
+        {
+            if (roles.Count != 1 || !companyId.HasValue)
+                return new AuthResultDto { Succeeded = false, Message = "Supplier account is not configured correctly." };
+
+            supplierId = await _inventoryContext.AspNetUsers.AsNoTracking()
+                .Where(account => account.Id == user.Id && account.CompanyId == companyId)
+                .Select(account => account.SupplierId).FirstOrDefaultAsync();
+            var activeSupplier = supplierId.HasValue && await _inventoryContext.Suppliers.IgnoreQueryFilters()
+                .AnyAsync(supplier => supplier.Id == supplierId.Value && supplier.CompanyId == companyId
+                    && supplier.Status && !supplier.DeletedOn.HasValue);
+            if (!activeSupplier)
+                return new AuthResultDto { Succeeded = false, Message = "Supplier account is inactive or unavailable." };
+        }
+
         List<Claim> claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id),
@@ -415,12 +432,15 @@ public class IdentityService : IIdentityService
         // Include any custom claims (e.g. company_id, company_name) in JWT
         var userClaims = await _userManager.GetClaimsAsync(user);
         claims.AddRange(userClaims.Where(claim => claim.Type != "company_id"
-            && claim.Type != "CompanyId" && claim.Type != "company_name"));
+            && claim.Type != "CompanyId" && claim.Type != "company_name" && claim.Type != "supplier_id"));
         if (companyId.HasValue)
         {
             claims.Add(new Claim("company_id", companyId.Value.ToString()));
             claims.Add(new Claim("company_name", companyName ?? string.Empty));
         }
+
+        if (supplierId.HasValue)
+            claims.Add(new Claim("supplier_id", supplierId.Value.ToString()));
 
         string? secretKey = _configuration["JwtSettings:SecretKey"] ?? "SuperSecretKeyForInventoryManagementSystem_JwtToken_2026!#";
         string? issuer = _configuration["JwtSettings:Issuer"] ?? "InventoryManagementSystem";
@@ -461,6 +481,7 @@ public class IdentityService : IIdentityService
         {
             CompanyId = companyId,
             CompanyName = companyName,
+            SupplierId = supplierId,
             RequiresCompanySelection = chooseCompany && !companyId.HasValue,
             Succeeded = true,
             Message = "Authentication successful.",
@@ -472,6 +493,103 @@ public class IdentityService : IIdentityService
             Email = user.Email,
             Roles = roles.ToList()
         };
+    }
+
+    public async Task<ResultDto> CreateSupplierAccountAsync(
+        string userName,
+        string email,
+        string password,
+        int companyId,
+        int supplierId)
+    {
+        if (!await _roleManager.RoleExistsAsync("Supplier"))
+        {
+            return ResultDto.Failure("Supplier role is not configured.");
+        }
+
+        await using var transaction =
+            await _context.Database.BeginTransactionAsync();
+
+        var user = new IdentityUser
+        {
+            UserName = userName.Trim(),
+            Email = email.Trim()
+        };
+
+        var result = await _userManager.CreateAsync(user, password);
+
+        if (!result.Succeeded)
+        {
+            return ResultDto.Failure(
+                result.Errors.Select(e => e.Description));
+        }
+
+        result = await _userManager.AddToRoleAsync(user, "Supplier");
+
+        if (!result.Succeeded)
+        {
+            return ResultDto.Failure(
+                result.Errors.Select(e => e.Description));
+        }
+
+        result = await _userManager.AddClaimAsync(
+            user,
+            new Claim("company_id", companyId.ToString()));
+
+        if (!result.Succeeded)
+        {
+            return ResultDto.Failure(
+                result.Errors.Select(e => e.Description));
+        }
+
+        var affectedRows = await _context.Database.ExecuteSqlInterpolatedAsync(
+            $"UPDATE AspNetUsers SET CompanyId = {companyId}, SupplierId = {supplierId} WHERE Id = {user.Id}");
+
+        if (affectedRows != 1)
+        {
+            return ResultDto.Failure("Unable to link the supplier account.");
+        }
+
+        await transaction.CommitAsync();
+
+        return ResultDto.Success(
+            "Supplier account created successfully.");
+    }
+
+    public Task<List<SupplierAccountDto>> GetSupplierAccountsAsync(int supplierId, int companyId, CancellationToken cancellationToken = default)
+    {
+        return _inventoryContext.AspNetUsers.AsNoTracking()
+            .Where(account => account.SupplierId == supplierId && account.CompanyId == companyId
+                && account.Roles.Any(role => role.Name == "Supplier")
+                && account.Roles.All(role => role.Name == "Supplier"))
+            .OrderBy(account => account.UserName)
+            .Select(account => new SupplierAccountDto
+            {
+                UserId = account.Id,
+                UserName = account.UserName,
+                Email = account.Email
+            }).ToListAsync(cancellationToken);
+    }
+
+    public async Task<ResultDto> DeleteSupplierAccountAsync(string userId, int companyId)
+    {
+        var belongsToCompany = await _inventoryContext.AspNetUsers.AsNoTracking()
+            .AnyAsync(account => account.Id == userId && account.CompanyId == companyId && account.SupplierId.HasValue);
+        if (!belongsToCompany)
+            return ResultDto.Failure("Supplier account not found in the current company.");
+
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+            return ResultDto.Failure("Supplier account not found.");
+
+        var roles = await _userManager.GetRolesAsync(user);
+        if (roles.Count != 1 || !roles.Contains("Supplier"))
+            return ResultDto.Failure("Only supplier login accounts can be deleted here.");
+
+        var result = await _userManager.DeleteAsync(user);
+        return result.Succeeded
+            ? ResultDto.Success("Supplier login account deleted successfully.")
+            : ResultDto.Failure(result.Errors.Select(error => error.Description));
     }
 
     private string GenerateRefreshToken()
