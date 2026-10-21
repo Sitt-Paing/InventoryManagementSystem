@@ -1,0 +1,107 @@
+<div class="table-card">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4">
+    <h2 class="text-lg font-semibold">{{ titleKey | translate }}</h2>
+    <p-iconfield iconPosition="left" class="w-full sm:w-60">
+      <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+      <input pInputText [(ngModel)]="searchKeyword" (keydown.enter)="applyFilters()" pSize="small"
+        placeholder="Search document number" aria-label="Search document number" class="w-full" />
+    </p-iconfield>
+  </div>
+  <div class="flex flex-wrap gap-3 px-4 pb-4">
+    <p-datepicker [(ngModel)]="startDate" dateFormat="dd/mm/yy" [showIcon]="true" iconDisplay="input"
+      [showClear]="true" [readonlyInput]="true" placeholder="Start Date" ariaLabel="Start date" appendTo="body"></p-datepicker>
+    <p-datepicker [(ngModel)]="endDate" dateFormat="dd/mm/yy" [showIcon]="true" iconDisplay="input"
+      [showClear]="true" [readonlyInput]="true" placeholder="End Date" ariaLabel="End date" appendTo="body"></p-datepicker>
+    <p-button label="Apply" (onClick)="applyFilters()"></p-button>
+    <p-button label="Clear" severity="secondary" [outlined]="true" (onClick)="clearFilters()"></p-button>
+  </div>
+  @if (listError) {
+    <div role="alert" class="text-red-500 px-4 pb-3">{{ listError }}
+      <p-button label="Retry" [text]="true" size="small" (onClick)="loadData()"></p-button>
+    </div>
+  }
+  <p-table [value]="documents" [lazy]="true" [lazyLoadOnInit]="false" (onLazyLoad)="onLazyLoad($event)"
+    [loading]="isLoading" [paginator]="true" [first]="first" [rows]="rows" [totalRecords]="totalRecords"
+    [rowsPerPageOptions]="[20,50,100]" [sortField]="sortField" [sortOrder]="sortOrder" [scrollable]="true"
+    [tableStyle]="{'min-width':'78rem','white-space':'nowrap'}" [showCurrentPageReport]="true"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" paginatorDropdownAppendTo="body" stripedRows="true">
+    <ng-template #header><tr>
+      <th pSortableColumn="documentNo">Document No <p-sortIcon field="documentNo"></p-sortIcon></th>
+      <th pSortableColumn="documentDate">Date <p-sortIcon field="documentDate"></p-sortIcon></th>
+      @if (kind === 'purchase-orders') { <th>Expected Date</th> }
+      @if (kind === 'goods-receipts') { <th>Purchase Order</th> }
+      <th>Warehouse</th><th>Items</th><th>Status</th>
+      <th pSortableColumn="totalAmount" class="text-right">Total Amount <p-sortIcon field="totalAmount"></p-sortIcon></th>
+      <th pFrozenColumn alignFrozen="right">Actions</th>
+    </tr></ng-template>
+    <ng-template #body let-row><tr>
+      <td><button type="button" class="text-primary hover:underline" (click)="viewDetail(row)">{{ row.documentNo }}</button></td>
+      <td>{{ row.documentDate | date:'dd/MMM/yyyy' }}</td>
+      @if (kind === 'purchase-orders') { <td>{{ row.expectedDate | date:'dd/MMM/yyyy' }}</td> }
+      @if (kind === 'goods-receipts') { <td>{{ row.purchaseOrderNo || '-' }}</td> }
+      <td>{{ row.warehouseName || '-' }}</td><td>{{ row.totalItems }}</td>
+      <td><p-tag [value]="row.status" [severity]="row.status === 'Cancelled' ? 'danger' : 'success'"></p-tag></td>
+      <td class="text-right font-semibold">{{ row.totalAmount | number:'1.0-0' }} MMK</td>
+      <td pFrozenColumn alignFrozen="right"><div class="flex gap-1">
+        <p-button label="Detail" icon="pi pi-eye" size="small" [text]="true" (onClick)="viewDetail(row)"></p-button>
+        <p-button label="Print" icon="pi pi-print" size="small" [text]="true" severity="secondary" (onClick)="viewDetail(row, true)"></p-button>
+      </div></td>
+    </tr></ng-template>
+    <ng-template #emptymessage><tr><td [attr.colspan]="kind === 'purchase-returns' ? 7 : 8" class="p-6 text-center">
+      {{ listError ? 'Unable to load documents.' : 'No documents found.' }}
+    </td></tr></ng-template>
+  </p-table>
+</div>
+
+<p-dialog [header]="(titleKey | translate) + (printPreview ? ' - Print Preview' : ' - Detail')" [(visible)]="detailVisible"
+  [modal]="true" [draggable]="false" [resizable]="false" [style]="{width:'76rem',maxWidth:'96vw'}" (onHide)="closeDetail()">
+  @if (isDetailLoading) { <p role="status">Loading document...</p> }
+  @if (detailError) { <p role="alert" class="text-red-500">{{ detailError }}</p> }
+  @if (current; as document) {
+    <article #voucher>
+      <h2 class="text-lg font-bold">{{ authService.getCompanyName() }}</h2>
+      <h3 class="text-base font-semibold mt-1">{{ titleKey | translate }} — {{ document.documentNo }}</h3>
+      <div class="document-meta grid grid-cols-1 md:grid-cols-3 gap-4 my-4">
+        <div><strong>Supplier</strong><p>{{ document.supplierName }}</p><p class="text-xs">{{ document.supplierAddress }}</p></div>
+        <div><strong>Date</strong><p>{{ document.documentDate | date:'dd/MMM/yyyy' }}</p></div>
+        <div><strong>Status</strong><p>{{ document.status }}</p></div>
+        @if (document.expectedDate) { <div><strong>Expected Date</strong><p>{{ document.expectedDate | date:'dd/MMM/yyyy' }}</p></div> }
+        @if (document.warehouseName) { <div><strong>Warehouse</strong><p>{{ document.warehouseName }}</p></div> }
+        @if (document.purchaseOrderNo) { <div><strong>Purchase Order</strong><p>{{ document.purchaseOrderNo }}</p></div> }
+      </div>
+      @if (document.note) { <p class="mb-3"><strong>{{ document.status === 'Cancelled' ? 'Cancellation Reason' : 'Reason' }}:</strong> {{ document.note }}</p> }
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr style="background:var(--bg-table-hdr)">
+            @if (kind === 'purchase-returns') { <th class="p-2 text-left">GRN / PO</th><th class="p-2 text-left">Warehouse</th> }
+            <th class="p-2 text-left">Product / SKU</th><th class="p-2 text-left">UOM</th>
+            <th class="p-2 text-right">{{ kind === 'purchase-orders' ? 'Ordered' : (kind === 'goods-receipts' ? 'Received' : 'Return') }} Quantity</th>
+            @if (kind === 'purchase-orders') { <th class="p-2 text-right">Received Quantity</th> }
+            <th class="p-2 text-right">Unit Price</th><th class="p-2 text-right">Line Amount</th>
+          </tr></thead>
+          <tbody>
+            @for (item of document.items; track $index) {
+              <tr class="border-b" style="border-color:var(--border-color)">
+                @if (kind === 'purchase-returns') {
+                  <td class="p-2">{{ item.receiptNo }}<p class="text-xs">{{ item.purchaseOrderNo }}</p></td>
+                  <td class="p-2">{{ item.warehouseName }}</td>
+                }
+                <td class="p-2">{{ item.productName }}<p class="text-xs">{{ item.productSku }}</p></td>
+                <td class="p-2">{{ item.uomName }}</td><td class="p-2 text-right">{{ item.quantity | number:'1.0-4' }}</td>
+                @if (kind === 'purchase-orders') { <td class="p-2 text-right">{{ item.receivedQuantity | number:'1.0-4' }}</td> }
+                <td class="p-2 text-right">{{ item.unitPrice | number:'1.0-0' }} MMK</td>
+                <td class="p-2 text-right">{{ item.lineAmount | number:'1.0-0' }} MMK</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="document-total text-right font-bold mt-4">Total Amount: {{ document.totalAmount | number:'1.0-0' }} MMK</p>
+    </article>
+  }
+  <div class="flex flex-wrap justify-end gap-2 mt-4 pt-3">
+    <p-button label="Print Voucher" icon="pi pi-print" severity="secondary" [outlined]="true" size="small"
+      styleClass="w-40" [disabled]="!current || isDetailLoading" (onClick)="printVoucher()"></p-button>
+    <p-button label="Close" severity="secondary" [outlined]="true" size="small" styleClass="w-40" (onClick)="detailVisible = false"></p-button>
+  </div>
+</p-dialog>
