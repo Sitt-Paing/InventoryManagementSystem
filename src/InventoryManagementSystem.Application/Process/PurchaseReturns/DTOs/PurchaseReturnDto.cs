@@ -10,6 +10,7 @@ public class PurchaseReturnDto
     public string SupplierName { get; set; } = string.Empty;
     public DateTime ReturnDate { get; set; }
     public PurchaseReturnStatus Status { get; set; }
+    public decimal TotalAmount { get; set; }
     public string? ReturnReason { get; set; }
     public string? PostedBy { get; set; }
     public string? PostedByName { get; set; }
