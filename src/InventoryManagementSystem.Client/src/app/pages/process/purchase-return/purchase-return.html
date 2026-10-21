@@ -71,7 +71,7 @@
       <th pSortableColumn="returnDate">Return Date <p-sortIcon field="returnDate"></p-sortIcon></th>
       <th>Items</th><th class="text-right">Total Amount</th><th pSortableColumn="status">Status <p-sortIcon field="status"></p-sortIcon></th>
       <th>Posted By</th><th pSortableColumn="postedOn">Posted On <p-sortIcon field="postedOn"></p-sortIcon></th>
-      <th>Actions</th>
+      <th pFrozenColumn alignFrozen="right">Actions</th>
     </tr></ng-template>
     <ng-template #body let-row><tr [pSelectableRow]="row">
       <td pFrozenColumn>
@@ -84,7 +84,7 @@
       <td class="text-right font-semibold">{{ row.totalAmount | number:'1.0-0' }} MMK</td>
       <td><p-tag [value]="row.status === status.Posted ? 'Posted' : 'Draft'" [severity]="row.status === status.Posted ? 'success' : 'secondary'"></p-tag></td>
       <td>{{ row.postedByName || '-' }}</td><td>{{ row.postedOn ? (row.postedOn | date:'dd/MMM/yyyy hh:mm a') : '-' }}</td>
-      <td (click)="$event.stopPropagation()"><div class="flex gap-1">
+      <td pFrozenColumn alignFrozen="right" (click)="$event.stopPropagation()"><div class="flex gap-1">
         <p-button label="Detail" icon="pi pi-eye" size="small" [text]="true" (onClick)="viewDetail(row)"></p-button>
         <p-button label="Print" icon="pi pi-print" size="small" [text]="true" severity="secondary" (onClick)="printReturn(row)"></p-button>
         @if (row.status === status.Draft) {
