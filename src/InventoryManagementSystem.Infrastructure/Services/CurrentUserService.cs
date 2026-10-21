@@ -39,6 +39,15 @@ public class CurrentUserService : ICurrentUserService
         }
     }
 
+    public int? SupplierId
+    {
+        get
+        {
+            var value = _httpContextAccessor.HttpContext?.User?.FindFirst("supplier_id")?.Value;
+            return int.TryParse(value, out var supplierId) ? supplierId : null;
+        }
+    }
+
     public bool IsSuperAdmin
     {
         get
