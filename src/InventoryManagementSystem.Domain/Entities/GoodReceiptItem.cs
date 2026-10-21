@@ -15,6 +15,8 @@ public partial class GoodReceiptItem : BaseAuditableEntity<long>, IMustHaveCompa
     public Guid ProductId { get; set; }
     public long UomId { get; set; }
     public decimal ReceivedQuantity { get; set; }
+    public decimal UnitPrice { get; set; }
+    public decimal LineAmount { get; set; }
     public decimal? ReceivedBaseQuantity { get; set; }
 
     [JsonIgnore]
