@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryManagementSystem.Api.Controllers.Master
 {
-    [Authorize]
+    [Authorize(Policy = "InternalUser")]
     [Route("api/master/products")]
     [ApiController]
     public class ProductsController : ApiControllerBase
