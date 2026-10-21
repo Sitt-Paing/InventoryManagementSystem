@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryManagementSystem.Api.Controllers.Process;
 
-[Authorize]
+[Authorize(Policy = "InternalUser")]
 [Route("api/process/good-receipts")]
 [ApiController]
 public class GoodReceiptsController : ApiControllerBase
