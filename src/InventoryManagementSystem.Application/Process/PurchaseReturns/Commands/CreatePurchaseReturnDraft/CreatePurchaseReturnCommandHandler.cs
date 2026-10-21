@@ -142,13 +142,17 @@ public class CreatePurchaseReturnCommandHandler : IRequestHandler<CreatePurchase
         };
         foreach (var item in request.Items)
         {   
+            var receiptItem = receiptItems.Single(source => source.Id == item.GoodReceiptItemId);
             purchaseReturn.Items.Add(new PurchaseReturnItem
             {
                 GoodReceiptItemId = item.GoodReceiptItemId,
                 ReturnQuantity = item.ReturnQuantity,
+                UnitPrice = receiptItem.UnitPrice,
+                LineAmount = decimal.Round(item.ReturnQuantity * receiptItem.UnitPrice, 2, MidpointRounding.AwayFromZero),
                 CompanyId = companyId
             });
         }
+        purchaseReturn.TotalAmount = purchaseReturn.Items.Sum(item => item.LineAmount);
         _context.PurchaseReturns.Add(purchaseReturn);
         await _context.SaveChangesAsync(cancellationToken);
         var response = await _sender.Send(new GetPurchaseReturnByIdQuery(purchaseReturn.Id), cancellationToken);
