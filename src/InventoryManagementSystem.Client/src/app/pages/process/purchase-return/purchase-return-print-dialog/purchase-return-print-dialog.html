@@ -51,6 +51,8 @@
                             <th>WAREHOUSE</th>
                             <th>UOM</th>
                             <th style="text-align: right;">RETURN QTY</th>
+                            <th style="text-align: right;">UNIT PRICE</th>
+                            <th style="text-align: right;">LINE AMOUNT</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -62,9 +64,17 @@
                             <td>{{ item.warehouseName }}</td>
                             <td>{{ item.uomName }}</td>
                             <td style="text-align: right; font-weight: bold;">{{ item.returnQuantity | number:'1.0-4' }}</td>
+                            <td style="text-align: right;">{{ item.unitPrice | number:'1.0-0' }} MMK</td>
+                            <td style="text-align: right; font-weight: bold;">{{ item.lineAmount | number:'1.0-0' }} MMK</td>
                         </tr>
                         }
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="7" style="text-align: right; font-weight: bold;">TOTAL AMOUNT:</td>
+                            <td style="text-align: right; font-weight: bold;">{{ current.totalAmount | number:'1.0-0' }} MMK</td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
 
