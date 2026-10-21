@@ -36,6 +36,7 @@ public class GetGoodReceiptByIdQueryHandler : IRequestHandler<GetGoodReceiptById
                 SupplierCode = gr.Supplier != null ? gr.Supplier.SupplierCode : null,
                 ReceiptDate = gr.ReceiptDate,
                 Status = gr.Status,
+                TotalAmount = gr.TotalAmount,
                 ReceivedBy = gr.ReceivedBy,
                 Note = gr.Note,
                 CreatedOn = gr.CreatedOn,
@@ -55,6 +56,8 @@ public class GetGoodReceiptByIdQueryHandler : IRequestHandler<GetGoodReceiptById
                         UomId = i.UomId,
                         UomName = i.Uom != null ? i.Uom.Name : string.Empty,
                         ReceivedQuantity = i.ReceivedQuantity,
+                        UnitPrice = i.UnitPrice,
+                        LineAmount = i.LineAmount,
                         CreatedOn = i.CreatedOn,
                         CreatedBy = i.CreatedBy
                     }).ToList()
