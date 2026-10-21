@@ -1,0 +1,47 @@
+<section class="table-card p-4 md:p-6 mb-4">
+  <div class="flex flex-wrap justify-between gap-3">
+    <div><h2 class="text-lg font-semibold">{{ 'NAV.DASHBOARD' | translate }}</h2>
+      <p class="mt-1 text-sm">{{ authService.getCompanyName() }} · {{ authService.getUserName() }}</p></div>
+    <div class="flex flex-wrap gap-2">
+      <p-datepicker [(ngModel)]="startDate" dateFormat="dd/mm/yy" [showIcon]="true" iconDisplay="input"
+        [showClear]="true" [readonlyInput]="true" placeholder="Start Date" ariaLabel="Start date" appendTo="body"></p-datepicker>
+      <p-datepicker [(ngModel)]="endDate" dateFormat="dd/mm/yy" [showIcon]="true" iconDisplay="input"
+        [showClear]="true" [readonlyInput]="true" placeholder="End Date" ariaLabel="End date" appendTo="body"></p-datepicker>
+      <p-button label="Apply" (onClick)="loadData()"></p-button>
+      <p-button label="Clear" severity="secondary" [outlined]="true" (onClick)="clearFilters()"></p-button>
+    </div>
+  </div>
+  @if (isLoading) { <p role="status" class="mt-4">Loading dashboard...</p> }
+  @if (errorMessage) {
+    <div role="alert" class="text-red-500 mt-4">{{ errorMessage }}
+      <p-button label="Retry" size="small" [text]="true" (onClick)="loadData()"></p-button>
+    </div>
+  }
+</section>
+@if (summary; as data) {
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    <a routerLink="/supplier/purchase-orders" class="table-card p-5 block hover:opacity-80">
+      <p class="font-semibold">{{ 'NAV.PURCHASE_ORDERS' | translate }}</p>
+      <p class="text-2xl font-bold mt-3">{{ data.purchaseOrders.count }}</p>
+      <p class="font-semibold mt-1">{{ data.purchaseOrders.totalAmount | number:'1.0-0' }} MMK</p>
+      <p class="text-xs mt-2" style="color:var(--text-muted)">Approved orders, excluding cancelled orders</p>
+    </a>
+    <a routerLink="/supplier/goods-receipts" class="table-card p-5 block hover:opacity-80">
+      <p class="font-semibold">{{ 'NAV.GOOD_RECEIPTS' | translate }}</p>
+      <p class="text-2xl font-bold mt-3">{{ data.goodsReceipts.count }}</p>
+      <p class="font-semibold mt-1">{{ data.goodsReceipts.totalAmount | number:'1.0-0' }} MMK</p>
+      <p class="text-xs mt-2" style="color:var(--text-muted)">Received Amount</p>
+    </a>
+    <a routerLink="/supplier/purchase-returns" class="table-card p-5 block hover:opacity-80">
+      <p class="font-semibold">{{ 'NAV.PURCHASE_RETURN' | translate }}</p>
+      <p class="text-2xl font-bold mt-3">{{ data.purchaseReturns.count }}</p>
+      <p class="font-semibold mt-1">{{ data.purchaseReturns.totalAmount | number:'1.0-0' }} MMK</p>
+      <p class="text-xs mt-2" style="color:var(--text-muted)">Posted Return Amount</p>
+    </a>
+    <div class="table-card p-5">
+      <p class="font-semibold">Net Received Amount</p>
+      <p class="text-xl font-bold mt-3">{{ data.netReceivedAmount | number:'1.0-0' }} MMK</p>
+      <p class="text-xs mt-2" style="color:var(--text-muted)">Received amount minus posted returns in the selected period. Payment balance is not included.</p>
+    </div>
+  </div>
+}
