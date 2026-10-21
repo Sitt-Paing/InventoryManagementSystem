@@ -1,27 +1,30 @@
 # Inventory Management System
 
-**From purchase orders to warehouse stock — one connected workflow.**
+**Purchasing, warehouse stock, and supplier visibility — one connected workflow.**
 
 ![Angular](https://img.shields.io/badge/Angular-20-DD0031)
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4)
 ![SQL Server](https://img.shields.io/badge/SQL_Server-Database-CC2927)
 ![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Email_Queue-FF6600)
 
-A full-stack inventory app with purchasing, department stock issues, barcode lookup, queued email, and company-based access.
+A full-stack inventory app with purchasing, a supplier portal, department stock issues, barcode lookup, queued email, and company-based access.
 
 ## Highlights
 
 | Feature | What it does |
 | --- | --- |
-| Inventory | Products, suppliers, departments, warehouses, and units of measure |
+| Inventory | Products, departments, warehouses, and units of measure |
 | Purchasing | Purchase orders, approval, and goods receipts |
 | Purchase returns | Combine items from multiple GRNs; deduct stock when posted |
+| Supplier portal | Read-only PO, GRN, and return lists with search, date filters, pagination, details, and printing |
+| Supplier accounts | Manage supplier details and optional login accounts from User Management |
+| Amounts | Snapshot GRN/return prices, MMK totals, and a supplier dashboard showing received value minus posted returns |
 | Stock issues | Issue items to departments; barcode/SKU entry, Draft → Posted workflow, and stock deduction |
 | Barcodes | Generate product barcodes and look up items with a scanner or SKU |
 | Queued email | Purchase-order emails through RabbitMQ, a database outbox, and SMTP |
-| Authentication | Cookie-based JWT authentication, refresh tokens, roles, and CSRF protection |
+| Authentication | HttpOnly JWT cookies, refresh tokens, CSRF protection, and separate company/supplier permissions |
 | Company accounts | Admin company selection and company-scoped inventory data |
-| Documents & UI | PO/return printing, Excel export, and light/dark themes |
+| Documents & UI | PO/GRN/return printing, Excel export, and light/dark themes |
 
 ```text
 Purchase Order → Approval → Goods Receipt → Warehouse Stock
@@ -30,6 +33,8 @@ Purchase Order → Approval → Goods Receipt → Warehouse Stock
 ```
 
 Returns and issues change stock when posted. Drafts support editing and soft deletion; posted records are protected from changes.
+
+Supplier accounts share the existing layout and see only their own documents. Net received value excludes invoices and payments.
 
 ## Tech & skills
 
