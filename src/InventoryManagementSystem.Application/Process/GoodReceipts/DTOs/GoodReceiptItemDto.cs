@@ -13,6 +13,8 @@ public class GoodReceiptItemDto
     public long UomId { get; set; }
     public string UomName { get; set; } = string.Empty;
     public decimal ReceivedQuantity { get; set; }
+    public decimal UnitPrice { get; set; }
+    public decimal LineAmount { get; set; }
     public DateTime? CreatedOn { get; set; }
     public string? CreatedBy { get; set; }
 }
