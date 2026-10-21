@@ -81,6 +81,16 @@ public class ApplicationDbContextInitializer
             await _roleManager.CreateAsync(superAdminRole);
         }
 
+        if(!await _roleManager.RoleExistsAsync("Supplier"))
+        {
+            var result = await _roleManager.CreateAsync(new IdentityRole("Supplier"));
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    "Unable to create Supplier role.");
+            }
+        }
+
         var administratorRole = new IdentityRole("Administrator");
         if (_roleManager.Roles.All(r => r.Name != administratorRole.Name))
         {
