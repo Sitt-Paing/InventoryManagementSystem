@@ -1,10 +1,10 @@
-using InventoryManagementSystem.Application.Auth.Commands.RegisterCompanyWithAdmin;
+using InventoryManagementSystem.Application.UserManage.Companies.Commands.RegisterCompanyWithAdmin;
 using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Application.Common.Models;
-using InventoryManagementSystem.Application.Master.Companies.Commands.DeleteCompany;
-using InventoryManagementSystem.Application.Master.Companies.Commands.UpdateCompany;
-using InventoryManagementSystem.Application.Master.Companies.Queries.GetCompanies;
-using InventoryManagementSystem.Application.Master.Companies.Queries.GetCompanyById;
+using InventoryManagementSystem.Application.UserManage.Companies.Commands.DeleteCompany;
+using InventoryManagementSystem.Application.UserManage.Companies.Commands.UpdateCompany;
+using InventoryManagementSystem.Application.UserManage.Companies.Queries.GetCompanies;
+using InventoryManagementSystem.Application.UserManage.Companies.Queries.GetCompanyById;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
