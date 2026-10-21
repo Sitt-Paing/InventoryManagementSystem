@@ -84,6 +84,7 @@ public class GetPurchaseReturnsQueryHandler : IRequestHandler<GetPurchaseReturns
                 SupplierName = pr.Supplier != null ? pr.Supplier.CompanyName : string.Empty,
                 ReturnDate = pr.ReturnDate,
                 Status = pr.Status,
+                TotalAmount = pr.TotalAmount,
                 ReturnReason = pr.ReturnReason,
                 PostedBy = pr.PostedBy,
                 PostedOn = pr.PostedOn,
@@ -109,7 +110,9 @@ public class GetPurchaseReturnsQueryHandler : IRequestHandler<GetPurchaseReturns
                         WarehouseId = item.GoodReceiptItem.GoodReceipt.WarehouseId,
                         WarehouseName = item.GoodReceiptItem.GoodReceipt.Warehouse != null
                             ? item.GoodReceiptItem.GoodReceipt.Warehouse.Name : string.Empty,
-                        ReturnQuantity = item.ReturnQuantity
+                        ReturnQuantity = item.ReturnQuantity,
+                        UnitPrice = item.UnitPrice,
+                        LineAmount = item.LineAmount
                     }).ToList()
             })
             .ToListAsync(cancellationToken);
