@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace InventoryManagementSystem.Api.Controllers.Master;
 
-[Authorize]
+[Authorize(Policy = "InternalUser")]
 [Route("api/master/uom-categories")]
 [ApiController]
 public class UomCategoriesController : ApiControllerBase
