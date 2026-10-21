@@ -78,12 +78,6 @@ export const NAVIGATION_MENU: Readonly<NavigationMenuGroup[]> = [
         routerLink: '/master/products',
       },
       {
-        label: 'Suppliers',
-        transKey: 'NAV.SUPPLIERS',
-        icon: 'pi pi-users',
-        routerLink: '/master/suppliers',
-      },
-      {
         label: 'Departments',
         transKey: 'NAV.DEPARTMENTS',
         icon: 'pi pi-sitemap',
@@ -157,12 +151,55 @@ export const NAVIGATION_MENU: Readonly<NavigationMenuGroup[]> = [
         routerLink: '/user-manage/company',
         // data: { roles: ADMIN },
       },
+      {
+        label: 'Suppliers',
+        transKey: 'NAV.SUPPLIERS',
+        icon: 'pi pi-users',
+        routerLink: '/user-manage/suppliers',
+      },
     ],
   },
   {
     label: 'REPORTS',
     transKey: 'NAV.REPORTS',
     items: []
+  },
+];
+
+export const SUPPLIER_NAVIGATION_MENU: Readonly<NavigationMenuGroup[]> = [
+  {
+    label: 'SUPPLIER',
+    transKey: 'NAV.SUPPLIER_PORTAL',
+    items: [
+      {
+        label: 'Dashboard',
+        transKey: 'NAV.DASHBOARD',
+        icon: 'pi pi-home',
+        routerLink: '/supplier/dashboard',
+        data: { roles: ['supplier'] },
+      },
+      {
+        label: 'Purchase Orders',
+        transKey: 'NAV.PURCHASE_ORDERS',
+        icon: 'pi pi-shopping-cart',
+        routerLink: '/supplier/purchase-orders',
+        data: { roles: ['supplier'] },
+      },
+      {
+        label: 'Goods Receipts',
+        transKey: 'NAV.GOOD_RECEIPTS',
+        icon: 'pi pi-inbox',
+        routerLink: '/supplier/goods-receipts',
+        data: { roles: ['supplier'] },
+      },
+      {
+        label: 'Purchase Returns',
+        transKey: 'NAV.PURCHASE_RETURN',
+        icon: 'pi pi-replay',
+        routerLink: '/supplier/purchase-returns',
+        data: { roles: ['supplier'] },
+      },
+    ],
   },
 ];
 
