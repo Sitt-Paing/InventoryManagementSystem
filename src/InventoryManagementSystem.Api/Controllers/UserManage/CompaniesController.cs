@@ -65,6 +65,7 @@ public class CompaniesController : ApiControllerBase
     }
 
     [HttpPost("register-with-admin")]
+    [Authorize(Roles = "SuperAdmin,Administrator")]
     [EndpointSummary("SuperAdmin: Register client company with initial admin user")]
     public async Task<IActionResult> RegisterWithAdmin([FromBody] RegisterCompanyWithAdminCommand command)
     {
