@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryManagementSystem.Api.Controllers.Process;
 
-[Authorize]
+[Authorize(Policy = "InternalUser")]
 [Route("api/process/stock-issues")]
 [ApiController]
 public class StockIssuesController : ApiControllerBase
