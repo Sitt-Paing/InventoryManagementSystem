@@ -15,6 +15,9 @@
 [Dd]ebug/
 [Rr]elease/
 
+# Local verification builds, generated previews, and other output artifacts
+/output/
+
 # Tooling & IDEs
 .vscode/*
 !.vscode/settings.json
