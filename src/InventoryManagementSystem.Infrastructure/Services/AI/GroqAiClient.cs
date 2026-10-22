@@ -21,23 +21,17 @@ public sealed class GroqAiClient
     public async Task<string> GenerateAsync(
         string instructions,
         string prompt,
-        CancellationToken cancellationToken = default,
-        object? responseFormat = null)
+        CancellationToken cancellationToken = default)
     {
-        var payload = new Dictionary<string, object>
+        var payload = new
         {
-            ["model"] = _settings.Model,
-            ["messages"] = new[]
+            model = _settings.Model,
+            messages = new[]
             {
                 new { role = "system", content = instructions },
                 new { role = "user", content = prompt }
             }
         };
-
-        if (responseFormat is not null)
-        {
-            payload["response_format"] = responseFormat;
-        }
 
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
