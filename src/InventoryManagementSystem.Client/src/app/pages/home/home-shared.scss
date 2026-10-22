@@ -1,0 +1,23 @@
+.shell { width: min(1180px, calc(100% - 64px)); margin-inline: auto; }
+a { text-decoration: none; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--home-accent); outline-offset: 5px; }
+.button { display: inline-flex; align-items: center; justify-content: center; gap: 16px; padding: 14px 20px; min-height: 48px; border: 1px solid transparent; border-radius: 7px; font-size: 13px; line-height: 1.4; font-weight: 600; transition: background .18s, transform .18s; }
+.button:hover { transform: translateY(-2px); }
+.button i { font-size: 12px; }
+.button-primary { color: #fff; background: #087f5b; border-color: #087f5b; }
+.button-primary:hover { background: #066649; }
+.button-secondary { color: var(--text-main); background: var(--bg-card); border-color: var(--border-color); }
+.button-secondary:hover { border-color: var(--home-accent); }
+.eyebrow { margin: 0 0 18px; font-size: 10px; font-weight: 650; letter-spacing: .14em; color: var(--home-accent); line-height: 1.6; }
+h2 { margin: 0; font-size: clamp(29px, 3vw, 40px); line-height: 1.2; letter-spacing: -.045em; font-weight: 600; }
+h3 { margin: 0; font-weight: 600; letter-spacing: -.025em; }
+
+@media (max-width: 560px) {
+  .shell { width: calc(100% - 40px); }
+  .eyebrow { font-size: 9px; margin-bottom: 14px; }
+  h2 { font-size: 30px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .button { transition: none; }
+  .button:hover { transform: none; }
+}
