@@ -2,6 +2,7 @@ using InventoryManagementSystem.Application.Common.Interfaces;
 using InventoryManagementSystem.Infrastructure.Auth;
 using InventoryManagementSystem.Infrastructure.Persistence;
 using InventoryManagementSystem.Infrastructure.Services;
+using InventoryManagementSystem.Infrastructure.Services.AI;
 using InventoryManagementSystem.Infrastructure.Services.Email;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
@@ -44,6 +45,19 @@ public static class DependencyInjection
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddTransient<IExportService, ExportService>();
         services.AddTransient<IBarcodeGenerationService, BarcodeGenerationService>();
+        services.AddOptions<GroqSettings>()
+            .Bind(configuration.GetSection(GroqSettings.SectionName))
+            .Validate(
+                settings => !string.IsNullOrWhiteSpace(settings.ApiKey),
+                "Configure Ai:Groq:ApiKey before using AI features.");
+
+        services.AddHttpClient<GroqAiClient>(client =>
+        {
+            client.BaseAddress =
+                new Uri("https://api.groq.com/openai/v1/");
+
+            client.Timeout = TimeSpan.FromSeconds(60);
+        });
         services.Configure<SmtpSettings>(configuration.GetSection("SmtpSettings"));
         services.AddTransient<IEmailService, SmtpEmailService>();
         services.Configure<RabbitMqEmailSettings>(configuration.GetSection("RabbitMqEmail"));
