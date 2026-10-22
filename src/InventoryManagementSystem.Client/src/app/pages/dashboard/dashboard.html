@@ -1,1 +1,82 @@
-<h1 class="text-center text-4xl font-bold">Comming Soon...</h1>
+<section class="dashboard" aria-labelledby="dashboard-title" [attr.aria-busy]="loading()">
+  <header class="dashboard-heading">
+    <div>
+      <p class="eyebrow">{{ 'DASHBOARD.STEP' | translate }}</p>
+      <h1 id="dashboard-title">{{ dashboard()?.content?.title || ('NAV.DASHBOARD' | translate) }}</h1>
+    </div>
+    <span class="sample-badge"><i class="pi pi-info-circle" aria-hidden="true"></i>{{ 'DASHBOARD.SAMPLE' | translate }}</span>
+  </header>
+  <div class="sample-notice">
+    <i class="pi pi-globe" aria-hidden="true"></i>
+    <div>
+      <strong>{{ 'DASHBOARD.LANGUAGE_HINT' | translate }}</strong>
+      <p>{{ 'DASHBOARD.SAMPLE_NOTICE' | translate }}</p>
+    </div>
+  </div>
+  @if (loading()) {
+    <div class="table-card request-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i><p>{{ 'DASHBOARD.LOADING' | translate }}</p></div>
+  }
+  @if (errorKey()) {
+    <div class="table-card request-state" role="alert"><p>{{ errorKey() | translate }}</p><button type="button" class="retry-button" (click)="retry()">{{ 'DASHBOARD.RETRY' | translate }}</button></div>
+  }
+  @if (dashboard(); as data) {
+    <section class="table-card detail-panel ai-summary" [attr.aria-label]="data.content.title"><p>{{ data.content.summary }}</p></section>
+    <div class="metrics">
+      <article class="table-card metric"><span>{{ data.content.labels['productCount'] }}</span><strong>{{ formatNumber(data.facts.products.length) }}</strong></article>
+      <article class="table-card metric"><span>{{ data.content.labels['riskCount'] }}</span><strong>{{ formatNumber(riskCount()) }}</strong></article>
+      <article class="table-card metric"><span>{{ data.content.labels['openOrders'] }}</span><strong>{{ formatNumber(data.facts.orders.length) }}</strong></article>
+    </div>
+    <section class="table-card" aria-labelledby="stock-heading">
+      <div class="panel-heading">
+        <h2 id="stock-heading">{{ data.content.labels['stockTitle'] }}</h2>
+        <span class="snapshot">{{ data.content.labels['snapshot'] }} {{ formatDate(data.facts.snapshotDate) }}</span>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <caption class="visually-hidden">{{ data.content.labels['stockTitle'] }}</caption>
+          <thead><tr>
+            <th scope="col">{{ data.content.labels['product'] }}</th>
+            <th scope="col">{{ data.content.labels['available'] }}</th>
+            <th scope="col">{{ data.content.labels['cover'] }}</th>
+            <th scope="col">{{ data.content.labels['leadTime'] }}</th>
+            <th scope="col">{{ data.content.labels['status'] }}</th>
+          </tr></thead>
+          <tbody>
+            @for (product of rows(); track product.id) {
+              <tr>
+                <th scope="row"><strong>{{ product.text.displayName }}</strong><small>{{ product.id }}</small></th>
+                <td>{{ formatNumber(product.stock) }} {{ product.text.unitLabel }}</td>
+                <td>
+                  @if (product.coverDays !== null) {
+                    {{ formatNumber(product.coverDays) }} {{ data.content.labels['days'] }}
+                  } @else { {{ data.content.labels['noHistory'] }} }
+                </td>
+                <td>{{ formatNumber(product.leadDays) }} {{ data.content.labels['days'] }}</td>
+                <td><span class="stock-status" [class.at-risk]="product.risk === 'RISK'" [class.sufficient]="product.risk === 'SUFFICIENT'">{{ product.text.statusLabel }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <div class="detail-grid">
+      <section class="table-card detail-panel" aria-labelledby="attention-heading">
+        <h2 id="attention-heading">{{ data.content.labels['attentionTitle'] }}</h2>
+        @for (product of rows(); track product.id) {
+          @if (product.risk !== 'SUFFICIENT') {
+            <article class="insight"><h3>{{ product.text.displayName }}</h3><p>{{ product.text.explanation }}</p></article>
+          }
+        }
+      </section>
+      <section class="table-card detail-panel" aria-labelledby="orders-heading">
+        <h2 id="orders-heading">{{ data.content.labels['ordersTitle'] }}</h2>
+        @for (order of data.facts.orders; track order.number) {
+          <article class="order-row">
+            <div><h3>{{ order.number }}</h3><p class="muted">{{ order.supplier }}</p></div>
+            <div class="order-date"><span>{{ formatDate(order.expected) }}</span><small>{{ data.content.labels[order.overdue ? 'overdue' : 'awaiting'] }}</small></div>
+          </article>
+        }
+      </section>
+    </div>
+  }
+</section>
