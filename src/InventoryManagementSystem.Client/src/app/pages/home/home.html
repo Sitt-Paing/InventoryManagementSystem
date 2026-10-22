@@ -1,97 +1,57 @@
 <div class="home-page" [class.dark]="sharedService.isDarkMode()">
-  <header class="home-header">
-    <a routerLink="/" class="brand inno-logo" aria-label="Pi INNO home">
-      <span class="inno-symbol" aria-hidden="true">π</span>
-      <span>{{ company.name }}</span>
-    </a>
-    <nav class="home-nav" aria-label="Main navigation">
-      <a routerLink="/" fragment="product">Our product</a>
-      <a routerLink="/" fragment="features">Features</a>
-      <a routerLink="/" fragment="company">About Inno</a>
-      <a routerLink="/" fragment="contact">Contact</a>
-    </nav>
-    <a routerLink="/auth/login" class="login-link">
-      Login <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
-    </a>
+  <a routerLink="/" fragment="main-content" class="skip-link">Skip to content</a>
+  <header #pageHeader class="home-header">
+    <div class="shell header-inner">
+      <a routerLink="/" class="brand inno-logo" aria-label="INNO home">
+        <span class="inno-symbol" aria-hidden="true">π</span><span>{{ company.name }}</span>
+        <span class="brand-divider" aria-hidden="true"></span><span class="brand-product">Inventory</span>
+      </a>
+      <nav class="home-nav" aria-label="Main navigation">
+        <a routerLink="/" fragment="product">Product</a>
+        <a routerLink="/" fragment="features">Features</a>
+        <a routerLink="/" fragment="company">About us</a>
+        <a routerLink="/" fragment="contact">Contact</a>
+      </nav>
+      <div class="header-actions">
+        <button type="button" class="theme-button" (click)="sharedService.toggleDarkMode()"
+          [attr.aria-label]="sharedService.isDarkMode() ? 'Switch to light mode' : 'Switch to dark mode'">
+          <i class="pi" [class.pi-sun]="sharedService.isDarkMode()" [class.pi-moon]="!sharedService.isDarkMode()" aria-hidden="true"></i>
+        </button>
+        <a routerLink="/auth/login" class="button button-primary header-login">Log in <i class="pi pi-arrow-up-right" aria-hidden="true"></i></a>
+      </div>
+    </div>
   </header>
 
-  <main>
-    <div class="announcement"><span>MEET INNO INVENTORY</span><p>A connected workspace for your stock, team and suppliers.</p></div>
-    <section class="hero" aria-labelledby="home-title">
+  <main id="main-content" tabindex="-1">
+    <section class="shell hero" aria-labelledby="home-title">
       <div class="hero-copy">
-        <p class="eyebrow"><span></span> INVENTORY MANAGEMENT SYSTEM</p>
-        <h1 id="home-title">Every item.<br />Every movement.<br /><span>Under control.</span></h1>
-        <p class="intro">Bring purchasing, warehouse operations and supplier collaboration together. A clearer way to manage your inventory, from receipt to issue.</p>
-        <div class="access-note">
-          <i class="pi pi-lock" aria-hidden="true"></i>
-          <p>Have an account? Log in to your workspace.<br /><span>Contact your administrator for account access.</span></p>
+        <p class="hero-label"><span aria-hidden="true"></span> A MORE CONNECTED WAY TO WORK</p>
+        <h1 id="home-title">Your inventory.<br /><span>In clear view.</span></h1>
+        <p class="hero-description">From the first purchase order to the last warehouse issue. Bring your stock, people and everyday operations into one organized workspace.</p>
+        <div class="hero-actions">
+          <a routerLink="/auth/login" class="button button-primary">Open your workspace <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
+          <a routerLink="/" fragment="product" class="button button-secondary">Explore the product <i class="pi pi-arrow-down" aria-hidden="true"></i></a>
         </div>
+        <p class="access-note"><i class="pi pi-lock" aria-hidden="true"></i> Company and supplier access, in one place.</p>
+        <div class="hero-footnote"><span aria-hidden="true"></span> Less paperwork. A clearer picture.</div>
       </div>
+      <app-home-preview />
+    </section>
 
-      <div class="workflow" aria-label="Inventory workflow overview">
-        <div class="workflow-heading">
-          <span class="workflow-icon"><i class="pi pi-box" aria-hidden="true"></i></span>
-          <div><p>ONE CONNECTED WORKFLOW</p><h2>From order to warehouse.</h2></div>
-        </div>
-        <ol class="workflow-steps">
-          <li><span class="step-number">01</span><div><h3>Purchase &amp; approve</h3><p>Create purchase orders and manage approvals.</p></div><i class="pi pi-shopping-cart" aria-hidden="true"></i></li>
-          <li><span class="step-number">02</span><div><h3>Receive &amp; track</h3><p>Record goods receipts and warehouse stock.</p></div><i class="pi pi-inbox" aria-hidden="true"></i></li>
-          <li><span class="step-number">03</span><div><h3>Issue &amp; return</h3><p>Keep stock movements connected to their source.</p></div><i class="pi pi-arrow-right-arrow-left" aria-hidden="true"></i></li>
-        </ol>
-        <div class="workflow-footer"><i class="pi pi-users" aria-hidden="true"></i><span>Your team and suppliers. Connected.</span></div>
+    <div class="capabilities-strip">
+      <div class="shell capabilities-inner">
+        <p>ONE WORKSPACE.<br /><strong>Every part of your operation.</strong></p>
+        <span><i class="pi pi-shopping-cart" aria-hidden="true"></i> Purchasing</span>
+        <span><i class="pi pi-building" aria-hidden="true"></i> Warehousing</span>
+        <span><i class="pi pi-arrow-right-arrow-left" aria-hidden="true"></i> Stock movements</span>
+        <span><i class="pi pi-users" aria-hidden="true"></i> Supplier collaboration</span>
       </div>
-    </section>
+    </div>
 
-    <section class="features" aria-label="Inventory capabilities">
-      <article><i class="pi pi-barcode" aria-hidden="true"></i><div><h2>Scan. Find. Move.</h2><p>Barcode tools for everyday warehouse work.</p></div></article>
-      <article><i class="pi pi-building" aria-hidden="true"></i><div><h2>A place for everything.</h2><p>Products, warehouses and departments in one workspace.</p></div></article>
-      <article><i class="pi pi-file" aria-hidden="true"></i><div><h2>Keep everyone in sync.</h2><p>Supplier access to purchase orders, receipts and returns.</p></div></article>
-    </section>
-
-    <section id="product" class="content-section product-section" aria-labelledby="product-title">
-      <div class="section-heading">
-        <p class="eyebrow"><span></span> OUR PRODUCT</p>
-        <h2 id="product-title">Less chasing paperwork.<br />More clarity over your stock.</h2>
-        <p>Inventory Management System brings your everyday purchasing and warehouse work into one place. Follow the journey from an approved purchase order to received goods, returns and department issues.</p>
-      </div>
-      <div class="product-grid">
-        <article class="product-card"><span class="card-icon"><i class="pi pi-shopping-cart" aria-hidden="true"></i></span><p class="card-category">PURCHASING</p><h3>Know what is coming in.</h3><p>Keep purchase orders, approvals and goods receipts connected. Record quantities and amounts with the documents they belong to.</p><ul><li>Purchase order approvals</li><li>Goods receipts &amp; purchase returns</li><li>Printable vouchers &amp; MMK amounts</li></ul></article>
-        <article class="product-card"><span class="card-icon"><i class="pi pi-warehouse" aria-hidden="true"></i></span><p class="card-category">WAREHOUSE OPERATIONS</p><h3>Know where it goes.</h3><p>Organize products and warehouse stock, scan barcodes and record items issued to departments with a clear movement history.</p><ul><li>Products, warehouses &amp; units</li><li>Barcode &amp; SKU lookup</li><li>Department stock issues</li></ul></article>
-        <article class="product-card"><span class="card-icon"><i class="pi pi-users" aria-hidden="true"></i></span><p class="card-category">SUPPLIER COLLABORATION</p><h3>Keep suppliers informed.</h3><p>Give suppliers their own view of approved purchase orders, goods receipts and posted returns, with totals and printable details.</p><ul><li>Dedicated supplier portal</li><li>Supplier-specific documents</li><li>Search, date filters &amp; printing</li></ul></article>
-      </div>
-    </section>
-
-    <section class="spotlight-banner" aria-labelledby="banner-title">
-      <div><p class="banner-kicker">FROM THE OFFICE TO THE WAREHOUSE</p><h2 id="banner-title">Different roles.<br />One connected operation.</h2><p>Bring your purchasing team, warehouse staff and suppliers closer to the information they need.</p></div>
-      <div class="role-list"><span><i class="pi pi-briefcase" aria-hidden="true"></i> Purchasing team</span><span><i class="pi pi-box" aria-hidden="true"></i> Warehouse team</span><span><i class="pi pi-truck" aria-hidden="true"></i> Suppliers</span></div>
-    </section>
-
-    <section id="features" class="content-section" aria-labelledby="features-title">
-      <div class="section-heading"><p class="eyebrow"><span></span> EVERYDAY TOOLS</p><h2 id="features-title">Built around the work you do.</h2><p>Useful tools that connect the details of your daily operations.</p></div>
-      <div class="tools-grid">
-        <article><i class="pi pi-barcode" aria-hidden="true"></i><h3>Barcode tools</h3><p>Generate product barcodes and find items using a scanner or SKU.</p></article>
-        <article><i class="pi pi-envelope" aria-hidden="true"></i><h3>Purchase order emails</h3><p>Send purchase order emails through the application's email queue.</p></article>
-        <article><i class="pi pi-print" aria-hidden="true"></i><h3>Ready to print</h3><p>Print purchasing, receipt and return documents when you need a copy.</p></article>
-        <article><i class="pi pi-file-excel" aria-hidden="true"></i><h3>Excel exports</h3><p>Export supported lists for sharing and further analysis.</p></article>
-        <article><i class="pi pi-building" aria-hidden="true"></i><h3>Company workspaces</h3><p>Keep business records within the selected company account.</p></article>
-        <article><i class="pi pi-shield" aria-hidden="true"></i><h3>Managed access</h3><p>Administrator-created accounts with separate company and supplier access.</p></article>
-      </div>
-    </section>
-
-    <section id="company" class="content-section company-section" aria-labelledby="company-title">
-      <div class="company-mark" aria-hidden="true"><div class="inno-logo"><span class="inno-symbol">π</span><span>{{ company.name }}</span></div><p>Practical ideas.<br />Connected operations.</p></div>
-      <div class="section-heading"><p class="eyebrow"><span></span> ABOUT INNO</p><h2 id="company-title">Thoughtful software.<br />For everyday business.</h2><p>At Inno, we believe business software should make everyday work easier to follow. Our focus is on connecting people, processes and information through straightforward tools.</p><p>Our inventory product brings that idea to purchasing and warehouse operations, helping teams work from a shared view of their documents and stock movements.</p><span class="demo-label">Demo company profile</span></div>
-    </section>
-
-    <section id="contact" class="content-section contact-section" aria-labelledby="contact-title">
-      <div class="section-heading"><p class="eyebrow"><span></span> GET IN TOUCH</p><h2 id="contact-title">Let's talk about<br />your inventory.</h2><p>For product information or account access, reach out to your company administrator or the Inno team.</p><span class="demo-label">Demo contact details — replace before publishing</span></div>
-      <dl class="contact-details">
-        <div><dt><i class="pi pi-envelope" aria-hidden="true"></i> Email</dt><dd>{{ company.email }}</dd></div>
-        <div><dt><i class="pi pi-phone" aria-hidden="true"></i> Phone</dt><dd>{{ company.phone }}</dd></div>
-        <div><dt><i class="pi pi-map-marker" aria-hidden="true"></i> Location</dt><dd>{{ company.address }}</dd></div>
-      </dl>
-    </section>
+    <app-home-details />
   </main>
 
-  <footer class="home-footer"><span>© {{ currentYear }} {{ company.name }} · Inventory Management System</span><div class="footer-links"><a routerLink="/" fragment="product">Product</a><a routerLink="/" fragment="company">Company</a><a routerLink="/" fragment="contact">Contact</a></div></footer>
+  <footer class="home-footer">
+    <div class="shell footer-inner"><a routerLink="/" class="brand inno-logo" aria-label="INNO home"><span class="inno-symbol" aria-hidden="true">π</span><span>{{ company.name }}</span></a><p>© {{ currentYear }} INNO. Inventory, connected.</p><nav class="footer-links" aria-label="Footer navigation"><a routerLink="/" fragment="product">Product</a><a routerLink="/" fragment="company">Company</a><a routerLink="/" fragment="contact">Contact</a></nav></div>
+  </footer>
 </div>
