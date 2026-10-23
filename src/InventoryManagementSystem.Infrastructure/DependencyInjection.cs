@@ -58,6 +58,8 @@ public static class DependencyInjection
 
             client.Timeout = TimeSpan.FromSeconds(60);
         });
+        services.AddSingleton<DashboardAiCache>();
+        services.AddScoped<IDashboardAiService, GroqDashboardAiService>();
         services.Configure<SmtpSettings>(configuration.GetSection("SmtpSettings"));
         services.AddTransient<IEmailService, SmtpEmailService>();
         services.Configure<RabbitMqEmailSettings>(configuration.GetSection("RabbitMqEmail"));
