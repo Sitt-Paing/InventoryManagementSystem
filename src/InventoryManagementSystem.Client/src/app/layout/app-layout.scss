@@ -1,3 +1,12 @@
 :host {
+  position: fixed;
+  inset: 0;
   display: block;
+  overflow: hidden;
 }
+
+.app-shell { display: flex; flex-direction: column; width: 100%; height: 100%; min-height: 0; overflow: hidden; }
+.shell-header { flex: 0 0 auto; }
+.shell-body { display: flex; flex: 1 1 0; min-height: 0; overflow: hidden; }
+.shell-sidebar { display: flex; flex: 0 0 auto; align-self: stretch; min-height: 0; }
+.shell-content { flex: 1 1 0; min-width: 0; min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; }
