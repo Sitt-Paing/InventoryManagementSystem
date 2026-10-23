@@ -20,6 +20,8 @@ import { TextareaModule } from 'primeng/textarea';
 
 import { StockTransactionModel } from '../../../core/models/process/stock-transaction.model';
 import { ProductModel } from '../../../core/models/master/product.model';
+import { UnitOfMeasureModel } from '../../../core/models/master/unit-of-measure.model';
+import { UnitOfMeasureService } from '../../../core/services/master/unit-of-measure.service';
 import { WarehouseModel } from '../../../core/models/master/warehouse.model';
 import { WarehouseLocationModel } from '../../../core/models/master/warehouse-location.model';
 
@@ -75,6 +77,8 @@ export class StockTransactionsComponent implements OnInit {
   searchKeyword: string = '';
 
   products: ProductModel[] = [];
+  private uoms: UnitOfMeasureModel[] = [];
+  private readonly uomService = inject(UnitOfMeasureService);
   warehouses: WarehouseModel[] = [];
   allLocations: WarehouseLocationModel[] = [];
   filteredLocations: WarehouseLocationModel[] = [];
@@ -165,12 +169,22 @@ export class StockTransactionsComponent implements OnInit {
 
   getStockUnit(productId: string): string {
     const product = this.products.find(p => p.id === productId);
-    return product?.baseUomCode || product?.baseUomName || '';
+    return this.uoms.find(uom => uom.id === product?.baseUomId)?.symbol?.trim() || '—';
   }
 
   ngOnInit(): void {
     this.setupTransactionTypeListener();
     this.loadProducts();
+    this.uomService.get().subscribe({
+      next: (res) => {
+        this.uoms = res.data || [];
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.uoms = [];
+        this.cdr.markForCheck();
+      }
+    });
     this.loadWarehouses();
     this.loadLocations();
     this.loadData();
