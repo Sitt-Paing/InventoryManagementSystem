@@ -46,12 +46,11 @@
       <ng-template #body let-conv>
         <tr>
           <td>
-            <span class="font-bold text-primary">{{ conv.fromUomCode || 'Unit' }}</span>
-            <small class="text-muted-color block">{{ conv.fromUomName }}</small>
+            <span class="font-bold text-primary">{{ getUomSymbol(conv.fromUomId) }}</span>
           </td>
           <td>
             <span class="font-mono text-xs">
-              1 {{ conv.fromUomCode }} = <b>{{ conv.conversionFactor }}</b> {{ conv.toUomCode }}
+              1 {{ getUomSymbol(conv.fromUomId) }} = <b>{{ conv.conversionFactor }}</b> {{ getUomSymbol(conv.toUomId) }}
             </span>
           </td>
           <td>
