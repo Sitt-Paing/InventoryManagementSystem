@@ -1,1 +1,91 @@
-<h1 class="text-center text-4xl font-bold">Comming Soon...</h1>
+<section class="dashboard-page" [attr.aria-busy]="loading()">
+  <header class="dashboard-toolbar">
+    <div>
+      <h1>{{ 'NAV.DASHBOARD' | translate }}</h1>
+      <p class="dashboard-period">{{ range().startDate | date:'dd MMM yyyy' }} — {{ range().endDate | date:'dd MMM yyyy' }}</p>
+    </div>
+    <form class="dashboard-filters" (ngSubmit)="refresh()">
+    <label for="dashboard-start">{{ 'DASHBOARD.FROM' | translate }}
+      <p-datepicker inputId="dashboard-start" name="startDate" [(ngModel)]="draftStart"
+        dateFormat="dd M yy" [showIcon]="true" iconDisplay="input" [readonlyInput]="true"
+        [maxDate]="draftEnd ?? maxDate" [disabled]="loading()" size="small"
+        appendTo="body" [fluid]="true" />
+    </label>
+    <label for="dashboard-end">{{ 'DASHBOARD.TO' | translate }}
+      <p-datepicker inputId="dashboard-end" name="endDate" [(ngModel)]="draftEnd"
+        dateFormat="dd M yy" [showIcon]="true" iconDisplay="input" [readonlyInput]="true"
+        [minDate]="draftStart ?? undefined" [maxDate]="maxDate" [disabled]="loading()" size="small"
+        appendTo="body" [fluid]="true" />
+    </label>
+    <p-button type="submit" icon="pi pi-refresh" size="small" [label]="'DASHBOARD.REFRESH' | translate"
+      [disabled]="loading() || retrySeconds() > 0" />
+    </form>
+  </header>
+  @if (invalidRange()) { <p class="range-error" role="alert">{{ 'DASHBOARD.INVALID_RANGE' | translate }}</p> }
+
+  @if (loading()) {
+    <div class="dashboard-panel" role="status">
+      <p>{{ 'COMMON.LOADING' | translate }}</p>
+      <p-progressbar mode="indeterminate" [style]="{ height: '4px' }" />
+    </div>
+  } @else {
+    @if (hasError()) {
+      <div class="dashboard-panel dashboard-notice" role="status">
+        <p><i class="pi pi-info-circle" aria-hidden="true"></i>
+          {{ (errorStatus() === 429 ? 'DASHBOARD.RATE_LIMIT' : 'DASHBOARD.AI_UNAVAILABLE') | translate }}
+        </p>
+        @if (retrySeconds() > 0) {
+          <p>{{ 'DASHBOARD.RETRY_IN' | translate }} {{ retrySeconds() }} {{ 'DASHBOARD.SECONDS' | translate }}</p>
+        }
+        @if (facts()) { <p>{{ 'DASHBOARD.STANDARD_VIEW' | translate }}</p> }
+      </div>
+    }
+
+    @if (facts(); as currentFacts) {
+      <div class="dashboard-content" [attr.lang]="language() === 'mm' ? 'my' : 'en'">
+          <section class="insight-panel">
+            <span class="insight-icon" aria-hidden="true"><i class="pi pi-sparkles"></i></span>
+            <div class="insight-body">
+              <div class="insight-topline">
+                <span class="insight-label">{{ 'DASHBOARD.AI_OVERVIEW' | translate }}</span>
+                <span class="snapshot-date">{{ currentFacts.snapshotDate | date:'dd MMM yyyy' }}</span>
+              </div>
+              @if (dashboard(); as result) {
+                <h2>{{ result.definition.title }}</h2>
+                <p class="dashboard-summary">{{ result.definition.summary }}</p>
+              } @else {
+                <h2>{{ 'DASHBOARD.CURRENT_SITUATION' | translate }}</h2>
+                <p class="dashboard-summary">{{ 'DASHBOARD.FACTS_SUMMARY' | translate }}</p>
+              }
+              @if (currentFacts.stockHealth; as health) {
+                <div class="health-strip">
+                  <span class="health-chip above"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ 'DASHBOARD.ABOVE_REORDER' | translate }} <strong>{{ health.aboveReorder }}</strong></span>
+                  <span class="health-chip low"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i>{{ 'DASHBOARD.LOW_STOCK' | translate }} <strong>{{ health.lowStock }}</strong></span>
+                  <span class="health-chip empty"><i class="pi pi-times-circle" aria-hidden="true"></i>{{ 'DASHBOARD.OUT_OF_STOCK' | translate }} <strong>{{ health.outOfStock }}</strong></span>
+                </div>
+              }
+            </div>
+          </section>
+          <div class="metric-grid">
+          @for (widget of metricWidgets(); track widget.id) {
+            <app-dashboard-widget [widget]="widget" [facts]="currentFacts" />
+          }
+          </div>
+        <div class="widget-grid">
+          @for (widget of detailWidgets(); track widget.id) {
+            <app-dashboard-widget [widget]="widget" [facts]="currentFacts" />
+          }
+        </div>
+      </div>
+    } @else {
+      <p role="status">{{ 'COMMON.NO_DATA' | translate }}</p>
+    }
+
+    @if (facts(); as currentFacts) {
+      <footer class="dashboard-footnote">
+        <p>{{ 'DASHBOARD.AS_OF' | translate }} {{ currentFacts.dataAsOfUtc | date:'medium' }}</p>
+        <p>{{ 'DASHBOARD.SNAPSHOT_NOTE' | translate }}</p>
+      </footer>
+    }
+  }
+</section>
