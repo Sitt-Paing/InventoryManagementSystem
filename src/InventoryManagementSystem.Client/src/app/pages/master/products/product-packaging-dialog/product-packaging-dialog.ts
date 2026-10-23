@@ -75,6 +75,10 @@ export class ProductPackagingDialog implements OnChanges {
     private cdr: ChangeDetectorRef
   ) {}
 
+  getUomSymbol(uomId?: number | null): string {
+    return this.availableUoms.find(uom => uom.id === uomId)?.symbol?.trim() || '—';
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['visible'] && this.visible && this.product?.id) {
       this.loadConversions();
@@ -185,7 +189,7 @@ export class ProductPackagingDialog implements OnChanges {
   deletePackaging(conv: ProductUomConversionModel): void {
     this.confirmationService.confirm({
       key: 'positionDialog',
-      message: `Are you sure you want to delete packaging unit (${conv.fromUomCode || 'Unit'})?`,
+      message: `Are you sure you want to delete packaging unit (${this.getUomSymbol(conv.fromUomId)})?`,
       header: 'Delete Confirmation',
       icon: 'pi pi-info-circle',
       accept: () => {
@@ -228,11 +232,11 @@ export class ProductPackagingDialog implements OnChanges {
     this.printBarcode.emit({
       product: {
         ...this.product,
-        name: `${this.product.name} [${conv.fromUomCode || 'Unit'} × ${conv.conversionFactor}]`,
+        name: `${this.product.name} [${this.getUomSymbol(conv.fromUomId)} × ${conv.conversionFactor}]`,
         barcode: conv.barcode,
       },
       barcode: conv.barcode,
-      label: `${conv.fromUomCode} (${conv.conversionFactor})`,
+      label: `${this.getUomSymbol(conv.fromUomId)} (${conv.conversionFactor})`,
     });
   }
 }
