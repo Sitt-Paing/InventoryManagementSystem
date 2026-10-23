@@ -119,6 +119,7 @@ export class Products implements OnInit {
     this.productService.get().subscribe({
       next: (res) => {
         this.products = (res.data?.items || []) as ProductModel[];
+        this.updateUomSymbols();
         this.onCategoryFilterChange();
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -141,9 +142,18 @@ export class Products implements OnInit {
     this.uomService.get().subscribe({
       next: (res) => {
         this.availableUoms = (res.data || []) as UnitOfMeasureModel[];
+        this.updateUomSymbols();
         this.cdr.detectChanges();
       },
     });
+  }
+
+  getUomSymbol(uomId?: number | null): string {
+    return this.availableUoms.find(uom => uom.id === uomId)?.symbol?.trim() || '—';
+  }
+
+  private updateUomSymbols(): void {
+    this.products.forEach(product => product.baseUomSymbol = this.getUomSymbol(product.baseUomId));
   }
 
   create(): void {
