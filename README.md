@@ -7,7 +7,7 @@
 ![SQL Server](https://img.shields.io/badge/SQL_Server-Database-CC2927)
 ![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Email_Queue-FF6600)
 
-A full-stack inventory app with purchasing, a supplier portal, department stock issues, barcode lookup, queued email, and company-based access.
+A full-stack inventory app with purchasing, a supplier portal, department stock issues, barcode lookup, queued email, company-based access, and an AI-assisted inventory dashboard.
 
 ## Highlights
 
@@ -24,6 +24,9 @@ A full-stack inventory app with purchasing, a supplier portal, department stock 
 | Queued email | Purchase-order emails through RabbitMQ, a database outbox, and SMTP |
 | Authentication | HttpOnly JWT cookies, refresh tokens, CSRF protection, and separate company/supplier permissions |
 | Company accounts | Admin company selection and company-scoped inventory data |
+| AI dashboard | Groq-generated summaries and validated card/table/chart definitions, using authenticated inventory facts through MCP |
+| Dashboard charts | Bar, line, area, stacked bar, pie, and doughnut views; date filters, English/Myanmar requests, and a standard view when AI is unavailable |
+| Unit display | UOM symbols in dashboard data, product lists, packaging labels, and stock movements |
 | Documents & UI | PO/GRN/return printing, Excel export, and light/dark themes |
 
 ```text
@@ -38,10 +41,10 @@ Supplier accounts share the existing layout and see only their own documents. Ne
 
 ## Tech & skills
 
-- **Frontend:** Angular 20 · TypeScript · PrimeNG · Tailwind CSS · RxJS
+- **Frontend:** Angular 20 · TypeScript · PrimeNG · Chart.js · Tailwind CSS · RxJS
 - **Backend:** ASP.NET Core 10 · C# · EF Core · SQL Server
 - **Patterns:** Layered architecture · CQRS with MediatR · FluentValidation
-- **Integrations:** RabbitMQ · MailKit/SMTP · Barcode generation & lookup · Excel export
+- **Integrations:** Groq tool calling · Model Context Protocol (MCP) · RabbitMQ · MailKit/SMTP · Barcode generation & lookup · Excel export
 
 ## Run locally
 
@@ -84,3 +87,37 @@ dotnet user-secrets set "RabbitMqEmail:Enabled" "true" --project src/InventoryMa
 ```
 
 Configure `SmtpSettings` through API user secrets, then restart the API. The email worker is disabled by default in Development.
+
+### Optional: AI inventory dashboard
+
+Configure a Groq API key and a model that supports local function calling. Keep the key in API user secrets; the Angular client never needs it:
+
+```powershell
+dotnet user-secrets set "Ai:Groq:ApiKey" "replace-with-your-groq-api-key" --project src/InventoryManagementSystem.Api
+dotnet user-secrets set "Ai:Groq:Model" "replace-with-your-tool-calling-model-id" --project src/InventoryManagementSystem.Api
+dotnet user-secrets set "Ai:Mcp:Endpoint" "https://localhost:7152/api/process/mcp" --project src/InventoryManagementSystem.Api
+```
+
+Restart the API, sign in with an internal account, select a company, and open **Dashboard**. Choose the language and dates, then select **Refresh data**. Date ranges include both endpoints and are limited to 90 days.
+
+The configured MCP endpoint must be a trusted HTTPS address: the backend forwards the authenticated user's access token to it. Development defaults to the address above; other environments require an explicit `Ai:Mcp:Endpoint` setting.
+
+```text
+Angular → Dashboard API → authenticated MCP facts tool → inventory query
+                       → Groq tool call → MCP evidence → Groq dashboard JSON
+                       → validation + definition cache → Angular chart renderer
+```
+
+The API hosts one read-only MCP tool, `GetDashboardFacts`. The model selects supported widgets and writes summaries, titles, descriptions, and labels; displayed quantities come from database facts. Company scope comes from the authenticated user, not model arguments. MCP uses Bearer authentication while the browser retains the existing cookie/CSRF flow.
+
+Stock and approved open orders are current snapshots. The date filter applies to posted departmental usage, which is **not sales**. Missing usage records are not treated as zero demand. Charts validate product IDs, compatible units, and the observations required by each chart type; UOM symbols are used for display.
+
+Validated definitions are cached for five minutes using company, language, dates, and actual facts. A normal cache miss uses two Groq requests; a short final-turn rate limit permits one retry. Rate limits trigger a cooldown, and the dashboard attempts a direct facts query for its standard view when generation fails. Provider quota and input limits still apply. English/Myanmar generation follows the language switch, but the model's wording and factual prose can still need review.
+
+This implementation does not yet calculate order quantities from supplier lead times or pending purchase quantities, forecast demand, or create purchase orders automatically. See [AI dashboard and MCP implementation notes](docs/ai-dashboard-mcp.md) for the contracts, validation rules, error handling, and verification details.
+
+### Local demonstration data
+
+[Local demo scripts and notes](scripts/sql/realistic-demo.md) document the explicitly created fictional purchasing, stock, and master-data batches. These scripts are tied to the local `InventoryManagement` database, company 1 (`TestCom`), existing records, and the saved row manifest; they are not a general fresh-database seed or an application startup step. The manifest contains demo record identifiers, not a database backup. Review the prerequisites before using the scripts on a matching local database.
+
+Build output, DLLs, local previews, and verification artifacts under `output/` are excluded from version control. API keys and local database credentials belong in user secrets or deployment configuration.
