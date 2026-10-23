@@ -9,6 +9,7 @@ export interface ProductModel {
     baseUomId?: number;
     baseUomCode?: string;
     baseUomName?: string;
+    baseUomSymbol?: string;
     purchaseUomId?: number | null;
     purchaseUomCode?: string;
     purchaseUomName?: string;
