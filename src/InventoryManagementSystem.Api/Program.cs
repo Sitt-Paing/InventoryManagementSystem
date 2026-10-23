@@ -49,6 +49,7 @@ builder.Services.AddScoped<ICookieService, CookieService>();
 builder.Services.AddBrowserSecurity(builder.Configuration, builder.Environment);
 
 builder.Services.AddOpenApiDoc();
+builder.Services.AddInventoryMcp();
 
 var app = builder.Build();
 
@@ -84,6 +85,7 @@ app.UseMiddleware<CompanyContextMiddleware>();
 
 
 app.MapControllers();
+app.MapInventoryMcp();
 app.MapFallbackToFile("index.html");
 
 app.Run();
