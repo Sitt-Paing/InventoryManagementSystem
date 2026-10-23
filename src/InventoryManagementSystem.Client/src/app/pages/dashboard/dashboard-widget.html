@@ -1,0 +1,110 @@
+<article class="widget" [class.metric]="widget().type === 'metric_card'"
+  [class.order-metric]="widget().datasetKey === 'openPurchaseOrderCount'">
+  <header class="widget-heading">
+    <div>
+      <h3>{{ widget().title }}</h3>
+      @if (widget().type !== 'metric_card' && widget().description) { <p>{{ widget().description }}</p> }
+    </div>
+    @if (isChart()) {
+      <span class="unit-badge">{{ unit() }}</span>
+    } @else {
+      <span class="widget-icon" aria-hidden="true"><i [class]="icon()"></i></span>
+    }
+  </header>
+
+  @switch (widget().type) {
+    @case ('metric_card') {
+      <strong class="metric-value">{{ metric() | number:'1.0-0' }}</strong>
+      @if (widget().description) { <p class="metric-description">{{ widget().description }}</p> }
+    }
+    @case ('table') {
+      <div class="table-scroll" tabindex="0" [attr.aria-label]="widget().title">
+        <table>
+          <caption class="sr-only">{{ widget().title }}</caption>
+          <thead><tr>
+            @for (label of widget().labels; track label.field) {
+              <th scope="col" [class.numeric]="label.field === 'availableQuantity' || label.field === 'reorderLevel' || label.field === 'issuedQuantity'">{{ label.text }}</th>
+            }
+          </tr></thead>
+          <tbody>
+            @for (row of visibleRows(); track rowKey(row)) {
+              <tr>
+                @for (label of widget().labels; track label.field) {
+                  <td [class.numeric]="isNumber(cell(row, label.field))" [attr.title]="label.field === 'productName' ? row.productId : null">
+                    @let value = cell(row, label.field);
+                    @if (isNumber(value)) { {{ value | number:'1.0-4' }} }
+                    @else { {{ value }} }
+                  </td>
+                }
+              </tr>
+            } @empty {
+              <tr><td [attr.colspan]="widget().labels.length">{{ 'COMMON.NO_DATA' | translate }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (pageCount() > 1) {
+        <nav class="pagination" [attr.aria-label]="widget().title">
+          <button type="button" [disabled]="page() === 0" (click)="page.set(page() - 1)" [attr.aria-label]="'DASHBOARD.PREVIOUS_PAGE' | translate">‹</button>
+          <span>{{ page() + 1 }} / {{ pageCount() }}</span>
+          <button type="button" [disabled]="page() + 1 >= pageCount()" (click)="page.set(page() + 1)" [attr.aria-label]="'DASHBOARD.NEXT_PAGE' | translate">›</button>
+        </nav>
+      }
+    }
+    @default {
+      @if (isCircular()) {
+        <div class="circular-layout">
+          <div class="chart-frame circular-canvas">
+            <p-chart [type]="widget().type === 'pie_chart' ? 'pie' : 'doughnut'" [data]="circularData()"
+              [options]="circularOptions()" [ariaLabel]="widget().title" height="240px" />
+            @if (widget().type === 'doughnut_chart') {
+              <div class="ring-center" aria-hidden="true">
+                <span>{{ 'DASHBOARD.TOTAL' | translate }}</span>
+                <strong>{{ circularTotal() | number:'1.0-4' }}</strong>
+                <span>{{ unit() }}</span>
+              </div>
+            }
+          </div>
+          <ul class="share-legend">
+            @for (segment of circularSegments(); track segment.productId) {
+              <li>
+                <span class="share-dot" [style.background]="segment.color" aria-hidden="true"></span>
+                <div><span class="share-name" [attr.title]="segment.productId">{{ segment.label }}</span>
+                  <span class="share-value">{{ segment.value | number:'1.0-4' }} {{ unit() }}</span></div>
+                <strong>{{ segment.percent | number:'1.0-1' }}%</strong>
+              </li>
+            }
+          </ul>
+        </div>
+      } @else if (isTrend()) {
+        <div class="chart-frame">
+          <p-chart type="line" [data]="lineData()" [options]="chartOptions()"
+            [ariaLabel]="widget().title" height="280px" />
+        </div>
+      } @else {
+        <div class="chart-frame">
+          <p-chart type="bar" [data]="barData()" [options]="chartOptions()" [plugins]="chartPlugins"
+            [ariaLabel]="widget().title" height="280px" />
+        </div>
+      }
+      @if (widget().datasetKey === 'dailyProductUsage') {
+        <p class="chart-note">{{ 'DASHBOARD.OBSERVED_ONLY' | translate }}</p>
+      }
+    }
+  }
+  @if (isChart()) {
+    <details>
+      <summary>{{ 'DASHBOARD.VIEW_DATA' | translate }}</summary>
+      <div class="table-scroll" tabindex="0" [attr.aria-label]="widget().title">
+        <table><tbody>
+          @for (entry of numericRows(); track rowKey(entry.row)) {
+            <tr>
+              <th scope="row">{{ entry.label }}</th>
+              <td class="numeric">{{ entry.value | number:'1.0-4' }} {{ displayUnit(entry.row) }}</td>
+            </tr>
+          }
+        </tbody></table>
+      </div>
+    </details>
+  }
+</article>
