@@ -10,7 +10,7 @@ import { TranslationService } from '../../core/services/translation.service';
 import { AuthService } from '../../core/services/auth.service';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { ButtonModule } from 'primeng/button';
-import { ProgressBarModule } from 'primeng/progressbar';
+import { SkeletonModule } from 'primeng/skeleton';
 import { DashboardWidgetComponent } from './dashboard-widget';
 import { DatePickerModule } from 'primeng/datepicker';
 
@@ -23,9 +23,17 @@ interface DashboardLoad {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [DatePipe, FormsModule, TranslatePipe, ButtonModule, DatePickerModule, ProgressBarModule, DashboardWidgetComponent],
+  imports: [
+    DatePipe,
+    FormsModule,
+    TranslatePipe,
+    ButtonModule,
+    DatePickerModule,
+    SkeletonModule,
+    DashboardWidgetComponent
+  ],
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.scss'
+  host: { class: 'block min-w-0' }
 })
 export class DashboardComponent {
   private readonly dashboardService = inject(DashboardService);
@@ -69,14 +77,22 @@ export class DashboardComponent {
       {
         id: 'standard-stock', type: 'table', datasetKey: 'productStocks',
         title: text('PRODUCTS.STOCK_QUANTITY'), description: '', productIds: [],
-        labels: [label('productName', 'COMMON.NAME'), label('baseUnit', 'PRODUCTS.UNIT'),
-          label('availableQuantity', 'COMMON.QUANTITY'), label('reorderLevel', 'DASHBOARD.REORDER_LEVEL')]
+        labels: [
+          label('productName', 'COMMON.NAME'),
+          label('baseUnit', 'PRODUCTS.UNIT'),
+          label('availableQuantity', 'COMMON.QUANTITY'),
+          label('reorderLevel', 'DASHBOARD.REORDER_LEVEL')
+        ]
       },
       {
         id: 'standard-usage', type: 'table', datasetKey: 'dailyProductUsage',
         title: text('DASHBOARD.RECORDED_USAGE'), description: '', productIds: [],
-        labels: [label('date', 'COMMON.DATE'), label('productName', 'COMMON.NAME'),
-          label('baseUnit', 'PRODUCTS.UNIT'), label('issuedQuantity', 'COMMON.QUANTITY')]
+        labels: [
+          label('date', 'COMMON.DATE'),
+          label('productName', 'COMMON.NAME'),
+          label('baseUnit', 'PRODUCTS.UNIT'),
+          label('issuedQuantity', 'COMMON.QUANTITY')
+        ]
       }
     ];
     const facts = this.facts();
