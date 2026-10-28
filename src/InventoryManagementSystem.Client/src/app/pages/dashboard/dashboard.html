@@ -1,77 +1,262 @@
-<section class="dashboard-page" [attr.aria-busy]="loading()">
-  <header class="dashboard-toolbar">
+<section class="grid gap-4 text-[var(--text-main)] [overflow-wrap:anywhere]" [attr.aria-busy]="loading()">
+  <header class="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4 pt-1 pb-2 max-[1000px]:grid-cols-1">
     <div>
-      <h1>{{ 'NAV.DASHBOARD' | translate }}</h1>
-      <p class="dashboard-period">{{ range().startDate | date:'dd MMM yyyy' }} — {{ range().endDate | date:'dd MMM yyyy' }}</p>
+      <h1 class="m-0 text-[1.4rem] leading-[1.5] font-bold tracking-[-0.025em]">{{ 'NAV.DASHBOARD' | translate }}</h1>
+      <p class="mt-1 text-xs leading-[1.7] text-[var(--text-muted)]">
+        {{ range().startDate | date: 'dd MMM yyyy' }} — {{ range().endDate | date: 'dd MMM yyyy' }}
+      </p>
     </div>
-    <form class="dashboard-filters" (ngSubmit)="refresh()">
-    <label for="dashboard-start">{{ 'DASHBOARD.FROM' | translate }}
-      <p-datepicker inputId="dashboard-start" name="startDate" [(ngModel)]="draftStart"
-        dateFormat="dd M yy" [showIcon]="true" iconDisplay="input" [readonlyInput]="true"
-        [maxDate]="draftEnd ?? maxDate" [disabled]="loading()" size="small"
-        appendTo="body" [fluid]="true" />
-    </label>
-    <label for="dashboard-end">{{ 'DASHBOARD.TO' | translate }}
-      <p-datepicker inputId="dashboard-end" name="endDate" [(ngModel)]="draftEnd"
-        dateFormat="dd M yy" [showIcon]="true" iconDisplay="input" [readonlyInput]="true"
-        [minDate]="draftStart ?? undefined" [maxDate]="maxDate" [disabled]="loading()" size="small"
-        appendTo="body" [fluid]="true" />
-    </label>
-    <p-button type="submit" icon="pi pi-refresh" size="small" [label]="'DASHBOARD.REFRESH' | translate"
-      [disabled]="loading() || retrySeconds() > 0" />
+
+    <form class="flex items-end gap-[0.6rem] max-[1000px]:justify-end max-[640px]:grid max-[640px]:grid-cols-2" (ngSubmit)="refresh()">
+      <label class="
+        grid w-40 min-w-0 gap-[0.35rem] text-[0.7rem] leading-[1.6] font-[550] text-[var(--text-muted)]
+        max-[640px]:w-auto
+      " for="dashboard-start">
+        {{ 'DASHBOARD.FROM' | translate }}
+        <p-datepicker
+          inputId="dashboard-start"
+          name="startDate"
+          [(ngModel)]="draftStart"
+          dateFormat="dd M yy"
+          [showIcon]="true"
+          iconDisplay="input"
+          [readonlyInput]="true"
+          [maxDate]="draftEnd ?? maxDate"
+          [disabled]="loading()"
+          size="small"
+          appendTo="body"
+          [fluid]="true"
+        />
+      </label>
+
+      <label class="
+        grid w-40 min-w-0 gap-[0.35rem] text-[0.7rem] leading-[1.6] font-[550] text-[var(--text-muted)]
+        max-[640px]:w-auto
+      " for="dashboard-end">
+        {{ 'DASHBOARD.TO' | translate }}
+        <p-datepicker
+          inputId="dashboard-end"
+          name="endDate"
+          [(ngModel)]="draftEnd"
+          dateFormat="dd M yy"
+          [showIcon]="true"
+          iconDisplay="input"
+          [readonlyInput]="true"
+          [minDate]="draftStart ?? undefined"
+          [maxDate]="maxDate"
+          [disabled]="loading()"
+          size="small"
+          appendTo="body"
+          [fluid]="true"
+        />
+      </label>
+
+      <p-button
+        class="shrink-0 max-[640px]:col-span-full max-[640px]:justify-self-end"
+        type="submit"
+        icon="pi pi-refresh"
+        size="small"
+        [label]="'DASHBOARD.REFRESH' | translate"
+        [disabled]="loading() || retrySeconds() > 0"
+      />
     </form>
   </header>
-  @if (invalidRange()) { <p class="range-error" role="alert">{{ 'DASHBOARD.INVALID_RANGE' | translate }}</p> }
+
+  @if (invalidRange()) {
+    <p class="
+      border-s-[3px] border-[var(--accent-color)] bg-[var(--accent-light)] px-4 py-[0.65rem]
+      text-[0.8125rem] leading-[1.8]
+    " role="alert">{{ 'DASHBOARD.INVALID_RANGE' | translate }}</p>
+  }
 
   @if (loading()) {
-    <div class="dashboard-panel" role="status">
-      <p>{{ 'COMMON.LOADING' | translate }}</p>
-      <p-progressbar mode="indeterminate" [style]="{ height: '4px' }" />
+    <p class="sr-only" role="status">{{ 'COMMON.LOADING' | translate }}</p>
+
+    <div class="grid min-w-0 gap-4 motion-reduce:[&_p-skeleton::after]:animate-none" aria-hidden="true">
+      <div class="
+        flex items-start gap-[0.85rem] rounded-[0.9rem] border border-[var(--border-color)]
+        bg-[linear-gradient(115deg,var(--bg-card),color-mix(in_srgb,var(--accent-light)_35%,var(--bg-card)))]
+        p-[1.15rem] max-[640px]:p-4
+      ">
+        <p-skeleton class="flex-[0_0_2.1rem]" size="2.1rem" borderRadius="0.65rem" />
+
+        <div class="grid min-w-0 flex-1 gap-[0.8rem]">
+          <div class="mb-[0.4rem] flex flex-wrap items-center justify-between gap-2">
+            <p-skeleton width="7rem" height="0.75rem" />
+            <p-skeleton width="6rem" height="0.75rem" />
+          </div>
+
+          <p-skeleton width="65%" height="1.25rem" />
+          <p-skeleton height="0.8rem" />
+          <p-skeleton width="80%" height="0.8rem" />
+
+          <div class="mt-4 flex flex-wrap gap-2">
+            @for (chip of [1, 2, 3]; track chip) {
+              <p-skeleton width="7rem" height="2rem" borderRadius="0.45rem" />
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,10rem),1fr))] gap-4 empty:hidden">
+        @for (metric of [1, 2]; track metric) {
+          <div class="
+            grid min-w-0 gap-[0.45rem] rounded-[0.85rem] border border-[var(--border-color)]
+            bg-[var(--bg-card)] text-[0.8125rem] leading-[1.8] shadow-[var(--card-shadow)] min-h-[8.4rem]
+            p-[1.1rem]
+          ">
+            <div class="mb-[0.4rem] flex flex-wrap items-center justify-between gap-2">
+              <p-skeleton width="45%" height="0.8rem" />
+              <p-skeleton size="2rem" borderRadius="0.6rem" />
+            </div>
+
+            <p-skeleton width="35%" height="2.5rem" />
+            <p-skeleton width="60%" height="0.7rem" />
+          </div>
+        }
+      </div>
+
+      <div class="grid grid-cols-2 items-start gap-4 empty:hidden max-[1000px]:grid-cols-1">
+        @for (chart of [1, 2]; track chart) {
+          <div class="
+            grid min-w-0 rounded-[0.85rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-4
+            text-[0.8125rem] leading-[1.8] shadow-[var(--card-shadow)] gap-[0.8rem]
+          ">
+            <p-skeleton width="45%" height="1rem" />
+            <p-skeleton width="75%" height="0.75rem" />
+
+            <div class="flex h-[280px] items-end gap-4 border-b border-[var(--border-subtle)] py-4">
+              @for (height of ['45%', '70%', '55%', '90%', '65%', '80%']; track $index) {
+                <p-skeleton class="min-w-0 flex-1" width="100%" [height]="height" borderRadius="0.35rem" />
+              }
+            </div>
+
+            <p-skeleton width="55%" height="0.75rem" />
+          </div>
+        }
+
+        @for (table of [1, 2]; track table) {
+          <div class="
+            grid min-w-0 rounded-[0.85rem] border border-[var(--border-color)] bg-[var(--bg-card)] p-4
+            text-[0.8125rem] leading-[1.8] shadow-[var(--card-shadow)] gap-[0.8rem]
+          ">
+            <p-skeleton width="45%" height="1rem" />
+
+            <div class="divide-y divide-[var(--border-subtle)] overflow-hidden rounded-[0.6rem] border border-[var(--border-subtle)]">
+              @for (row of [1, 2, 3, 4, 5]; track row) {
+                <div class="
+                  grid grid-cols-[2fr_repeat(3,minmax(0,1fr))] gap-[0.8rem] px-[0.8rem] py-[0.85rem]
+                  first:bg-[var(--bg-table-hdr)]
+                ">
+                  <p-skeleton width="85%" height="0.8rem" />
+                  <p-skeleton width="65%" height="0.8rem" />
+                  <p-skeleton width="75%" height="0.8rem" />
+                  <p-skeleton width="60%" height="0.8rem" />
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
     </div>
   } @else {
     @if (hasError()) {
-      <div class="dashboard-panel dashboard-notice" role="status">
-        <p><i class="pi pi-info-circle" aria-hidden="true"></i>
+      <div class="
+        grid min-w-0 gap-[0.45rem] rounded-[0.85rem] border border-[var(--border-color)]
+        bg-[var(--bg-card)] p-4 text-[0.8125rem] leading-[1.8] shadow-[var(--card-shadow)]
+        border-s-[3px] border-s-[var(--accent-color)]
+      " role="status">
+        <p>
+          <i class="pi pi-info-circle" aria-hidden="true"></i>
           {{ (errorStatus() === 429 ? 'DASHBOARD.RATE_LIMIT' : 'DASHBOARD.AI_UNAVAILABLE') | translate }}
         </p>
+
         @if (retrySeconds() > 0) {
-          <p>{{ 'DASHBOARD.RETRY_IN' | translate }} {{ retrySeconds() }} {{ 'DASHBOARD.SECONDS' | translate }}</p>
+          <p>
+            {{ 'DASHBOARD.RETRY_IN' | translate }} {{ retrySeconds() }} {{ 'DASHBOARD.SECONDS' | translate }}
+          </p>
         }
-        @if (facts()) { <p>{{ 'DASHBOARD.STANDARD_VIEW' | translate }}</p> }
+
+        @if (facts()) {
+          <p>{{ 'DASHBOARD.STANDARD_VIEW' | translate }}</p>
+        }
       </div>
     }
 
     @if (facts(); as currentFacts) {
-      <div class="dashboard-content" [attr.lang]="language() === 'mm' ? 'my' : 'en'">
-          <section class="insight-panel">
-            <span class="insight-icon" aria-hidden="true"><i class="pi pi-sparkles"></i></span>
-            <div class="insight-body">
-              <div class="insight-topline">
-                <span class="insight-label">{{ 'DASHBOARD.AI_OVERVIEW' | translate }}</span>
-                <span class="snapshot-date">{{ currentFacts.snapshotDate | date:'dd MMM yyyy' }}</span>
-              </div>
-              @if (dashboard(); as result) {
-                <h2>{{ result.definition.title }}</h2>
-                <p class="dashboard-summary">{{ result.definition.summary }}</p>
-              } @else {
-                <h2>{{ 'DASHBOARD.CURRENT_SITUATION' | translate }}</h2>
-                <p class="dashboard-summary">{{ 'DASHBOARD.FACTS_SUMMARY' | translate }}</p>
-              }
-              @if (currentFacts.stockHealth; as health) {
-                <div class="health-strip">
-                  <span class="health-chip above"><i class="pi pi-check-circle" aria-hidden="true"></i>{{ 'DASHBOARD.ABOVE_REORDER' | translate }} <strong>{{ health.aboveReorder }}</strong></span>
-                  <span class="health-chip low"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i>{{ 'DASHBOARD.LOW_STOCK' | translate }} <strong>{{ health.lowStock }}</strong></span>
-                  <span class="health-chip empty"><i class="pi pi-times-circle" aria-hidden="true"></i>{{ 'DASHBOARD.OUT_OF_STOCK' | translate }} <strong>{{ health.outOfStock }}</strong></span>
-                </div>
-              }
+      <div class="grid min-w-0 gap-4" [attr.lang]="language() === 'mm' ? 'my' : 'en'">
+        <section class="
+          flex items-start gap-[0.85rem] rounded-[0.9rem] border border-[var(--border-color)]
+          bg-[linear-gradient(115deg,var(--bg-card),color-mix(in_srgb,var(--accent-light)_35%,var(--bg-card)))]
+          p-[1.15rem] max-[640px]:p-4
+        ">
+          <span class="
+            grid size-[2.1rem] flex-[0_0_2.1rem] place-items-center rounded-[0.65rem] border
+            border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--accent-color)]
+          " aria-hidden="true">
+            <i class="pi pi-sparkles"></i>
+          </span>
+
+          <div class="min-w-0 flex-1">
+            <div class="mb-[0.4rem] flex flex-wrap items-center justify-between gap-2">
+              <span class="
+                mb-[0.2rem] block text-[0.65rem] leading-[1.6] font-[650] tracking-[0.025em]
+                text-[var(--accent-color)]
+              ">{{ 'DASHBOARD.AI_OVERVIEW' | translate }}</span>
+              <span class="text-[0.7rem] leading-[1.8] text-[var(--text-muted)]">{{ currentFacts.snapshotDate | date: 'dd MMM yyyy' }}</span>
             </div>
-          </section>
-          <div class="metric-grid">
+
+            @if (dashboard(); as result) {
+              <h2 class="m-0 text-[0.95rem] leading-[1.7] font-[650]">{{ result.definition.title }}</h2>
+              <p class="mt-[0.35rem] text-[0.8rem] leading-[1.8] text-[var(--text-muted)]">{{ result.definition.summary }}</p>
+            } @else {
+              <h2 class="m-0 text-[0.95rem] leading-[1.7] font-[650]">{{ 'DASHBOARD.CURRENT_SITUATION' | translate }}</h2>
+              <p class="mt-[0.35rem] text-[0.8rem] leading-[1.8] text-[var(--text-muted)]">{{ 'DASHBOARD.FACTS_SUMMARY' | translate }}</p>
+            }
+
+            @if (currentFacts.stockHealth; as health) {
+              <div class="mt-4 flex flex-wrap gap-2">
+                <span class="
+                  inline-flex items-center gap-[0.4rem] rounded-[0.45rem] border border-[var(--border-color)]
+                  bg-[var(--bg-card)] px-[0.6rem] py-[0.3rem] text-[0.7rem] leading-[1.9] text-[var(--text-muted)]
+                  [&_i]:text-[#10b981]
+                ">
+                  <i class="pi pi-check-circle" aria-hidden="true"></i>
+                  {{ 'DASHBOARD.ABOVE_REORDER' | translate }}
+                  <strong class="text-[var(--text-main)] tabular-nums">{{ health.aboveReorder }}</strong>
+                </span>
+
+                <span class="
+                  inline-flex items-center gap-[0.4rem] rounded-[0.45rem] border border-[var(--border-color)]
+                  bg-[var(--bg-card)] px-[0.6rem] py-[0.3rem] text-[0.7rem] leading-[1.9] text-[var(--text-muted)]
+                  [&_i]:text-[#d97706]
+                ">
+                  <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+                  {{ 'DASHBOARD.LOW_STOCK' | translate }}
+                  <strong class="text-[var(--text-main)] tabular-nums">{{ health.lowStock }}</strong>
+                </span>
+
+                <span class="
+                  inline-flex items-center gap-[0.4rem] rounded-[0.45rem] border border-[var(--border-color)]
+                  bg-[var(--bg-card)] px-[0.6rem] py-[0.3rem] text-[0.7rem] leading-[1.9] text-[var(--text-muted)]
+                  [&_i]:text-[#ef4444]
+                ">
+                  <i class="pi pi-times-circle" aria-hidden="true"></i>
+                  {{ 'DASHBOARD.OUT_OF_STOCK' | translate }}
+                  <strong class="text-[var(--text-main)] tabular-nums">{{ health.outOfStock }}</strong>
+                </span>
+              </div>
+            }
+          </div>
+        </section>
+
+        <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,10rem),1fr))] gap-4 empty:hidden">
           @for (widget of metricWidgets(); track widget.id) {
             <app-dashboard-widget [widget]="widget" [facts]="currentFacts" />
           }
-          </div>
-        <div class="widget-grid">
+        </div>
+
+        <div class="grid grid-cols-2 items-start gap-4 empty:hidden max-[1000px]:grid-cols-1">
           @for (widget of detailWidgets(); track widget.id) {
             <app-dashboard-widget [widget]="widget" [facts]="currentFacts" />
           }
@@ -82,8 +267,8 @@
     }
 
     @if (facts(); as currentFacts) {
-      <footer class="dashboard-footnote">
-        <p>{{ 'DASHBOARD.AS_OF' | translate }} {{ currentFacts.dataAsOfUtc | date:'medium' }}</p>
+      <footer class="px-[0.15rem] py-1 text-[0.7rem] leading-[1.9] text-[var(--text-muted)]">
+        <p>{{ 'DASHBOARD.AS_OF' | translate }} {{ currentFacts.dataAsOfUtc | date: 'medium' }}</p>
         <p>{{ 'DASHBOARD.SNAPSHOT_NOTE' | translate }}</p>
       </footer>
     }
