@@ -1,5 +1,13 @@
 import { Routes } from "@angular/router";
 
 export default [
-
-]as Routes;
+  {
+    path: '',
+    redirectTo: 'stock-balance',
+    pathMatch: 'full'
+  },
+  {
+    path: 'stock-balance',
+    loadComponent: () => import('./stock-balance/stock-balance').then(m => m.StockBalance)
+  }
+] as Routes;
