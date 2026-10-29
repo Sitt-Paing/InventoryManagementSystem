@@ -5,6 +5,7 @@ export const EN_DICTIONARY: Record<string, any> = {
     SUBTITLE: 'Enterprise Stock & Warehouse System'
   },
   NAV: {
+    STOCK_BALANCE: 'Stock Balance',
     HOME: 'Home',
     DASHBOARD: 'Dashboard',
     MASTER: 'Master',
