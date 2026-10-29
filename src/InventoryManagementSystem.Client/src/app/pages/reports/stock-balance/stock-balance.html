@@ -1,0 +1,113 @@
+<p-toast key="globalMessage" position="top-right"></p-toast>
+
+<div class="table-card p-4 space-y-2">
+    <form [formGroup]="stockBalanceForm" (ngSubmit)="applyFilters()">
+        <div class="flex justify-between gap-3 mb-3">
+            <div class="flex flex-wrap gap-2">
+                <p-button type="submit" label="View" icon="pi pi-eye" size="small" [loading]="isLoading"></p-button>
+                <p-button type="button" label="Clear" icon="pi pi-filter-slash" size="small" severity="secondary"
+                    [outlined]="true" (onClick)="clearFilters()"></p-button>
+                <p-button type="button" label="Excel (Current Page)" icon="pi pi-file-excel" size="small"
+                    [disabled]="isLoading || stockBalances.length === 0" (onClick)="excel()"></p-button>
+            </div>
+            <div class="flex ml-auto">
+                <p-iconfield iconPosition="left" class="xl:ml-auto 2xl:ml-auto">
+                    <p-inputicon>
+                        <i class="pi pi-search"></i>
+                    </p-inputicon>
+                    <input pInputText id="stockSearch" formControlName="search" type="text" pSize="small"
+                        aria-label="Search stock balances" placeholder="Search keyword" [style]="{ width: '100%' }" />
+                </p-iconfield>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+            <div class="flex flex-col gap-2">
+                <label for="stockStartDate">Start Date</label>
+                <p-datepicker inputId="stockStartDate" formControlName="startDate"
+                    dateFormat="dd/mm/yy" [showIcon]="true" iconDisplay="input" [readonlyInput]="true"
+                    [showClear]="true" appendTo="body" [fluid]="true"></p-datepicker>
+            </div>
+            <div class="flex flex-col gap-2">
+                <label for="stockEndDate">End Date</label>
+                <p-datepicker inputId="stockEndDate" formControlName="endDate"
+                    dateFormat="dd/mm/yy" [showIcon]="true" iconDisplay="input" [readonlyInput]="true"
+                    [showClear]="true" appendTo="body" [fluid]="true"></p-datepicker>
+            </div>
+            <div class="flex flex-col gap-2">
+                <label for="stockWarehouse">Warehouse</label>
+                <p-select inputId="stockWarehouse" formControlName="warehouseId"
+                    [options]="warehouses" optionLabel="name" optionValue="id" placeholder="All warehouses"
+                    [filter]="true" [showClear]="true" appendTo="body" [fluid]="true"></p-select>
+            </div>
+            <div class="flex flex-col gap-2">
+                <label for="stockCategory">Category</label>
+                <p-select inputId="stockCategory" formControlName="categoryId"
+                    [options]="categories" optionLabel="name" optionValue="id" placeholder="All categories"
+                    [filter]="true" [showClear]="true" appendTo="body" [fluid]="true"></p-select>
+            </div>
+            <div class="flex items-center gap-2 self-end pb-2">
+                <p-toggleSwitch inputId="stockShowZero" formControlName="showZeroStock"></p-toggleSwitch>
+                <label for="stockShowZero">Show zero stock</label>
+            </div>
+        </div>
+    </form>
+
+    <p class="text-sm text-muted-color">Dates filter stock creation dates. Leave both dates empty to view today's records. Quantities show current balances.</p>
+    @if (masterError) {
+        <p role="alert" class="text-red-500">{{ masterError }}</p>
+    }
+    @if (listError) {
+        <p role="alert" class="text-red-500">{{ listError }}</p>
+    }
+
+    <p-table #tblStockBalances [value]="stockBalances" [(selection)]="selectedStockBalance"
+        dataKey="warehouseStockId" selectionMode="single" stripedRows="true" [lazy]="true"
+        (onLazyLoad)="onLazyLoad($event)" [sortField]="sortField" [sortOrder]="sortOrder"
+        [paginator]="true" paginatorDropdownAppendTo="body" [first]="first" [rows]="rows"
+        [rowsPerPageOptions]="[20, 50, 100]" [totalRecords]="totalRecords" [loading]="isLoading"
+        [scrollable]="true" [tableStyle]="{ 'min-width': '110rem', 'white-space': 'nowrap' }"
+        [showCurrentPageReport]="true" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries">
+        <ng-template #header>
+            <tr>
+                <th pFrozenColumn>#</th>
+                <th pSortableColumn="sku">SKU <p-sortIcon field="sku"></p-sortIcon></th>
+                <th pSortableColumn="productName">Product <p-sortIcon field="productName"></p-sortIcon></th>
+                <th pSortableColumn="categoryName">Category <p-sortIcon field="categoryName"></p-sortIcon></th>
+                <th>Warehouse Code</th>
+                <th pSortableColumn="warehouseName">Warehouse <p-sortIcon field="warehouseName"></p-sortIcon></th>
+                <th pSortableColumn="quantity" class="text-right">Quantity <p-sortIcon field="quantity"></p-sortIcon></th>
+                <th>UOM</th>
+                <th>UOM Symbol</th>
+                <th pSortableColumn="stockCreatedOn">Created On <p-sortIcon field="stockCreatedOn"></p-sortIcon></th>
+                <th>Created By</th>
+                <th pSortableColumn="stockUpdatedOn">Updated On <p-sortIcon field="stockUpdatedOn"></p-sortIcon></th>
+                <th>Updated By</th>
+                <th>Deleted On</th>
+                <th>Deleted By</th>
+            </tr>
+        </ng-template>
+        <ng-template #body let-stock>
+            <tr [pSelectableRow]="stock">
+                <td pFrozenColumn><span class="pi pi-circle" [class.pi-check-circle]="selectedStockBalance === stock"></span></td>
+                <td>{{ stock.sku || '-' }}</td>
+                <td>{{ stock.productName }}</td>
+                <td>{{ stock.categoryName }}</td>
+                <td>{{ stock.warehouseCode }}</td>
+                <td>{{ stock.warehouseName }}</td>
+                <td class="text-right">{{ stock.quantity | number:'1.0-4' }}</td>
+                <td>{{ stock.uomName }}</td>
+                <td>{{ stock.uomSymbol || '-' }}</td>
+                <td>{{ (stock.stockCreatedOn | date:'dd/MMM/yyyy hh:mm:ss a') || '-' }}</td>
+                <td>{{ stock.stockCreatedBy || '-' }}</td>
+                <td>{{ (stock.stockUpdatedOn | date:'dd/MMM/yyyy hh:mm:ss a') || '-' }}</td>
+                <td>{{ stock.stockUpdatedBy || '-' }}</td>
+                <td>{{ (stock.stockDeletedOn | date:'dd/MMM/yyyy hh:mm:ss a') || '-' }}</td>
+                <td>{{ stock.stockDeletedBy || '-' }}</td>
+            </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+            <tr><td colspan="15" class="text-center p-6">{{ listError ? 'Unable to load stock balances.' : 'No stock balances found.' }}</td></tr>
+        </ng-template>
+    </p-table>
+</div>
