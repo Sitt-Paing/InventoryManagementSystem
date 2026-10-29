@@ -114,6 +114,7 @@ public partial class InventoryManagementDbContext : IApplicationDbContext
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {
+        ConfigureReports(modelBuilder);
         // Multi-tenant Global Query Filters
         modelBuilder.Entity<Warehouse>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
         modelBuilder.Entity<WarehouseLocation>().HasQueryFilter(e => CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
