@@ -162,7 +162,14 @@ export const NAVIGATION_MENU: Readonly<NavigationMenuGroup[]> = [
   {
     label: 'REPORTS',
     transKey: 'NAV.REPORTS',
-    items: []
+    items: [
+      {
+        label: 'Stock Balance',
+        transKey: 'NAV.STOCK_BALANCE',
+        icon: 'pi pi-chart-bar',
+        routerLink: '/reports/stock-balance',
+      }
+    ]
   },
 ];
 
