@@ -245,3 +245,54 @@ internal code. `baseUnit` retains the original code for compatibility validation
 and grouping, so units with identical symbols are not silently combined. Model-only
 evidence exposes the symbol as its `baseUnit` display value and omits internal
 codes. The generation cache version changed to discard old code-based text.
+
+## Redis cache and shared generation coordination
+
+`ConnectionStrings:Redis` configures the shared StackExchange.Redis multiplexer.
+The local `compose.cache.yml` runs an ephemeral, localhost-only Redis service with
+128 MB data memory and `noeviction`. Definitions use
+`inventory:{Environment}:dashboard:definition:v1:{fingerprint}` with a five-minute
+TTL; memory hits remain local, and Redis hits allow a fresh API instance to reuse
+the validated definition. Facts and transactional stock checks remain database reads.
+
+`DashboardAiCooldown` uses Redis TTL and an atomic Lua update that never shortens
+an existing longer Retry-After. Its key is shared across companies/languages in the
+same environment, matching this application's single configured Groq provider.
+Applications that share a quota must share the same coordination namespace/database;
+different environments or Redis databases do not coordinate each other.
+
+`DashboardAiGenerationLock` uses `SET NX PX` with a random owner token, a 30-second
+lease and renewal every ten seconds. Renewal, release, and definition publication
+check the owner token in Lua. A stale owner cannot renew/delete a successor's lease
+or publish a result. The cache checks for a completed definition and cooldown before
+and after acquiring the lease. Both local and shared lock waits are bounded at
+30 seconds each, and generation receives a four-minute cancellation budget. The
+actual provider/MCP calls honor cancellation; lease loss cancels the generation token.
+
+Warm cache hits bypass cooldown and coordination. A disconnected cold miss never
+falls through to an uncoordinated provider call: `DashboardCoordinationException`
+maps to HTTP 503, which the existing Angular error path handles through direct facts
+fallback. A failed definition write can retain a memory copy only if lease ownership
+can still be confirmed. Failed cooldown publication retains the local cooldown and
+logs a warning; the original provider 429 is preserved.
+
+This is coordination against the configured standalone Redis service. It is not a
+Redis Cluster/Redlock implementation or an exactly-once guarantee during Redis
+restart, failover, long process pauses, or already-dispatched provider calls. Local
+Redis persistence is disabled, so restarting Redis clears both cached data and
+coordination metadata. No database write or purchase operation depends on this lease.
+
+References: [Redis distributed locks](https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/),
+[atomic Lua execution](https://redis.io/docs/latest/develop/programmability/eval-intro/).
+
+The API build passed after this integration. A one-off ignored fixture used the
+actual Infrastructure DI registrations and real Docker Redis with two independent
+service providers/cache instances. Sixteen same-key requests generated once; distinct
+keys also serialized provider work. It verified cross-instance cooldown, cached reads
+during cooldown, longest-wait preservation, cooldown expiry, stale-owner rejection
+for renewal/publication/release, cancellation on heartbeat-detected lease loss,
+renewal beyond the original 30-second lifetime, cancelled waiters, failure cleanup,
+fail-closed disconnected cold misses, and warm memory hits after connection closure.
+Definition JSON/Unicode and the five-minute TTL were preserved. The fixture made no
+Groq calls or SQL writes and removed only its 13 unique probe-key names. This checks
+cache/coordination services; it does not claim a browser or live-provider end-to-end run.
