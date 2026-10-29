@@ -5,6 +5,7 @@ export const MM_DICTIONARY: Record<string, any> = {
     SUBTITLE: 'လုပ်ငန်းသုံး သိုလှောင်ရုံနှင့် စတော့စနစ်'
   },
   NAV: {
+    STOCK_BALANCE: 'လက်ကျန်စတော့စာရင်း',
     HOME: 'ပင်မစာမျက်နှာ',
     DASHBOARD: 'ဒက်ရှ်ဘုတ်',
     MASTER: 'အခြေခံအချက်အလက်',
