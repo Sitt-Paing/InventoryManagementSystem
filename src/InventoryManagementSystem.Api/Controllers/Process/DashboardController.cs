@@ -119,6 +119,12 @@ public sealed class DashboardController : ApiControllerBase
                 Data = new { Facts = facts, Definition = definition }
             });
         }
+        catch (DashboardCoordinationException exception)
+        {
+            _logger.LogWarning(exception, "Shared dashboard generation coordination is unavailable.");
+            return AiFailure(StatusCodes.Status503ServiceUnavailable,
+                "AI generation is temporarily unavailable. Current inventory facts are still available.");
+        }
         catch (DashboardToolException exception)
         {
             _logger.LogWarning(exception, "Dashboard evidence tool request failed.");
