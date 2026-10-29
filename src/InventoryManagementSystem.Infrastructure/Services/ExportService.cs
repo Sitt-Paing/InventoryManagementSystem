@@ -116,11 +116,36 @@ public class ExportService : IExportService
 
     public byte[] ExportToCsv<T>(IEnumerable<T> data)
     {
+        ArgumentNullException.ThrowIfNull(data);
+
+        var properties = typeof(T)
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(property => property.CanRead && property.GetIndexParameters().Length == 0)
+            .ToArray();
+
         using var memoryStream = new MemoryStream();
         using (var writer = new StreamWriter(memoryStream))
-        using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+        using (var csv = CsvWriter.Create(writer, new CsvWriterOptions
         {
-            csv.WriteRecords(data);
+            FormatProvider = CultureInfo.InvariantCulture
+        }))
+        {
+            // CsvHelper 34's WriteRecords requires generated record mappings.
+            // Export DTOs remain generic, so write their properties explicitly.
+            foreach (var property in properties)
+                csv.WriteField(property.Name);
+            csv.EndRecord();
+
+            foreach (var item in data)
+            {
+                ArgumentNullException.ThrowIfNull(item);
+                foreach (var property in properties)
+                {
+                    csv.WriteField(Convert.ToString(
+                        property.GetValue(item), CultureInfo.InvariantCulture));
+                }
+                csv.EndRecord();
+            }
         }
         return memoryStream.ToArray();
     }
