@@ -1,10 +1,12 @@
 using InventoryManagementSystem.Domain.Entities;
+using InventoryManagementSystem.Domain.Report;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryManagementSystem.Application.Common.Interfaces;
 
 public interface IApplicationDbContext
 {
+    DbSet<StockBalance> StockBalances { get; }
     DbSet<Category> Categories { get; }
     DbSet<Product> Products { get; }
     DbSet<Supplier> Suppliers { get; }
