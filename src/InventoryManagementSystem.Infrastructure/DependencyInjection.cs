@@ -12,6 +12,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Security.Claims;
+using RabbitMQ.Client;
+using StackExchange.Redis;
 
 namespace InventoryManagementSystem.Infrastructure;
 
@@ -58,6 +60,25 @@ public static class DependencyInjection
 
             client.Timeout = TimeSpan.FromSeconds(60);
         });
+
+        services.AddSingleton<IConnectionMultiplexer>(_ =>
+        {
+            var redisConnection = configuration.GetConnectionString("Redis");
+            if (string.IsNullOrWhiteSpace(redisConnection))
+            {
+                throw new InvalidOperationException(
+                    "Configure ConnectionStrings:Redis before using Redis.");
+            }
+            var options = ConfigurationOptions.Parse(redisConnection);
+
+            options.AbortOnConnectFail = false;
+            options.ConnectTimeout = 3000;
+            options.AsyncTimeout = 3000;
+
+            return ConnectionMultiplexer.Connect(options);
+        });
+        services.AddSingleton<DashboardAiCooldown>();
+        services.AddSingleton<DashboardAiGenerationLock>();
         services.AddSingleton<DashboardAiCache>();
         services.AddScoped<IDashboardAiService, GroqDashboardAiService>();
         services.Configure<SmtpSettings>(configuration.GetSection("SmtpSettings"));
