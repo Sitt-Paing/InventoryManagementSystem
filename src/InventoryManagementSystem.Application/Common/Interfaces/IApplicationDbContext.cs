@@ -24,6 +24,7 @@ public interface IApplicationDbContext
     DbSet<Company> Companies { get; }
     DbSet<Department> Departments { get; }
     DbSet<EmailOutbox> EmailOutboxes { get; }
+    DbSet<LowStockOutbox> LowStockOutboxes { get; }
     DbSet<PurchaseReturn> PurchaseReturns { get; }
     DbSet<PurchaseReturnItem> PurchaseReturnItems { get; }
     DbSet<StockIssue> StockIssues { get; }
