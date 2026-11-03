@@ -17,7 +17,7 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -612,6 +612,59 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.HasIndex("UomId");
 
                     b.ToTable("GoodReceiptItems", (string)null);
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.LowStockOutbox", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("CurrentQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("PreviousQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<string>("ProductId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("PublishedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("ReorderLevel")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("LowStockOutboxes", (string)null);
                 });
 
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.Product", b =>
@@ -1705,6 +1758,76 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.ToTable("WarehouseStocks", (string)null);
                 });
 
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Report.StockBalance", b =>
+                {
+                    b.Property<long>("CategoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CategoryName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProductId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(18, 4)");
+
+                    b.Property<string>("Sku")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StockCreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("StockCreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("StockDeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("StockDeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("StockUpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("StockUpdatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UomName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UomSymbol")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WarehouseCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("WarehouseId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("WarehouseName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("WarehouseStockId")
+                        .HasColumnType("bigint");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("VI_StockBalance", "dbo");
+                });
+
             modelBuilder.Entity("AspNetUserRole", b =>
                 {
                     b.HasOne("InventoryManagementSystem.Domain.Entities.AspNetRole", null)
@@ -1851,6 +1974,15 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Navigation("PurchaseOrderItem");
 
                     b.Navigation("Uom");
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.LowStockOutbox", b =>
+                {
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.Product", b =>
