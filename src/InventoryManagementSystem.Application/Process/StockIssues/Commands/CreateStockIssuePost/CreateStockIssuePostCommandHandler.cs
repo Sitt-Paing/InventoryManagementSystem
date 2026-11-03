@@ -3,6 +3,7 @@ using InventoryManagementSystem.Application.Process.StockIssues.DTOs;
 using InventoryManagementSystem.Application.Process.StockIssues.Queries.GetStockIssueById;
 using InventoryManagementSystem.Domain.Entities;
 using InventoryManagementSystem.Domain.Enums;
+using InventoryManagementSystem.Domain.Rules;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -92,9 +93,26 @@ public class CreateStockIssuePostCommandHandler : IRequestHandler<CreateStockIss
 
         foreach (var product in products)
         {
-            product.CurrentStock = await _context.WarehouseStocks
+            var previousQuantity = product.CurrentStock;
+            var currentQuantity = await _context.WarehouseStocks
                 .Where(stock => stock.ProductId == product.Id && !stock.DeletedOn.HasValue)
                 .SumAsync(stock => stock.Quantity, cancellationToken);
+
+            product.CurrentStock = currentQuantity;
+
+            if(LowStockRule.ShouldNotify(previousQuantity, currentQuantity, product.ReorderLevel))
+            {
+                var lowStockOutbox = new LowStockOutbox
+                {
+                    Id = Guid.NewGuid(),
+                    CompanyId = product.CompanyId,
+                    ProductId = product.Id,
+                    PreviousQuantity = previousQuantity,
+                    CurrentQuantity = currentQuantity,
+                    ReorderLevel = product.ReorderLevel
+                };
+                _context.LowStockOutboxes.Add(lowStockOutbox);
+            }
         }
         await _context.SaveChangesAsync(cancellationToken);
         var result = await _sender.Send(new GetStockIssueByIdQuery(issue.Id), cancellationToken);
