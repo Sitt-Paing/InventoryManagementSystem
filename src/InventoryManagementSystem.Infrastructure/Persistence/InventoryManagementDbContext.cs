@@ -58,6 +58,8 @@ public partial class InventoryManagementDbContext : DbContext
 
     public virtual DbSet<EmailOutbox> EmailOutboxes { get; set; }
 
+    public virtual DbSet<LowStockOutbox> LowStockOutboxes { get; set; }
+
     public virtual DbSet<PurchaseReturn> PurchaseReturns { get; set; }
 
     public virtual DbSet<PurchaseReturnItem> PurchaseReturnItems { get; set; }
@@ -81,6 +83,24 @@ public partial class InventoryManagementDbContext : DbContext
             entity.Property(e => e.DeletedBy).HasMaxLength(256);
             entity.HasIndex(e => new { e.Status, e.NextAttemptOn });
             entity.HasOne<PurchaseOrder>().WithMany().HasForeignKey(e => e.PurchaseOrderId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<LowStockOutbox>(entity =>
+        {
+            entity.ToTable("LowStockOutboxes");
+
+            entity.Property(e => e.CompanyId).IsRequired();
+
+            entity.HasQueryFilter(e =>
+                CurrentCompanyId.HasValue &&
+                e.CompanyId == CurrentCompanyId);
+            entity.Property(e => e.PreviousQuantity).HasPrecision(18, 4);
+            entity.Property(e => e.CurrentQuantity).HasPrecision(18, 4);
+            entity.Property(e => e.ReorderLevel).HasPrecision(18, 4);
+            entity.HasOne<Product>()
+                .WithMany()
+                .HasForeignKey(e => e.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
