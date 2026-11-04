@@ -24,4 +24,5 @@ public record UpdateProductCommand(
     decimal ReorderQuantity = 0,
     decimal Tax = 0,
     bool Status = true,
-    string? Description = null) : IRequest<ProductDto?>;
+    string? Description = null,
+    int[]? SupplierIds = null) : IRequest<ProductDto?>;
