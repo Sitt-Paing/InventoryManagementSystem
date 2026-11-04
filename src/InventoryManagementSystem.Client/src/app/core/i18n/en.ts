@@ -30,6 +30,13 @@ export const EN_DICTIONARY: Record<string, any> = {
     REPORTS : 'Reports'
   },
   HEADER: {
+    LOW_STOCK_NOTIFICATIONS: 'Low stock alerts',
+    LOW_STOCK_REFRESH: 'Refresh alerts',
+    LOW_STOCK_LOADING: 'Loading alerts…',
+    LOW_STOCK_ERROR: 'Could not load alerts. Use Refresh to try again.',
+    LOW_STOCK_EMPTY: 'No low stock alerts yet.',
+    LOW_STOCK_QUANTITY: 'Stock at alert',
+    LOW_STOCK_REORDER_LEVEL: 'Reorder level',
     SEARCH_PLACEHOLDER: 'Search...',
     SELECT_LANGUAGE: 'Select Language',
     ENGLISH: 'English',
