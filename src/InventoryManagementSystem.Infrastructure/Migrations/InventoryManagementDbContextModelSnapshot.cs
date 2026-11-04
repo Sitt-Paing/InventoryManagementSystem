@@ -614,6 +614,52 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.ToTable("GoodReceiptItems", (string)null);
                 });
 
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.LowStockNotification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("CurrentQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ProductId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("ReorderLevel")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("LowStockNotifications", (string)null);
+                });
+
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.LowStockOutbox", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1989,6 +2035,15 @@ namespace InventoryManagementSystem.Infrastructure.Migrations
                     b.Navigation("PurchaseOrderItem");
 
                     b.Navigation("Uom");
+                });
+
+            modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.LowStockNotification", b =>
+                {
+                    b.HasOne("InventoryManagementSystem.Domain.Entities.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("InventoryManagementSystem.Domain.Entities.LowStockOutbox", b =>
