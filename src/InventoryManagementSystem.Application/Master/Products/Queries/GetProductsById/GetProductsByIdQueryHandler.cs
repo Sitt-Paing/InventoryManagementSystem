@@ -16,6 +16,7 @@ public class GetProductsByIdQueryHandler : IRequestHandler<GetProductByIdQuery, 
     {
         var product = await _context.Products
             .AsNoTracking()
+            .Include(p => p.Suppliers.Where(s => s.DeletedOn == null))
             .Where(p => !p.DeletedOn.HasValue)
             .FirstOrDefaultAsync(p => p.Id == request.ProductId, cancellationToken);
         if (product == null) return null;
@@ -24,6 +25,7 @@ public class GetProductsByIdQueryHandler : IRequestHandler<GetProductByIdQuery, 
             Id = product.Id,
             Name = product.Name,
             CategoryId = product.CategoryId,
+            SupplierIds = product.Suppliers.Select(s => s.Id).ToArray(),
             BaseUomId = product.BaseUomId,
             BaseUomCode = product.BaseUom != null ? product.BaseUom.Code : null,
             BaseUomName = product.BaseUom != null ? product.BaseUom.Name : null,
