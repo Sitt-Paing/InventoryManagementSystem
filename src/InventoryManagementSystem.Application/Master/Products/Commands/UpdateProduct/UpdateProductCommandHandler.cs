@@ -19,6 +19,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
     public async Task<ProductDto?> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Products
+            .Include(p => p.Suppliers)
             .Where(x => !x.DeletedOn.HasValue)
             .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
@@ -35,6 +36,13 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             {
                 throw new InvalidOperationException("The stock unit cannot be changed while stock history exists. Existing balances and recorded quantities must be migrated together.");
             }
+        }
+
+        if (request.SupplierIds is { } supplierIds)
+        {
+            entity.Suppliers = await _context.Suppliers
+                .Where(s => supplierIds.Contains(s.Id) && s.DeletedOn == null)
+                .ToListAsync(cancellationToken);
         }
 
         entity.Name = request.Name;
@@ -62,6 +70,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             Id = entity.Id,
             Name = entity.Name,
             CategoryId = entity.CategoryId,
+            SupplierIds = entity.Suppliers.Where(s => s.DeletedOn == null).Select(s => s.Id).ToArray(),
             BaseUomId = entity.BaseUomId,
             PurchaseUomId = entity.PurchaseUomId,
             SaleUomId = entity.SaleUomId,
