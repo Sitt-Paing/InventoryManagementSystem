@@ -16,6 +16,7 @@ A full-stack inventory app with purchasing, a supplier portal, department stock 
 | --- | --- |
 | Inventory | Products, departments, warehouses, and units of measure |
 | Purchasing | Purchase orders, approval, and goods receipts |
+| Product suppliers | Assign one or more suppliers in Product Master and select linked products on purchase orders |
 | Purchase returns | Combine items from multiple GRNs; deduct stock when posted |
 | Supplier portal | Read-only PO, GRN, and return lists with search, date filters, pagination, details, and printing |
 | Supplier accounts | Manage supplier details and optional login accounts from User Management |
@@ -40,6 +41,10 @@ Purchase Order → Approval → Goods Receipt → Warehouse Stock
 Returns and issues change stock when posted. Drafts support editing and soft deletion; posted records are protected from changes.
 
 Supplier accounts share the existing layout and see only their own documents. Net received value excludes invoices and payments.
+
+In **Master > Products**, use **Suppliers** to link a product to one or more suppliers. The **Supplier** column lists their names. The **Unit** column shows the stock unit and labels distinct purchase and sales units as **Buy** and **Sell**.
+
+On a purchase order, select the supplier first to see its linked products. Changing the supplier clears item selections that do not belong to the new supplier. The supplier-link migration initializes the catalog from existing non-cancelled, non-deleted purchase orders within the same company. Link products without matching history in Product Master.
 
 ## Tech & skills
 
