@@ -126,6 +126,7 @@ export class PurchaseOrdersComponent implements OnInit {
   suppliers: SuppliersModel[] = [];
   warehouses: WarehouseModel[] = [];
   products: ProductModel[] = [];
+  supplierProducts: ProductModel[] = [];
   uoms: UnitOfMeasureModel[] = [];
 
   // Line items state for the dialog form
@@ -238,6 +239,7 @@ export class PurchaseOrdersComponent implements OnInit {
         this.suppliers = (res.suppliers?.data || []) as SuppliersModel[];
         this.warehouses = (res.warehouses?.data || []) as WarehouseModel[];
         this.products = (res.products?.data?.items || []) as ProductModel[];
+        this.filterSupplierProducts();
         this.uoms = (res.uoms?.data || []) as UnitOfMeasureModel[];
         this.cdr.markForCheck();
       }
@@ -264,6 +266,7 @@ export class PurchaseOrdersComponent implements OnInit {
       expectedDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default 7 days later
       status: PurchaseOrderStatus.Pending
     });
+    this.filterSupplierProducts();
     this.formItems = [this.createEmptyItem()];
     this.recalculateTotalAmount();
     this.modalVisible = true;
@@ -402,6 +405,7 @@ export class PurchaseOrdersComponent implements OnInit {
       status: po.status
     });
 
+    this.filterSupplierProducts();
     this.formItems = (po.items || []).map(i => ({
       id: i.id,
       purchaseOrderId: i.purchaseOrderId,
@@ -849,8 +853,25 @@ export class PurchaseOrdersComponent implements OnInit {
     }
   }
 
+  private filterSupplierProducts(): void {
+    const supplierId = this.purchaseOrderForm.controls.supplierId.value;
+    this.supplierProducts = supplierId == null
+      ? []
+      : this.products.filter(product => product.supplierIds?.includes(supplierId));
+  }
+
+  onSupplierChanged(): void {
+    this.filterSupplierProducts();
+    this.formItems = this.formItems.map(item =>
+      !item.productId || this.supplierProducts.some(product => product.id === item.productId)
+        ? item
+        : this.createEmptyItem()
+    );
+    this.recalculateTotalAmount();
+  }
+
   onProductSelected(item: PurchaseOrderItemModel): void {
-    const prod = this.products.find(p => p.id === item.productId);
+    const prod = this.supplierProducts.find(p => p.id === item.productId);
     if (prod) {
       item.productId = prod.id!;
       item.productName = prod.name;
