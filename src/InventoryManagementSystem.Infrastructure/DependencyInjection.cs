@@ -86,6 +86,8 @@ public static class DependencyInjection
         services.Configure<RabbitMqEmailSettings>(configuration.GetSection("RabbitMqEmail"));
         services.AddHostedService<PurchaseOrderEmailWorker>();
         services.AddHostedService<LowStockOutBoxPublisherWorker>();
+        services.AddScoped<LowStockNotificationWriter>();
+        services.AddHostedService<LowStockNotificationConsumerWorker>();
 
 
         var secretKey = configuration["JwtSettings:SecretKey"] ?? "SuperSecretKeyForInventoryManagementSystem_JwtToken_2026!#";
