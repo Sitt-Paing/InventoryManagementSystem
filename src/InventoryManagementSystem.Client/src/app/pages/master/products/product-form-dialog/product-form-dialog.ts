@@ -5,12 +5,15 @@ import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { CategoryModel } from '../../../../core/models/master/category.model';
 import { ProductModel } from '../../../../core/models/master/product.model';
 import { UnitOfMeasureModel } from '../../../../core/models/master/unit-of-measure.model';
+import { SuppliersModel } from '../../../../core/models/master/suppliers.model';
+import { SuppliersService } from '../../../../core/services/master/suppliers.service';
 import { ProductService } from '../../../../core/services/master/product.service';
 
 @Component({
@@ -23,6 +26,7 @@ import { ProductService } from '../../../../core/services/master/product.service
     DialogModule,
     InputTextModule,
     SelectModule,
+    MultiSelectModule,
     ButtonModule,
     ToggleSwitchModule,
     TextareaModule,
@@ -40,14 +44,18 @@ export class ProductFormDialog implements OnChanges {
   @Output() saved = new EventEmitter<void>();
 
   isSubmitting: boolean = false;
+  suppliers: SuppliersModel[] = [];
+  suppliersLoaded = false;
 
   private formBuilder = inject(FormBuilder);
+  private suppliersService = inject(SuppliersService);
   private productService = inject(ProductService);
   private messageService = inject(MessageService);
 
   public productForm = this.formBuilder.group({
     id: [null as string | null],
     name: ['', Validators.required],
+    supplierIds: this.formBuilder.nonNullable.control<number[]>([]),
     categoryId: [null as number | null, Validators.required],
     baseUomId: [null as number | null, Validators.required],
     purchaseUomId: [null as number | null],
@@ -68,11 +76,19 @@ export class ProductFormDialog implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['visible'] && this.visible) {
+      this.suppliersLoaded = false;
+      this.suppliersService.get().subscribe({
+        next: (res) => {
+          this.suppliers = (res.data || []) as SuppliersModel[];
+          this.suppliersLoaded = true;
+        }
+      });
       if (this.isEdit && this.product) {
         this.productForm.patchValue({
           id: this.product.id || null,
           name: this.product.name,
           categoryId: Number(this.product.categoryId),
+          supplierIds: this.product.supplierIds ?? [],
           baseUomId: this.product.baseUomId ? Number(this.product.baseUomId) : (this.availableUoms.length > 0 ? this.availableUoms[0].id : null),
           purchaseUomId: this.product.purchaseUomId ? Number(this.product.purchaseUomId) : null,
           saleUomId: this.product.saleUomId ? Number(this.product.saleUomId) : null,
@@ -131,6 +147,7 @@ export class ProductFormDialog implements OnChanges {
     const payload: ProductModel = {
       name: formVal.name!,
       categoryId: formVal.categoryId!,
+      supplierIds: this.suppliersLoaded ? formVal.supplierIds : undefined,
       baseUomId: Number(formVal.baseUomId!),
       purchaseUomId: formVal.purchaseUomId ? Number(formVal.purchaseUomId) : null,
       saleUomId: formVal.saleUomId ? Number(formVal.saleUomId) : null,
