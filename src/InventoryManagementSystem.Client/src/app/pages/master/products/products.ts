@@ -148,8 +148,8 @@ export class Products implements OnInit {
     });
   }
 
-  getUomSymbol(uomId?: number | null): string {
-    return this.availableUoms.find(uom => uom.id === uomId)?.symbol?.trim() || '—';
+  getUomSymbol(uomId?: number | null, fallback?: string): string {
+    return this.availableUoms.find(uom => uom.id === uomId)?.symbol?.trim() || fallback || '—';
   }
 
   private updateUomSymbols(): void {
