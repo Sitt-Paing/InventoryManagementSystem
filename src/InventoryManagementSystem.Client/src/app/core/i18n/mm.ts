@@ -30,6 +30,13 @@ export const MM_DICTIONARY: Record<string, any> = {
     REPORTS: 'မှတ်တမ်းများ',
   },
   HEADER: {
+    LOW_STOCK_NOTIFICATIONS: 'လက်ကျန်နည်း အသိပေးချက်များ',
+    LOW_STOCK_REFRESH: 'အသိပေးချက်များ ပြန်ဖတ်ရန်',
+    LOW_STOCK_LOADING: 'အသိပေးချက်များ ဖတ်နေပါသည်…',
+    LOW_STOCK_ERROR: 'အသိပေးချက်များ ဖတ်မရပါ။ ပြန်ဖတ်ရန် ခလုတ်ကို နှိပ်ပါ။',
+    LOW_STOCK_EMPTY: 'လက်ကျန်နည်း အသိပေးချက် မရှိသေးပါ။',
+    LOW_STOCK_QUANTITY: 'အသိပေးချိန် လက်ကျန်',
+    LOW_STOCK_REORDER_LEVEL: 'ပြန်မှာယူရမည့်အဆင့်',
     SEARCH_PLACEHOLDER: 'ရှာဖွေရန်...',
     SELECT_LANGUAGE: 'ဘာသာစကား ရွေးချယ်ပါ',
     ENGLISH: 'English',
