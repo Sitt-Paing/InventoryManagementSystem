@@ -144,6 +144,11 @@ public partial class InventoryManagementDbContext : IApplicationDbContext
                     v => ParseGuidOrDefault(v)
                 );
 
+            entity.HasMany(e => e.Suppliers).WithMany()
+                .UsingEntity("ProductSuppliers",
+                    right => right.HasOne(typeof(Supplier)).WithMany().HasForeignKey("SupplierId"),
+                    left => left.HasOne(typeof(Product)).WithMany().HasForeignKey("ProductId"));
+
             entity.HasIndex(e => e.Sku, "IX_Products_Sku")
                 .IsUnique()
                 .HasFilter("[DeletedOn] IS NULL AND [SKU] IS NOT NULL");
