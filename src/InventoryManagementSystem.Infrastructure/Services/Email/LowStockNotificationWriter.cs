@@ -17,10 +17,10 @@ public sealed class LowStockNotificationWriter
 
     public LowStockNotificationWriter(
         InventoryManagementDbContext context,
-        IOptions<DbContextOptions<InventoryManagementDbContext>> options)
+        DbContextOptions<InventoryManagementDbContext> options)
     {
         _context = context;
-        _options = options.Value;
+        _options = options;
     }
 
     public async Task<bool> CreateAsync(Guid outBoxId, CancellationToken cancellationToken)
@@ -29,7 +29,7 @@ public sealed class LowStockNotificationWriter
             .IgnoreQueryFilters()
             .AsNoTracking()
             .FirstOrDefaultAsync(row => row.Id == outBoxId && !row.DeletedOn.HasValue, cancellationToken);
-        if (existing != null)
+        if (existing == null)
         {
             return false;
         }
