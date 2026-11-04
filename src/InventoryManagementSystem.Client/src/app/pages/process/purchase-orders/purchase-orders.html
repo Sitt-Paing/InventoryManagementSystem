@@ -191,7 +191,7 @@
                 <div class="col-span-12 lg:col-span-4 flex flex-col gap-1">
                     <label class="text-xs font-semibold">Supplier *</label>
                     <p-select formControlName="supplierId" [options]="suppliers" optionLabel="companyName"
-                        optionValue="id" placeholder="Select Supplier" [filter]="true" filterBy="companyName"
+                        (onChange)="onSupplierChanged()" optionValue="id" placeholder="Select Supplier" [filter]="true" filterBy="companyName"
                         appendTo="body" [fluid]="true" class="w-full">
                     </p-select>
                     @if(purchaseOrderForm.controls['supplierId'].invalid && purchaseOrderForm.get('supplierId')?.dirty){
@@ -254,8 +254,10 @@
                             <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 text-slate-800 dark:text-slate-200">
                                 <td class="p-1">
                                     <p-select [(ngModel)]="item.productId" [ngModelOptions]="{standalone: true}"
-                                        [options]="products" optionLabel="name" optionValue="id"
-                                        placeholder="Select Product" [filter]="true" filterBy="name,sku"
+                                        [options]="supplierProducts" optionLabel="name" optionValue="id"
+                                        [disabled]="!purchaseOrderForm.controls.supplierId.value"
+                                        [placeholder]="item.productName || (purchaseOrderForm.controls.supplierId.value ? 'Select Product' : 'Select Supplier First')"
+                                        emptyMessage="No products linked to this supplier" [filter]="true" filterBy="name,sku"
                                         (onChange)="onProductSelected(item)" appendTo="body" class="w-full text-xs">
                                     </p-select>
                                 </td>
