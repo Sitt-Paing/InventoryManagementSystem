@@ -13,6 +13,7 @@ import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { NAVIGATION_MENU, SUPPLIER_NAVIGATION_MENU, NavigationMenuGroup, NavigationMenuItem } from '../../app.menu';
 import { BarcodeScannerDialog } from '../../shared/components/barcode-scanner-dialog/barcode-scanner-dialog';
+import { LowStockNotifications } from './low-stock-notifications';
 
 export interface BreadcrumbInfo {
   parent: string;
@@ -30,7 +31,8 @@ export interface BreadcrumbInfo {
     ButtonModule,
     MenuModule,
     TranslatePipe,
-    BarcodeScannerDialog
+    BarcodeScannerDialog,
+    LowStockNotifications
   ],
   templateUrl: './app-header.html',
   styleUrl: './app-header.scss'
@@ -83,6 +85,10 @@ export class AppHeader implements OnInit, OnDestroy {
 
   get isSupplier(): boolean {
     return this.authService.isSupplierAccount();
+  }
+
+  get notificationCompanyId(): number | null {
+    return this.isSupplier ? null : this.authService.getCompanyId();
   }
 
   get userInitial(): string {
