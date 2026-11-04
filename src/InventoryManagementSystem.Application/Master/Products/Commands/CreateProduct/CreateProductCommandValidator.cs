@@ -1,4 +1,6 @@
 using FluentValidation;
+using InventoryManagementSystem.Application.Common.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,8 +9,12 @@ namespace InventoryManagementSystem.Application.Master.Products.Commands.CreateP
 
 public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
 {
-    public CreateProductCommandValidator()
+    public CreateProductCommandValidator(IApplicationDbContext context)
     {
+        RuleFor(x => x.SupplierIds)
+            .MustAsync(async (ids, ct) => ids is null || await context.Suppliers
+                .CountAsync(s => ids.Contains(s.Id) && s.DeletedOn == null, ct) == ids.Distinct().Count())
+            .WithMessage("Select suppliers that belong to the current company.");
         RuleFor(x => x.Name).NotEmpty().WithMessage("Product Name is required.").MaximumLength(250).WithMessage("Product Name must not exceed 250 characters.");
         RuleFor(x => x.CategoryId).GreaterThan(0).WithMessage("Category is required.");
         RuleFor(x => x.BaseUomId).GreaterThan(0).WithMessage("Base Unit of Measure is required.");
