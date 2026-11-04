@@ -1,0 +1,65 @@
+.notification-button {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.notification-button:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+.notification-button:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.notification-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.notification-panel {
+  width: min(19rem, calc(100vw - 4rem));
+  color: var(--text-main);
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+
+.notification-heading,
+.notification-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.notification-heading {
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.5rem;
+}
+
+.notification-heading h2 {
+  font-weight: 650;
+}
+
+.notification-list {
+  max-height: min(21rem, 55dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.notification-list li {
+  border-top: 1px solid var(--border-color);
+  padding: 0.625rem 0;
+}
+
+.notification-state,
+.notification-details,
+.notification-list time {
+  color: var(--text-muted);
+}
