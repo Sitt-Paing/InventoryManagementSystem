@@ -5,10 +5,10 @@
 ![Angular](https://img.shields.io/badge/Angular-20-DD0031)
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4)
 ![SQL Server](https://img.shields.io/badge/SQL_Server-Database-CC2927)
-![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Email_Queue-FF6600)
+![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Email_and_Stock_Alerts-FF6600)
 ![Redis](https://img.shields.io/badge/Redis-Dashboard_Cache-DC382D)
 
-A full-stack inventory app with purchasing, a supplier portal, department stock issues, barcode lookup, queued email, company-based access, and an AI-assisted inventory dashboard.
+A full-stack inventory app with purchasing, a supplier portal, department stock issues, low stock alerts, barcode lookup, queued email, company-based access, and an AI-assisted inventory dashboard.
 
 ## Highlights
 
@@ -22,6 +22,7 @@ A full-stack inventory app with purchasing, a supplier portal, department stock 
 | Supplier accounts | Manage supplier details and optional login accounts from User Management |
 | Amounts | Snapshot GRN/return prices, MMK totals, and a supplier dashboard showing received value minus posted returns |
 | Stock issues | Issue items to departments; barcode/SKU entry, Draft → Posted workflow, and stock deduction |
+| Low stock alerts | Posted stock issues can trigger company-scoped alerts in the Angular header |
 | Barcodes | Generate product barcodes and look up items with a scanner or SKU |
 | Queued email | Purchase-order emails through RabbitMQ, a database outbox, and SMTP |
 | Authentication | HttpOnly JWT cookies, refresh tokens, CSRF protection, and separate company/supplier permissions |
@@ -94,6 +95,26 @@ dotnet user-secrets set "RabbitMqEmail:Enabled" "true" --project src/InventoryMa
 ```
 
 Configure `SmtpSettings` through API user secrets, then restart the API. The email worker is disabled by default in Development.
+
+### Optional: low stock alerts
+
+Start Docker Desktop and run the local RabbitMQ broker from the repository root:
+
+~~~powershell
+docker compose -f compose.email.yml up -d
+~~~
+
+Both workers are enabled in `appsettings.Development.json` through `LowStockNotifications:PublisherEnabled` and `LowStockNotifications:ConsumerEnabled`. They share the broker connection settings under `RabbitMqEmail`. You can run low stock alerts with the purchase-order email worker disabled and without configuring SMTP.
+
+A posted **Stock Issue** creates an alert when a product's total stock across the company moves from above a positive **Reorder Level** to that level or below. A product that stays below the threshold does not trigger another alert.
+
+~~~text
+Stock Issue Post → SQL outbox → RabbitMQ → Consumer → SQL notifications → Angular bell
+~~~
+
+To test, select a company, choose a product with total stock **15** and reorder level **10**, then post a stock issue for **5** from a warehouse with enough stock. Open the **Low stock alerts** bell in the header and look for the product with **Stock at alert: 10** and **Reorder level: 10**. Open the bell again or use **Refresh alerts** if the worker is still processing. The panel shows the latest 20 alerts for the selected company.
+
+If an alert does not appear, check `LowStockOutboxes` for the event and its `PublishedOn` timestamp. The queue `inventory.low-stock-notifications` is visible in [RabbitMQ Management](http://localhost:15672). After the consumer saves the alert, the row in `LowStockNotifications` has the same ID as the outbox row.
 
 ### Optional: AI inventory dashboard
 
