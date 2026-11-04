@@ -49,6 +49,10 @@
     </button>
     }
 
+    @if (notificationCompanyId; as companyId) {
+      <app-low-stock-notifications [companyId]="companyId" />
+    }
+
     <!-- Language Selector Pill & Dropdown -->
     <div class="relative">
       <button
