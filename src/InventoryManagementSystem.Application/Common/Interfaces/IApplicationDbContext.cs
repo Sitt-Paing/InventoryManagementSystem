@@ -1,6 +1,7 @@
 using InventoryManagementSystem.Domain.Entities;
 using InventoryManagementSystem.Domain.Report;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace InventoryManagementSystem.Application.Common.Interfaces;
 
@@ -30,7 +31,7 @@ public interface IApplicationDbContext
     DbSet<StockIssue> StockIssues { get; }
     DbSet<StockIssueItem> StockIssueItems { get; }
 
-    Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTransactionAsync(
+    Task<IDbContextTransaction> BeginTransactionAsync(
         CancellationToken cancellationToken = default,
         System.Data.IsolationLevel isolationLevel = System.Data.IsolationLevel.Serializable);
 
