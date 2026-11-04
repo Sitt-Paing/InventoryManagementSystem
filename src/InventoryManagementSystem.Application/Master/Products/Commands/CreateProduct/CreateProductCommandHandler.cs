@@ -47,6 +47,13 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             Sku = sku
         };
 
+        if (request.SupplierIds is { Length: > 0 } supplierIds)
+        {
+            entity.Suppliers = await _context.Suppliers
+                .Where(s => supplierIds.Contains(s.Id) && s.DeletedOn == null)
+                .ToListAsync(cancellationToken);
+        }
+
         _context.Products.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -55,6 +62,7 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             Id = entity.Id,
             Name = entity.Name,
             CategoryId = entity.CategoryId,
+            SupplierIds = entity.Suppliers.Select(s => s.Id).ToArray(),
             BaseUomId = entity.BaseUomId,
             PurchaseUomId = entity.PurchaseUomId,
             SaleUomId = entity.SaleUomId,
