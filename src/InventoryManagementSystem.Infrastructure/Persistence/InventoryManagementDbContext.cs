@@ -60,6 +60,8 @@ public partial class InventoryManagementDbContext : DbContext
 
     public virtual DbSet<LowStockOutbox> LowStockOutboxes { get; set; }
 
+    public virtual DbSet<LowStockNotification> LowStockNotifications { get; set; }
+
     public virtual DbSet<PurchaseReturn> PurchaseReturns { get; set; }
 
     public virtual DbSet<PurchaseReturnItem> PurchaseReturnItems { get; set; }
@@ -96,6 +98,20 @@ public partial class InventoryManagementDbContext : DbContext
                 CurrentCompanyId.HasValue &&
                 e.CompanyId == CurrentCompanyId);
             entity.Property(e => e.PreviousQuantity).HasPrecision(18, 4);
+            entity.Property(e => e.CurrentQuantity).HasPrecision(18, 4);
+            entity.Property(e => e.ReorderLevel).HasPrecision(18, 4);
+            entity.HasOne<Product>()
+                .WithMany()
+                .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<LowStockNotification>(entity =>
+        {
+            entity.ToTable("LowStockNotifications");
+            entity.Property(e => e.CompanyId).IsRequired();
+            entity.HasQueryFilter(e =>
+                CurrentCompanyId.HasValue && e.CompanyId == CurrentCompanyId);
             entity.Property(e => e.CurrentQuantity).HasPrecision(18, 4);
             entity.Property(e => e.ReorderLevel).HasPrecision(18, 4);
             entity.HasOne<Product>()
