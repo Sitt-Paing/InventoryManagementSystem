@@ -3,6 +3,8 @@ export interface ProductModel {
     sku?: string;
     name: string;
     categoryId: number;
+    supplierIds?: number[];
+    supplierNames?: string[];
     categoryName?: string;
     brand?: string;
     unit?: string;
