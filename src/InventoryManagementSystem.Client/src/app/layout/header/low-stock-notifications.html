@@ -1,0 +1,45 @@
+<button
+  type="button"
+  class="notification-button"
+  [attr.aria-label]="'HEADER.LOW_STOCK_NOTIFICATIONS' | translate"
+  [title]="'HEADER.LOW_STOCK_NOTIFICATIONS' | translate"
+  (click)="panel.toggle($event)">
+  <i class="pi pi-bell" aria-hidden="true"></i>
+</button>
+
+<p-popover #panel appendTo="body" ariaLabelledBy="low-stock-heading"
+  (onShow)="load()" (onHide)="clear()">
+  <section class="notification-panel" [attr.aria-busy]="loading()">
+    <div class="notification-heading">
+      <h2 id="low-stock-heading">{{ 'HEADER.LOW_STOCK_NOTIFICATIONS' | translate }}</h2>
+      <button type="button" class="notification-button"
+        [attr.aria-label]="'HEADER.LOW_STOCK_REFRESH' | translate"
+        [title]="'HEADER.LOW_STOCK_REFRESH' | translate"
+        [disabled]="loading()" (click)="load()">
+        <i class="pi pi-refresh" aria-hidden="true"></i>
+      </button>
+    </div>
+    @if (loading()) {
+      <p class="notification-state" role="status">{{ 'HEADER.LOW_STOCK_LOADING' | translate }}</p>
+    } @else if (failed()) {
+      <p class="notification-state" role="alert">{{ 'HEADER.LOW_STOCK_ERROR' | translate }}</p>
+    } @else if (!notifications().length) {
+      <p class="notification-state">{{ 'HEADER.LOW_STOCK_EMPTY' | translate }}</p>
+    } @else {
+      <ul class="notification-list">
+        @for (notification of notifications(); track notification.id) {
+          <li>
+            <strong>{{ notification.productName }}</strong>
+            <div class="notification-details">
+              <span>{{ 'HEADER.LOW_STOCK_QUANTITY' | translate }}: {{ notification.currentQuantity | number:'1.0-4' }}</span>
+              <span>{{ 'HEADER.LOW_STOCK_REORDER_LEVEL' | translate }}: {{ notification.reorderLevel | number:'1.0-4' }}</span>
+            </div>
+            @if (notification.createdOn) {
+              <time [attr.datetime]="notification.createdOn">{{ notification.createdOn | date:'short' }}</time>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </section>
+</p-popover>
