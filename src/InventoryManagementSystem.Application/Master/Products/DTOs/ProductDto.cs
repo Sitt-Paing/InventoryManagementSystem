@@ -6,6 +6,8 @@ public record ProductDto
     public required string Name { get; set; }
     public string? Sku { get; set; }
     public string? Barcode { get; set; }
+    public int[] SupplierIds { get; set; } = [];
+    public string[] SupplierNames { get; set; } = [];
     public long CategoryId { get; set; }
     public string? Brand { get; set; }
     public string? Unit { get; set; }
