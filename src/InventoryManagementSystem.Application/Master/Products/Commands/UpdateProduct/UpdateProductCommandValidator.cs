@@ -1,4 +1,6 @@
 using FluentValidation;
+using InventoryManagementSystem.Application.Common.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,8 +9,12 @@ namespace InventoryManagementSystem.Application.Master.Products.Commands.UpdateP
 
 public class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
 {
-    public UpdateProductCommandValidator()
+    public UpdateProductCommandValidator(IApplicationDbContext context)
     {
+        RuleFor(x => x.SupplierIds)
+            .MustAsync(async (ids, ct) => ids is null || await context.Suppliers
+                .CountAsync(s => ids.Contains(s.Id) && s.DeletedOn == null, ct) == ids.Distinct().Count())
+            .WithMessage("Select suppliers that belong to the current company.");
         RuleFor(v => v.Id)
             .NotEmpty()
             .WithMessage("Valid Product Id is required.");
