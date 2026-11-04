@@ -50,6 +50,9 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, PagedRe
                 Id = p.Id,
                 Name = p.Name,
                 CategoryId = p.CategoryId,
+                SupplierIds = p.Suppliers.Where(s => s.DeletedOn == null).Select(s => s.Id).ToArray(),
+                SupplierNames = p.Suppliers.Where(s => s.DeletedOn == null)
+                    .OrderBy(s => s.CompanyName).Select(s => s.CompanyName).ToArray(),
                 BaseUomId = p.BaseUomId,
                 BaseUomCode = p.BaseUom != null ? p.BaseUom.Code : null,
                 BaseUomName = p.BaseUom != null ? p.BaseUom.Name : null,
