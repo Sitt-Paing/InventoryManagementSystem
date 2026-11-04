@@ -13,6 +13,9 @@ public partial class Product : BaseAuditableEntity<Guid>, IMustHaveCompany
 
     public string? Sku { get; set; }
 
+    [JsonIgnore]
+    public ICollection<Supplier> Suppliers { get; set; } = new List<Supplier>();
+
     public long CategoryId { get; set; }
 
     public string? Brand { get; set; }
