@@ -4,7 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, distinctUntilChanged, interval, map, of } from 'rxjs';
-import { DashboardFacts, DashboardGeneration, DashboardWidget } from '../../core/models/process/dashboard.model';
+import { DashboardFacts, DashboardGeneration, DashboardProductStock, DashboardWidget } from '../../core/models/process/dashboard.model';
 import { DashboardService } from '../../core/services/process/dashboard.service';
 import { TranslationService } from '../../core/services/translation.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -96,19 +96,29 @@ export class DashboardComponent {
       }
     ];
     const facts = this.facts();
-    if (facts?.productStocks.length && facts.productStocks.every(row => row.baseUnit.trim()) &&
-      new Set(facts.productStocks.map(row => row.baseUnit.trim().toUpperCase())).size === 1) {
+    const stockGroups = new Map<string, DashboardProductStock[]>();
+    for (const row of facts?.productStocks ?? []) {
+      const unit = row.baseUnit.trim().toUpperCase();
+      if (!unit) continue;
+      const group = stockGroups.get(unit) ?? [];
+      group.push(row);
+      stockGroups.set(unit, group);
+    }
+    const stockGroup = [...stockGroups.values()].sort((a, b) => b.length - a.length)[0];
+    if (stockGroup) {
+      const ranked = [...stockGroup].sort((a, b) => b.availableQuantity - a.availableQuantity);
       widgets.splice(2, 0, {
-        id: 'standard-stock-chart', type: 'bar_chart', datasetKey: 'productStocks',
-        title: text('DASHBOARD.STOCK_OVERVIEW'), description: text('DASHBOARD.STOCK_DESCRIPTION'), productIds: [],
+        id: 'standard:stock-chart', type: 'bar_chart', datasetKey: 'productStocks',
+        title: text('DASHBOARD.STOCK_OVERVIEW'), description: text('DASHBOARD.STOCK_DESCRIPTION'),
+        productIds: ranked.slice(0, 12).map(row => row.productId),
         labels: [label('productName', 'COMMON.NAME'), label('availableQuantity', 'COMMON.QUANTITY')]
       });
-      if (facts.productStocks.length >= 2 && facts.productStocks.length <= 8 &&
-        facts.productStocks.every(row => row.availableQuantity >= 0) &&
-        facts.productStocks.some(row => row.availableQuantity > 0)) {
+      const shareProducts = ranked.filter(row => row.availableQuantity >= 0).slice(0, 8);
+      if (shareProducts.length >= 2 && shareProducts[0].availableQuantity > 0) {
         widgets.splice(3, 0, {
-          id: 'standard-stock-share', type: 'doughnut_chart', datasetKey: 'productStocks',
-          title: text('DASHBOARD.STOCK_SHARE'), description: text('DASHBOARD.STOCK_SHARE_DESCRIPTION'), productIds: [],
+          id: 'standard:stock-share', type: 'doughnut_chart', datasetKey: 'productStocks',
+          title: text('DASHBOARD.STOCK_SHARE'), description: text('DASHBOARD.STOCK_SHARE_DESCRIPTION'),
+          productIds: shareProducts.map(row => row.productId),
           labels: [label('productName', 'COMMON.NAME'), label('availableQuantity', 'COMMON.QUANTITY')]
         });
       }
@@ -124,7 +134,7 @@ export class DashboardComponent {
     if (selectedUsage.length && selectedUsage.every(row => row.baseUnit.trim()) &&
       new Set(selectedUsage.map(row => row.baseUnit.trim().toUpperCase())).size === 1) {
       widgets.splice(3, 0, {
-        id: 'standard-usage-chart', type: 'area_chart', datasetKey: 'dailyProductUsage',
+        id: 'standard:usage-chart', type: 'area_chart', datasetKey: 'dailyProductUsage',
         title: text('DASHBOARD.USAGE_OVERVIEW'), description: text('DASHBOARD.USAGE_DESCRIPTION'), productIds: eligibleIds,
         labels: [label('date', 'COMMON.DATE'), label('issuedQuantity', 'COMMON.QUANTITY')]
       });
@@ -132,7 +142,15 @@ export class DashboardComponent {
     return widgets;
   });
 
-  readonly widgets = computed(() => this.dashboard()?.definition.widgets ?? this.standardWidgets());
+  readonly widgets = computed(() => {
+    const aiWidgets = this.dashboard()?.definition.widgets;
+    if (!aiWidgets) return this.standardWidgets();
+
+    const isChart = (widget: DashboardWidget) => widget.type !== 'metric_card' && widget.type !== 'table';
+    if (aiWidgets.some(isChart)) return aiWidgets;
+
+    return [...this.standardWidgets().filter(isChart), ...aiWidgets];
+  });
   readonly metricWidgets = computed(() => this.widgets().filter(widget => widget.type === 'metric_card'));
   readonly detailWidgets = computed(() => this.widgets().filter(widget => widget.type !== 'metric_card'));
 
